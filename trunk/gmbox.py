@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import re,urllib,urllib2,sys
+import re,urllib,urllib2,sys,os
 from HTMLParser import HTMLParser
 
 reload(sys)
@@ -81,9 +81,12 @@ class SongParser(HTMLParser):
 
 class Download:
     def __init__(self, remote_uri, local_uri):
-        print "saving",local_uri
-        urllib.urlretrieve(remote_uri, local_uri, self.update_progress)
-        print
+        if os.path.exists(local_uri):
+            print local_uri,"已存在!"
+        else:
+            print "正在下载:",local_uri
+            urllib.urlretrieve(remote_uri, local_uri, self.update_progress)
+            print
     def update_progress(self, blocks, block_size, total_size):
         if total_size>0 :
             percentage = float(blocks * block_size) / total_size * 100
