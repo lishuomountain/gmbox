@@ -5,7 +5,12 @@ from HTMLParser import HTMLParser
 
 reload(sys)
 sys.setdefaultencoding('utf8')
-url="http://www.google.cn/music/chartlisting?q=chinese_new_songs_cn&cat=song&grouping=new-release_music"
+songlist={
+u'华语新歌':('chinese_new_songs_cn',100),
+u'欧美新歌':('ea_new_songs_cn',100),
+u'华语热歌':('chinese_songs_cn',200)
+}
+urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
 
 def unistr(m):
     return unichr(int(m.group(1)))
@@ -85,26 +90,44 @@ class Download:
             print local_uri,"已存在!"
         else:
             print "正在下载:",local_uri
-            urllib.urlretrieve(remote_uri, local_uri, self.update_progress)
+            urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
+            os.rename(local_uri+'.downloading', local_uri)
             print
     def update_progress(self, blocks, block_size, total_size):
         if total_size>0 :
-            percentage = float(blocks * block_size) / total_size * 100
+            percentage = float(blocks) / (total_size/block_size+1) * 100
             print '\r['+''.join(['=' for i in range((int)(percentage/2))])+'>'+ \
                 ''.join([' ' for i in range((int)(50-percentage/2))])+ \
                 (']  %0.2f%%' % percentage),
         
         
-html=urllib2.urlopen(url)
-#html=open("./t")
-str=html.read()
-p=ListParser()
-p.feed(re.sub(r'&#([0-9]{5});',unistr,str))
-#print p
+class Lists:
+    def __init__(self,stype):
+        self.songlist=[]
+        if stype in songlist:
+            p=ListParser()
+            for i in range(0,songlist[stype][1],25):
+                html=urllib2.urlopen(urltemplate%(songlist[stype][0],i)).read()
+                p.feed(re.sub(r'&#([0-9]{5});',unistr,html))
+            self.songlist=p.songlist
+        else:
+            #raise Exception
+            print "Error stype."
 
-for song in p.songlist:
+    def __str__(self):
+        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+            (song['title'],song['artist'],song['id']) for song in self.songlist])
+        
+l=Lists(u'华语新歌')
+#print l
+
+for song in l.songlist:
+    local_uri=song['title']+'-'+song['artist']+'.mp3'
+    if os.path.exists(local_uri):
+        print local_uri,"已存在!"
+        continue
     songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
     s=SongParser()
     s.feed(urllib2.urlopen(songurl).read())
-    Download(s.url,song['title']+'-'+song['artist']+'.mp3')
+    Download(s.url,local_uri)
     
