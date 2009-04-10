@@ -87,9 +87,9 @@ class SongParser(HTMLParser):
 class Download:
     def __init__(self, remote_uri, local_uri):
         if os.path.exists(local_uri):
-            print local_uri,"已存在!"
+            print local_uri,u'已存在!'
         else:
-            print "正在下载:",local_uri
+            print u'正在下载:',local_uri
             urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
             os.rename(local_uri+'.downloading', local_uri)
             print
@@ -124,7 +124,7 @@ l=Lists(u'华语新歌')
 for song in l.songlist:
     local_uri=song['title']+'-'+song['artist']+'.mp3'
     if os.path.exists(local_uri):
-        print local_uri,"已存在!"
+        print local_uri,u'已存在!'
         continue
     songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
     s=SongParser()
