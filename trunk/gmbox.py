@@ -92,7 +92,7 @@ class Download:
             print u'正在下载:',local_uri
             urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
             os.rename(local_uri+'.downloading', local_uri)
-            print '\r['+''.join(['=' for i in range(50)])+'] 100.00%'
+            print '\r['+''.join(['=' for i in range(50)])+'] 100.00%      '
     def update_progress(self, blocks, block_size, total_size):
         if total_size>0 :
             percentage = float(blocks) / (total_size/block_size+1) * 100
