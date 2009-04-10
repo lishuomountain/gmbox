@@ -5,7 +5,7 @@ from HTMLParser import HTMLParser
 
 reload(sys)
 sys.setdefaultencoding('utf8')
-songlist={
+songlists={
 u'华语新歌':('chinese_new_songs_cn',100),
 u'欧美新歌':('ea_new_songs_cn',100),
 u'华语热歌':('chinese_songs_cn',200)
@@ -92,7 +92,7 @@ class Download:
             print u'正在下载:',local_uri
             urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
             os.rename(local_uri+'.downloading', local_uri)
-            print
+            print '\r['+''.join(['=' for i in range(50)])+'] 100.00%'
     def update_progress(self, blocks, block_size, total_size):
         if total_size>0 :
             percentage = float(blocks) / (total_size/block_size+1) * 100
@@ -104,10 +104,10 @@ class Download:
 class Lists:
     def __init__(self,stype):
         self.songlist=[]
-        if stype in songlist:
+        if stype in songlists:
             p=ListParser()
-            for i in range(0,songlist[stype][1],25):
-                html=urllib2.urlopen(urltemplate%(songlist[stype][0],i)).read()
+            for i in range(0,songlists[stype][1],25):
+                html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
                 p.feed(re.sub(r'&#([0-9]{5});',unistr,html))
             self.songlist=p.songlist
         else:
