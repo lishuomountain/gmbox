@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import re,urllib,urllib2,sys,os
+import re,urllib,urllib2,sys,os,time
 from HTMLParser import HTMLParser
 
 reload(sys)
@@ -29,6 +29,13 @@ urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
 
 def unistr(m):
     return unichr(int(m.group(1)))
+def sizeread(size):
+    if size>1024*1024:
+        return '%0.2fMB' % (float(size)/1024/1024)
+    elif size>1024:
+        return '%0.2fKB' % (float(size)/1024)
+    else:
+        return '%dB' % size
 
 class ListParser(HTMLParser):
     def __init__(self):
@@ -39,10 +46,7 @@ class ListParser(HTMLParser):
             'artist':'',
             'id':''}
         self.tmpsong=self.songtemplate.copy()
-        self.isa=0
-        self.ispan=0
-        self.insongtable=0
-        self.tdclass=''
+        (self.isa,self.ispan,self.insongtable,self.tdclass)=(0,0,0,'')
     
     def handle_starttag(self, tag, attrs):
         if tag == 'a':
@@ -108,15 +112,22 @@ class Download:
             print local_uri,u'已存在!'
         else:
             print u'正在下载:',local_uri
+            self.T=self.startT=time.time()
+            (self.D,self.speed)=(0,0)
             urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
             os.rename(local_uri+'.downloading', local_uri)
-            print '\r['+''.join(['=' for i in range(50)])+'] 100.00%      '
+            speed=os.stat(local_uri).st_size/(time.time()-self.startT)
+            print '\r['+''.join(['=' for i in range(50)])+ \
+                '] 100.00%%  %s/s       '%sizeread(speed)
     def update_progress(self, blocks, block_size, total_size):
         if total_size>0 :
             percentage = float(blocks) / (total_size/block_size+1) * 100
+            if int(time.time()) != int(self.T):
+                self.speed=(blocks*block_size-self.D)/(time.time()-self.T)
+                (self.D,self.T)=(blocks*block_size,time.time())
             print '\r['+''.join(['=' for i in range((int)(percentage/2))])+'>'+ \
                 ''.join([' ' for i in range((int)(50-percentage/2))])+ \
-                (']  %0.2f%%' % percentage),
+                (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
         
         
 class Lists:
