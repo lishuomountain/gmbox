@@ -147,7 +147,7 @@ class Lists:
             print 'done!'
         else:
             #raise Exception
-            print u'未知列表:"'+stype+'",仅支持以下列表: '+u'、'.join(
+            print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
             ['"%s"'%key for key in songlists])
 
     def __str__(self):

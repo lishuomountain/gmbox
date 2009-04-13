@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os,gtk
+import os,gtk,sys
 import gmbox
 
 (COL_NUM, COL_TITLE,
@@ -46,7 +46,7 @@ class MainWindow(gtk.Window):
         
         
     def doSearch(self,widget,opt):
-	text=opt.get_active_text()
+	text=opt.get_active_text().decode(sys.stdin.encoding)
 	l=gmbox.Lists(text);
 
     def setTreeView(self):
