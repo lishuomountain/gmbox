@@ -14,8 +14,9 @@ class MainWindow():
 	self.window = self.xml.get_widget("window_main")
 
         self.window.set_title('GMBox')
-	self.window.show_all();
+        self.window.set_default_size(800, 600)
         self.window.connect('destroy', gtk.main_quit)      
+	self.window.show_all();
 
 def main():
     win = MainWindow();
