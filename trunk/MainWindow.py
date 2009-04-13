@@ -21,17 +21,15 @@ class MainWindow(gtk.Window):
         #label = gtk.Label('/'.join(
         #['%s'%key for key in gmbox.songlists]))
         #vbox.pack_start(label, False)
-        opt = gtk.OptionMenu()
-        menu = gtk.Menu()
+	opt = gtk.combo_box_new_text()
         for slist in gmbox.songlists:
-            menu.append(gtk.MenuItem(slist))
-        opt.set_menu(menu)
+            	opt.append_text(slist)
         hbox.pack_start(opt, False)
         button = gtk.Button('获取列表')
         size = button.size_request()
         button.set_size_request(size[0]+50, -1)
         opt.set_size_request(size[0]+150, -1)
-        #button.connect('clicked', self.doSearch, None)
+        button.connect('clicked', self.doSearch, opt)
         hbox.pack_start(button, False)
         vbox.pack_start(hbox, False)
         
@@ -47,6 +45,10 @@ class MainWindow(gtk.Window):
         self.set_default_size(800, 600)
         
         
+    def doSearch(self,widget,opt):
+	text=opt.get_active_text()
+	l=gmbox.Lists(text);
+
     def setTreeView(self):
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
         self.model = gtk.ListStore(str, str, str, str, str, str)
