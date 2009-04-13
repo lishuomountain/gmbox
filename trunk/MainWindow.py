@@ -4,9 +4,7 @@
 import os,gtk,sys
 import gmbox
 
-(COL_NUM, COL_TITLE,
- COL_ARTIST, COL_ALBUM,
- COL_SIZE, COL_URL) = range(6)
+(COL_NUM, COL_TITLE, COL_ARTIST) = range(3)
 class MainWindow(gtk.Window):
     def __init__(self, parent=None):
         gtk.Window.__init__(self)
@@ -21,9 +19,9 @@ class MainWindow(gtk.Window):
         #label = gtk.Label('/'.join(
         #['%s'%key for key in gmbox.songlists]))
         #vbox.pack_start(label, False)
-	opt = gtk.combo_box_new_text()
+        opt = gtk.combo_box_new_text()
         for slist in gmbox.songlists:
-            	opt.append_text(slist)
+            opt.append_text(slist)
         hbox.pack_start(opt, False)
         button = gtk.Button('获取列表')
         size = button.size_request()
@@ -46,18 +44,16 @@ class MainWindow(gtk.Window):
         
         
     def doSearch(self,widget,opt):
-	text=opt.get_active_text().decode(sys.stdin.encoding)
-	l=gmbox.Lists(text);
-	
+        text=opt.get_active_text().decode(sys.stdin.encoding)
+        l=gmbox.Lists(text);
         self.model.clear()
-        i = 0
-        for ii in l.songlist:
-            self.model.append([i+1,l.songlist[i]['title'],l.songlist[i]['artist'],' ',' ',' '])
-            i = i+1
+        for song in l.songlist:
+            self.model.append(
+                [l.songlist.index(song)+1,song['title'],song['artist']])
 
     def setTreeView(self):
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
-        self.model = gtk.ListStore(str, str, str, str, str, str)
+        self.model = gtk.ListStore(str, str, str)
         treeview = gtk.TreeView(self.model)
         #treeview.connect('button-press-event', self.onSearchListRightClicked, None)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
@@ -84,19 +80,19 @@ class MainWindow(gtk.Window):
         column.set_resizable(True)
         treeview.append_column(column)
 
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_ALBUM)
-        renderer.set_property('editable', True)
-        #renderer.connect("edited", self.on_cell_edited, None)
-        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
-        column.set_resizable(True)
-        treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_SIZE)
-        column = gtk.TreeViewColumn("长度", renderer, text=COL_SIZE)
-        column.set_resizable(True)
-        treeview.append_column(column)
+#        renderer = gtk.CellRendererText()
+#        renderer.set_data("column", COL_ALBUM)
+#        renderer.set_property('editable', True)
+#        #renderer.connect("edited", self.on_cell_edited, None)
+#        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
+#        column.set_resizable(True)
+#        treeview.append_column(column)
+#
+#        renderer = gtk.CellRendererText()
+#        renderer.set_data("column", COL_SIZE)
+#        column = gtk.TreeViewColumn("长度", renderer, text=COL_SIZE)
+#        column.set_resizable(True)
+#        treeview.append_column(column)
         return treeview
 
 def main():
