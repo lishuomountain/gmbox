@@ -155,19 +155,28 @@ class Lists:
             (song['title'],song['artist'],song['id']) for song in self.songlist]) \
             +u'\n共 '+str(len(self.songlist))+u' 首歌.'
         
+    def downone(self,i=0):
+        song=self.songlist[i]
+        local_uri=song['title']+'-'+song['artist']+'.mp3'
+        if os.path.exists(local_uri):
+            print local_uri,u'已存在!'
+            return
+        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+        s=SongParser()
+        s.feed(urllib2.urlopen(songurl).read())
+        Download(s.url,local_uri)
+        
     def downall(self):
-        for song in self.songlist:
-            local_uri=song['title']+'-'+song['artist']+'.mp3'
-            if os.path.exists(local_uri):
-                print local_uri,u'已存在!'
-                continue
-            songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-            s=SongParser()
-            s.feed(urllib2.urlopen(songurl).read())
-            Download(s.url,local_uri)
+        for i in range(len(self.songlist)):
+            self.downone(i)
+    
+    def download(self,songids=[]):
+        for i in songids:
+            self.downone(i)
         
 if __name__ == '__main__':
     l=Lists(u'华语新歌')
     #print l
+    #l.download([0,2,6])
     l.downall()
     
