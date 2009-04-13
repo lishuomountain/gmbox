@@ -138,8 +138,9 @@ class Lists:
             print u'正在获取"'+stype+u'"的歌曲列表',
             sys.stdout.flush()
             for i in range(0,songlists[stype][1],25):
+            #for i in range(0,25,25):
                 html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
-                p.feed(re.sub(r'&#([0-9]{5});',unistr,html))
+                p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                 print '.',
                 sys.stdout.flush()
             self.songlist=p.songlist
