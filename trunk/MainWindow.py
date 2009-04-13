@@ -48,6 +48,12 @@ class MainWindow(gtk.Window):
     def doSearch(self,widget,opt):
 	text=opt.get_active_text().decode(sys.stdin.encoding)
 	l=gmbox.Lists(text);
+	
+        self.model.clear()
+        i = 0
+        for ii in l.songlist:
+            self.model.append([i+1,l.songlist[i]['title'],l.songlist[i]['artist'],' ',' ',' '])
+            i = i+1
 
     def setTreeView(self):
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
