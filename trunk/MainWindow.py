@@ -55,7 +55,7 @@ class MainWindow(gtk.Window):
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
         self.model = gtk.ListStore(str, str, str)
         treeview = gtk.TreeView(self.model)
-        #treeview.connect('button-press-event', self.onSearchListRightClicked, None)
+        treeview.connect('button-press-event', self.onSearchListRightClicked, None)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
         renderer = gtk.CellRendererText()
@@ -94,6 +94,24 @@ class MainWindow(gtk.Window):
 #        column.set_resizable(True)
 #        treeview.append_column(column)
         return treeview
+
+
+    def onSearchListRightClicked(self, view, event, data):
+        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
+            selected = view.get_selection().get_selected()
+            popupmenu = gtk.Menu()
+            menuitem = gtk.MenuItem('下载')
+            #menuitem.connect('activate', self.download, selected)
+            popupmenu.append(menuitem)
+            menuitem = gtk.MenuItem('试听')
+            #menuitem.connect('activate', self.listen, selected)
+            popupmenu.append(menuitem)
+            menuitem = gtk.MenuItem('删除已有下载')
+            #menuitem.connect('activate', self.delete, selected)
+            popupmenu.append(menuitem)
+            popupmenu.show_all()
+            popupmenu.popup(None, None, None, event.button, event.get_time(), None)
+       
 
 def main():
     win = MainWindow();
