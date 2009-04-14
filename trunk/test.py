@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os,sys
+import os
 import gtk
 import gtk.glade
 import gmbox
@@ -69,7 +69,7 @@ class MainWindow():
     
         
     def doSearch(self,widget,opt):
-        text=opt.get_active_text().decode(sys.stdin.encoding)
+        text=opt.get_active_text().decode('utf8')
         l=gmbox.Lists(text);
         self.model.clear()
         for song in l.songlist:

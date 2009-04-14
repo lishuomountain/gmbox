@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os,gtk,sys
+import os,gtk
 import gmbox
 
 (COL_NUM, COL_TITLE, COL_ARTIST) = range(3)
@@ -44,7 +44,7 @@ class MainWindow(gtk.Window):
         
         
     def doSearch(self,widget,opt):
-        text=opt.get_active_text().decode(sys.stdin.encoding)
+        text=opt.get_active_text().decode('utf8')
         l=gmbox.Lists(text);
         self.model.clear()
         for song in l.songlist:
