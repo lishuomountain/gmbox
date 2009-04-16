@@ -163,7 +163,14 @@ class Lists:
             return
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
         s=SongParser()
-        s.feed(urllib2.urlopen(songurl).read())
+
+        try:
+            text = urllib2.urlopen(songurl).read()
+        except:
+            print "Reading URL Error: %s" % local_uri
+            return
+
+        s.feed(text)
         Download(s.url,local_uri)
         
     def downall(self):
