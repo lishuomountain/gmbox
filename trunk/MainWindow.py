@@ -22,6 +22,8 @@ class MainWindow(gtk.Window):
         opt = gtk.combo_box_new_text()
         for slist in gmbox.songlists:
             opt.append_text(slist)
+        opt.set_active(0)
+        
         hbox.pack_start(opt, False)
         button = gtk.Button('获取列表')
         size = button.size_request()
