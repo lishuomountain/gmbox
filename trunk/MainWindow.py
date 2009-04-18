@@ -1,29 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os,gtk
+import os
+import gtk
+import gtk.glade
 import gmbox
 
 (COL_NUM, COL_TITLE, COL_ARTIST) = range(3)
-class MainWindow(gtk.Window):
-    def __init__(self, parent=None):
-        gtk.Window.__init__(self)
+class MainWindow():
+    def __init__(self):
 
-        self.connect('destroy', gtk.main_quit)      
-        
-        vbox = gtk.VBox()
-        vbox.set_border_width(10)
-        self.add(vbox)
-        
+        self.gladefile="gmbox.glade"
+        self.xml=gtk.glade.XML(self.gladefile)
+        self.window = self.xml.get_widget("window_main")
+        self.notebook = self.xml.get_widget("notebook_top")
+
+        dic={"on_pbutton_album_clicked":self.btnAlbum_clicked,
+                "on_pbutton_down_clicked": self.btnDown_clicked,
+                "on_pbutton_list_clicked": self.btnList_clicked,
+                "on_pbutton_searched_clicked": self.btnSearched_clicked,
+                "on_pbutton_about_clicked": self.btnAbout_clicked}
+        self.xml.signal_autoconnect(dic)
+
+        #page 1
+        vbox= self.xml.get_widget("vbox_p1")
         hbox = gtk.HBox()
-        #label = gtk.Label('/'.join(
-        #['%s'%key for key in gmbox.songlists]))
-        #vbox.pack_start(label, False)
         opt = gtk.combo_box_new_text()
         for slist in gmbox.songlists:
             opt.append_text(slist)
         opt.set_active(0)
-        
         hbox.pack_start(opt, False)
         button = gtk.Button('获取列表')
         size = button.size_request()
@@ -41,9 +46,28 @@ class MainWindow(gtk.Window):
         scroll.add(tree)
         vbox.pack_start(scroll)
         
-        self.set_title('GMBox')
-        self.set_default_size(800, 600)
+        self.window.set_title("GMBox")
+        self.window.set_default_size(800, 600)
+        self.window.connect('destroy', gtk.main_quit)      
+        self.window.show_all();
         
+
+    def btnAlbum_clicked(self,widget):
+        self.notebook.set_current_page(0)
+        
+    def btnList_clicked(self,widget):
+        self.notebook.set_current_page(3)
+
+    def btnSearched_clicked(self,widget):
+        self.notebook.set_current_page(1)
+
+    def btnDown_clicked(self,widget):
+        self.notebook.set_current_page(2)
+
+    def btnAbout_clicked(self,widget):
+        self.notebook.set_current_page(4)
+
+    
         
     def doSearch(self,widget,opt):
         text=opt.get_active_text().decode('utf8')
@@ -115,9 +139,9 @@ class MainWindow(gtk.Window):
             popupmenu.popup(None, None, None, event.button, event.get_time(), None)
        
 
+
 def main():
     win = MainWindow();
-    win.show_all()
     gtk.main()
 
 
