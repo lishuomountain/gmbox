@@ -14,6 +14,7 @@ class MainWindow():
         self.xml=gtk.glade.XML(self.gladefile)
         self.window = self.xml.get_widget("window_main")
         self.notebook = self.xml.get_widget("notebook_top")
+        self.notebook.set_show_tabs(False)
 
         dic={"on_pbutton_album_clicked":self.btnAlbum_clicked,
                 "on_pbutton_down_clicked": self.btnDown_clicked,
@@ -45,11 +46,44 @@ class MainWindow():
         tree.set_rules_hint(True)
         scroll.add(tree)
         vbox.pack_start(scroll)
+
+        #setup system tray icon
+        self.setupSystray()
         
         self.window.set_title("GMBox")
         self.window.set_default_size(800, 600)
-        self.window.connect('destroy', gtk.main_quit)      
+        self.window.connect('destroy', gtk.main_quit)
         self.window.show_all();
+
+    def setupSystray(self):
+        self.systray = gtk.StatusIcon()
+        self.systray.set_from_file("systray.png")
+        self.systray.connect("activate", self.systrayCb)
+        self.systray.connect('popup-menu', self.systrayPopup)
+        self.systray.set_tooltip("Click to toggle window visibility")
+        self.systray.set_visible(True)
+        return
+
+    def systrayCb(self, widget):
+        """Check out window's status"""
+        if self.window.get_property('visible'):
+            self.window.hide()
+        else:
+            self.window.deiconify()
+            self.window.present()
+
+    def systrayPopup(self, statusicon, button, activate_time):
+        """Create and show popup menu"""
+        popup_menu = gtk.Menu()
+        restore_item = gtk.MenuItem("Restore")
+        restore_item.connect("activate", self.systrayCb)
+        quit_item = gtk.ImageMenuItem(gtk.STOCK_QUIT)
+        quit_item.connect("activate", gtk.main_quit)
+        popup_menu.append(restore_item)
+        popup_menu.append(quit_item)
+        popup_menu.show_all()
+        time = gtk.get_current_event_time()
+        popup_menu.popup(None, None, None, 0, time)
         
 
     def btnAlbum_clicked(self,widget):
