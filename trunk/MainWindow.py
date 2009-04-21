@@ -5,6 +5,7 @@ import os
 import gtk
 import gtk.glade
 import gmbox
+import thread
 
 (COL_NUM, COL_TITLE, COL_ARTIST) = range(3)
 class MainWindow():
@@ -31,12 +32,12 @@ class MainWindow():
             opt.append_text(slist)
         opt.set_active(0)
         hbox.pack_start(opt, False)
-        button = gtk.Button('获取列表')
-        size = button.size_request()
-        button.set_size_request(size[0]+50, -1)
+        self.button = gtk.Button('获取列表')
+        size = self.button.size_request()
+        self.button.set_size_request(size[0]+50, -1)
         opt.set_size_request(size[0]+150, -1)
-        button.connect('clicked', self.doSearch, opt)
-        hbox.pack_start(button, False)
+        self.button.connect('clicked', self.doSearch, opt)
+        hbox.pack_start(self.button, False)
         vbox.pack_start(hbox, False)
         
         scroll = gtk.ScrolledWindow()
@@ -103,13 +104,23 @@ class MainWindow():
 
     
         
-    def doSearch(self,widget,opt):
-        text=opt.get_active_text().decode('utf8')
+    def downList(self,text):
         l=gmbox.Lists(text);
         self.model.clear()
         for song in l.songlist:
             self.model.append(
                 [l.songlist.index(song)+1,song['title'],song['artist']])
+        self.button.set_sensitive(True)
+
+    def doSearch(self,widget,opt):
+        text=opt.get_active_text().decode('utf8')
+        self.button.set_sensitive(False)
+        thread.start_new_thread(self.downList,(text,))
+        #l=gmbox.Lists(text);
+        #self.model.clear()
+        #for song in l.songlist:
+        #    self.model.append(
+        #        [l.songlist.index(song)+1,song['title'],song['artist']])
 
     def setTreeView(self):
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
@@ -173,9 +184,12 @@ class MainWindow():
             popupmenu.popup(None, None, None, event.button, event.get_time(), None)
        
 
+def test():
+    print "testing for thread"
 
 def main():
     win = MainWindow();
+    gtk.gdk.threads_init()
     gtk.main()
 
 
