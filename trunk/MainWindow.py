@@ -102,31 +102,32 @@ class MainWindow():
     def btnAbout_clicked(self,widget):
         self.notebook.set_current_page(4)
 
-    
-        
     def downList(self,text):
-        l=gmbox.Lists(text);
+        """Hold song index and prepare for download"""
+        
+        self._songlist = gmbox.Lists(text)
+        
         self.model.clear()
-        for song in l.songlist:
+        for song in self._songlist.songlist:
             self.model.append(
-                [l.songlist.index(song)+1,song['title'],song['artist']])
+                [self._songlist.songlist.index(song)+1,song['title'],song['artist']])
         self.button.set_sensitive(True)
 
     def doSearch(self,widget,opt):
+        """Begin song list download thread"""
+        
         text=opt.get_active_text().decode('utf8')
         self.button.set_sensitive(False)
         thread.start_new_thread(self.downList,(text,))
-        #l=gmbox.Lists(text);
-        #self.model.clear()
-        #for song in l.songlist:
-        #    self.model.append(
-        #        [l.songlist.index(song)+1,song['title'],song['artist']])
 
     def setTreeView(self):
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
         self.model = gtk.ListStore(str, str, str)
+        #self.model.connect("row-changed", self.SaveSongIndex)
+
+        
         treeview = gtk.TreeView(self.model)
-        treeview.connect('button-press-event', self.onSearchListRightClicked, None)
+        treeview.connect('button-press-event', self.click_checker)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
         renderer = gtk.CellRendererText()
@@ -166,23 +167,50 @@ class MainWindow():
 #        treeview.append_column(column)
         return treeview
 
+    def SetupPopup(self):
 
-    def onSearchListRightClicked(self, view, event, data):
+        time = gtk.get_current_event_time()
+        
+        popupmenu = gtk.Menu()
+        menuitem = gtk.MenuItem('下载')
+        menuitem.connect('activate', self.downone)
+        popupmenu.append(menuitem)
+        
+        menuitem = gtk.MenuItem('试听')
+        #menuitem.connect('activate', self.listen, selected)
+        popupmenu.append(menuitem)
+        
+        menuitem = gtk.MenuItem('删除已有下载')
+        #menuitem.connect('activate', self.delete, selected)
+        popupmenu.append(menuitem)
+        
+        popupmenu.show_all()
+        popupmenu.popup(None, None, None, 0, time)
+
+    def downone(self, widget):
+        thread.start_new_thread(self._songlist.downone, (self.path[0],))
+
+    def click_checker(self, view, event):
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-            selected = view.get_selection().get_selected()
-            popupmenu = gtk.Menu()
-            menuitem = gtk.MenuItem('下载')
-            #menuitem.connect('activate', self.download, selected)
-            popupmenu.append(menuitem)
-            menuitem = gtk.MenuItem('试听')
-            #menuitem.connect('activate', self.listen, selected)
-            popupmenu.append(menuitem)
-            menuitem = gtk.MenuItem('删除已有下载')
-            #menuitem.connect('activate', self.delete, selected)
-            popupmenu.append(menuitem)
-            popupmenu.show_all()
-            popupmenu.popup(None, None, None, event.button, event.get_time(), None)
-       
+            #selected,iter = view.get_selection().get_selected()
+            #index = selected.get_value(iter, 0)
+            #print index
+
+            # Here test whether we have songlist, if have, show popup menu
+            try:
+                if self._songlist:
+                    self.SetupPopup()
+            except:
+                pass
+
+            x = int(event.x)
+            y = int(event.y)
+            pth = view.get_path_at_pos(x, y)
+
+            if not pth:
+                pass
+            else:
+                self.path, col, cell_x, cell_y = pth
 
 def test():
     print "testing for thread"
