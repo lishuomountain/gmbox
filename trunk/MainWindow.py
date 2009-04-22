@@ -8,7 +8,7 @@ import gmbox
 import thread
 import pynotify
 
-(COL_NUM, COL_TITLE, COL_ARTIST) = range(3)
+(COL_NUM, COL_TITLE, COL_ARTIST,COL_DOWN) = range(4)
 class MainWindow():
     def __init__(self):
 
@@ -33,25 +33,35 @@ class MainWindow():
             opt.append_text(slist)
         opt.set_active(0)
         hbox.pack_start(opt, False)
-        self.button = gtk.Button('获取列表')
-        size = self.button.size_request()
-        self.button.set_size_request(size[0]+50, -1)
+        self.list_button = gtk.Button('获取列表')
+        size = self.list_button.size_request()
+        self.list_button.set_size_request(size[0]+50, -1)
         opt.set_size_request(size[0]+150, -1)
-        self.button.connect('clicked', self.doSearch, opt)
-        hbox.pack_start(self.button, False)
+        self.list_button.connect('clicked', self.doSearch, opt)
+        hbox.pack_start(self.list_button, False)
         vbox.pack_start(hbox, False)
         
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        tree = self.setTreeView()
-        tree.set_rules_hint(True)
-        scroll.add(tree)
+        self.list_tree = self.getListTreeView()
+        self.list_tree.set_rules_hint(True)
+        scroll.add(self.list_tree)
         vbox.pack_start(scroll)
 
         #setup system tray icon
         self.setupSystray()
         
+        #page down
+        down_vbox= self.xml.get_widget("vbox_p3")
+        down_scroll = gtk.ScrolledWindow()
+        down_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        down_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        down_tree = self.getDownTreeView()
+        down_tree.set_rules_hint(True)
+        down_scroll.add(down_tree)
+        down_vbox.pack_start(down_scroll)
+
         self.window.set_title("GMBox")
         self.window.set_default_size(800, 600)
         self.window.connect('destroy', gtk.main_quit)
@@ -108,31 +118,62 @@ class MainWindow():
     def btnAbout_clicked(self,widget):
         self.notebook.set_current_page(4)
 
+    def getDownTreeView(self):
+        #依次存入：歌曲编号，歌曲名，歌手，下载状态，下载进度
+        self.down_model=gtk.ListStore(str,str,str,str)
+        treeview = gtk.TreeView(self.down_model)
+        treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_NUM)
+        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_TITLE)
+        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ARTIST)
+        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_DOWN)
+        column = gtk.TreeViewColumn("状态", renderer, text=COL_DOWN)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        return treeview
+
     def downList(self,text):
         """Hold song index and prepare for download"""
-        
         self._songlist = gmbox.Lists(text)
         
-        self.model.clear()
+        self.list_model.clear()
         for song in self._songlist.songlist:
-            self.model.append(
+            self.list_model.append(
                 [self._songlist.songlist.index(song)+1,song['title'],song['artist']])
-        self.button.set_sensitive(True)
+        self.list_button.set_sensitive(True)
 
     def doSearch(self,widget,opt):
         """Begin song list download thread"""
         
         text=opt.get_active_text().decode('utf8')
-        self.button.set_sensitive(False)
+        self.list_button.set_sensitive(False)
         thread.start_new_thread(self.downList,(text,))
 
-    def setTreeView(self):
+    def getListTreeView(self):
+        """get hot song list treeview widget"""
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
-        self.model = gtk.ListStore(str, str, str)
-        #self.model.connect("row-changed", self.SaveSongIndex)
+        self.list_model = gtk.ListStore(str, str, str)
+        #self.list_model.connect("row-changed", self.SaveSongIndex)
 
         
-        treeview = gtk.TreeView(self.model)
+        treeview = gtk.TreeView(self.list_model)
         treeview.connect('button-press-event', self.click_checker)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
@@ -144,7 +185,7 @@ class MainWindow():
 
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_TITLE)
-        renderer.set_property('editable', True)
+        #renderer.set_property('editable', True)
         #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
         column.set_resizable(True)
@@ -152,7 +193,7 @@ class MainWindow():
 
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_ARTIST)
-        renderer.set_property('editable', True)
+        #renderer.set_property('editable', True)
         #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
         column.set_resizable(True)
@@ -175,7 +216,7 @@ class MainWindow():
 
     def SetupPopup(self):
         time = gtk.get_current_event_time()
-        
+
         popupmenu = gtk.Menu()
         menuitem = gtk.MenuItem('下载')
         menuitem.connect('activate', self.downone)
@@ -197,6 +238,14 @@ class MainWindow():
         popupmenu.popup(None, None, None, 0, time)
 
     def downone(self, widget):
+
+        selected = self.list_tree.get_selection().get_selected()
+        list_model,iter = selected
+        num = self.list_model.get_value(iter,COL_NUM)
+        artist = self.list_model.get_value(iter, COL_ARTIST)
+        title = self.list_model.get_value(iter, COL_TITLE)
+        self.down_model.append([num,artist,title,"start"])
+
         self.notification = pynotify.Notification("下载", self._songlist.get_title(self.path[0]), "dialog-warning")
         self.notification.set_timeout(1)
         self.notification.show()
@@ -232,6 +281,7 @@ class MainWindow():
 
 def test():
     print "testing for thread"
+
 
 def main():
     win = MainWindow();
