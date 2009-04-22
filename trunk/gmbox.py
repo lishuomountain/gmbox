@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import re,urllib,urllib2,sys,os,time
 from HTMLParser import HTMLParser
+import thread
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -116,6 +117,7 @@ class Download:
             (self.D,self.speed)=(0,0)
             urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
             os.rename(local_uri+'.downloading', local_uri)
+            os.system('mid3iconv -e gbk '+local_uri)
             speed=os.stat(local_uri).st_size/(time.time()-self.startT)
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
@@ -129,6 +131,39 @@ class Download:
                 ''.join([' ' for i in range((int)(50-percentage/2))])+ \
                 (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
         
+class Listen:
+    def __init__(self, remote_uri, local_uri):
+        self.remote_uri= remote_uri
+        self.local_uri=local_uri
+        thread.start_new_thread(self.download,(local_uri,))
+        time.sleep(1)
+        thread.start_new_thread(self.play,(local_uri,))
+
+    def play(self,a):
+        os.system('mid3iconv -e gbk "'+self.local_uri+'.cache"')
+        os.system('pkill mpg123')
+        os.system('mpg123 "'+self.local_uri+'.cache"')
+        os.rename(self.local_uri+'.cache', self.local_uri)
+
+    def download(self,a):
+            print u'正在缓冲:',self.local_uri
+            self.T=self.startT=time.time()
+            (self.D,self.speed)=(0,0)
+            urllib.urlretrieve(self.remote_uri, self.local_uri+'.cache', self.update_progress)
+            speed=os.stat(self.local_uri).st_size/(time.time()-self.startT)
+            print '\r['+''.join(['=' for i in range(50)])+ \
+                '] 100.00%%  %s/s       '%sizeread(speed)
+    def update_progress(self, blocks, block_size, total_size):
+        if total_size>0 :
+            percentage = float(blocks) / (total_size/block_size+1) * 100
+            if int(time.time()) != int(self.T):
+                self.speed=(blocks*block_size-self.D)/(time.time()-self.T)
+                (self.D,self.T)=(blocks*block_size,time.time())
+            #print blocks
+            #print total_size/block_size
+            print '\r['+''.join(['=' for i in range((int)(percentage/2))])+'>'+ \
+                ''.join([' ' for i in range((int)(50-percentage/2))])+ \
+                (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
         
 class Lists:
     def __init__(self,stype):
@@ -173,6 +208,34 @@ class Lists:
         s.feed(text)
         Download(s.url,local_uri)
         
+    def listen(self,i=0):
+        song=self.songlist[i]
+        local_uri=song['title']+'-'+song['artist']+'.mp3'
+        if os.path.exists(local_uri):
+            os.system('mid3iconv -e gbk "'+local_uri + '"')
+            os.system('pkill mpg123')
+            os.system('mpg123 "'+local_uri + '"')
+            return
+        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+        s=SongParser()
+
+        try:
+            text = urllib2.urlopen(songurl).read()
+        except:
+            print "Reading URL Error: %s" % local_uri
+            return
+
+        s.feed(text)
+        Listen(s.url,local_uri)
+
+    def get_title(self,i=0):
+        song=self.songlist[i]
+        return song['title']
+
+    def get_artist(self,i=0):
+        song=self.songlist[i]
+        return song['artist']
+
     def downall(self):
         for i in range(len(self.songlist)):
             self.downone(i)

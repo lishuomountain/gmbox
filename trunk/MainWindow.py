@@ -6,6 +6,7 @@ import gtk
 import gtk.glade
 import gmbox
 import thread
+import pynotify
 
 (COL_NUM, COL_TITLE, COL_ARTIST) = range(3)
 class MainWindow():
@@ -63,6 +64,11 @@ class MainWindow():
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip("Click to toggle window visibility")
         self.systray.set_visible(True)
+
+        pynotify.init("Some Application or Title")
+        self.notification = pynotify.Notification("Title", "body", "dialog-warning")
+        self.notification.set_urgency(pynotify.URGENCY_NORMAL)
+        self.notification.set_timeout(1)
         return
 
     def systrayCb(self, widget):
@@ -168,7 +174,6 @@ class MainWindow():
         return treeview
 
     def SetupPopup(self):
-
         time = gtk.get_current_event_time()
         
         popupmenu = gtk.Menu()
@@ -177,18 +182,31 @@ class MainWindow():
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('试听')
-        #menuitem.connect('activate', self.listen, selected)
+        menuitem.connect('activate', self.listen)
+        popupmenu.append(menuitem)
+        
+        menuitem = gtk.MenuItem('添加到播放列表')
+        #menuitem.connect('activate', self.addlist, selected)
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('删除已有下载')
         #menuitem.connect('activate', self.delete, selected)
         popupmenu.append(menuitem)
-        
+
         popupmenu.show_all()
         popupmenu.popup(None, None, None, 0, time)
 
     def downone(self, widget):
+        self.notification = pynotify.Notification("下载", self._songlist.get_title(self.path[0]), "dialog-warning")
+        self.notification.set_timeout(1)
+        self.notification.show()
         thread.start_new_thread(self._songlist.downone, (self.path[0],))
+
+    def listen(self, widget):
+        self.notification = pynotify.Notification("试听", self._songlist.get_title(self.path[0]), "dialog-warning")
+        self.notification.set_timeout(1)
+        self.notification.show()
+        thread.start_new_thread(self._songlist.listen, (self.path[0],))
 
     def click_checker(self, view, event):
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
