@@ -49,6 +49,19 @@ class MainWindow():
         scroll.add(self.list_tree)
         vbox.pack_start(scroll)
 
+
+        #page playlist
+        playlist_vbox= self.xml.get_widget("vbox_p4")
+        
+        playlist_scroll = gtk.ScrolledWindow()
+        playlist_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        playlist_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        playlist_tree = self.getPlaylistTreeView()
+        playlist_tree.set_rules_hint(True)
+        playlist_scroll.add(playlist_tree)
+        playlist_vbox.pack_start(playlist_scroll)
+
+
         #setup system tray icon
         self.setupSystray()
         
@@ -214,6 +227,54 @@ class MainWindow():
 #        treeview.append_column(column)
         return treeview
 
+
+    def getPlaylistTreeView(self):
+        #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
+        self.playlist_model = gtk.ListStore(str, str, str)
+        #self.model.connect("row-changed", self.SaveSongIndex)
+
+        
+        treeview = gtk.TreeView(self.playlist_model)
+        #treeview.connect('button-press-event', self.click_checker)
+        treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_NUM)
+        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_TITLE)
+        #renderer.set_property('editable', True)
+        #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ARTIST)
+        #renderer.set_property('editable', True)
+        #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+#        renderer = gtk.CellRendererText()
+#        renderer.set_data("column", COL_ALBUM)
+#        renderer.set_property('editable', True)
+#        #renderer.connect("edited", self.on_cell_edited, None)
+#        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
+#        column.set_resizable(True)
+#        treeview.append_column(column)
+#
+#        renderer = gtk.CellRendererText()
+#        renderer.set_data("column", COL_SIZE)
+#        column = gtk.TreeViewColumn("长度", renderer, text=COL_SIZE)
+#        column.set_resizable(True)
+#        treeview.append_column(column)
+        return treeview
+
     def SetupPopup(self):
         time = gtk.get_current_event_time()
 
@@ -227,7 +288,7 @@ class MainWindow():
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('添加到播放列表')
-        #menuitem.connect('activate', self.addlist, selected)
+        menuitem.connect('activate', self.addToPlaylist)
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('删除已有下载')
@@ -244,12 +305,25 @@ class MainWindow():
         num = self.list_model.get_value(iter,COL_NUM)
         artist = self.list_model.get_value(iter, COL_ARTIST)
         title = self.list_model.get_value(iter, COL_TITLE)
-        self.down_model.append([num,artist,title,"start"])
+        self.down_model.append([num,title,artist,"start"])
 
         self.notification = pynotify.Notification("下载", self._songlist.get_title(self.path[0]), "dialog-warning")
         self.notification.set_timeout(1)
         self.notification.show()
         thread.start_new_thread(self._songlist.downone, (self.path[0],))
+
+    def addToPlaylist(self, widget):
+
+        selected = self.list_tree.get_selection().get_selected()
+        list_model,iter = selected
+        num = self.list_model.get_value(iter,COL_NUM)
+        artist = self.list_model.get_value(iter, COL_ARTIST)
+        title = self.list_model.get_value(iter, COL_TITLE)
+        self.playlist_model.append([num,title,artist])
+
+        self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
+        self.notification.set_timeout(1)
+        self.notification.show()
 
     def listen(self, widget):
         self.notification = pynotify.Notification("试听", self._songlist.get_title(self.path[0]), "dialog-warning")

@@ -109,16 +109,16 @@ class SongParser(HTMLParser):
 
 class Download:
     def __init__(self, remote_uri, local_uri):
-        if os.path.exists(local_uri):
+        if os.path.exists("top100/"+local_uri):
             print local_uri,u'已存在!'
         else:
             print u'正在下载:',local_uri
             self.T=self.startT=time.time()
             (self.D,self.speed)=(0,0)
-            urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
-            os.rename(local_uri+'.downloading', local_uri)
-            os.system('mid3iconv -e gbk '+local_uri)
-            speed=os.stat(local_uri).st_size/(time.time()-self.startT)
+            urllib.urlretrieve(remote_uri, "top100/"+local_uri+'.downloading', self.update_progress)
+            os.rename("top100/"+local_uri+'.downloading', "top100/"+local_uri)
+            os.system('mid3iconv -e gbk "top100/'+local_uri + '"')
+            speed=os.stat("top100/"+local_uri).st_size/(time.time()-self.startT)
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
     def update_progress(self, blocks, block_size, total_size):
@@ -140,17 +140,17 @@ class Listen:
         thread.start_new_thread(self.play,(local_uri,))
 
     def play(self,a):
-        os.system('mid3iconv -e gbk "'+self.local_uri+'.cache"')
+        os.system('mid3iconv -e gbk "top100/'+self.local_uri+'.cache"')
         os.system('pkill mpg123')
-        os.system('mpg123 "'+self.local_uri+'.cache"')
-        os.rename(self.local_uri+'.cache', self.local_uri)
+        os.system('mpg123 "top100/'+self.local_uri+'.cache"')
+        os.rename('top100/'+self.local_uri+'.cache', 'top100/'+self.local_uri)
 
     def download(self,a):
             print u'正在缓冲:',self.local_uri
             self.T=self.startT=time.time()
             (self.D,self.speed)=(0,0)
-            urllib.urlretrieve(self.remote_uri, self.local_uri+'.cache', self.update_progress)
-            speed=os.stat(self.local_uri).st_size/(time.time()-self.startT)
+            urllib.urlretrieve(self.remote_uri, 'top100/'+self.local_uri+'.cache', self.update_progress)
+            speed=os.stat('top100'+self.local_uri).st_size/(time.time()-self.startT)
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
     def update_progress(self, blocks, block_size, total_size):
@@ -193,7 +193,7 @@ class Lists:
     def downone(self,i=0):
         song=self.songlist[i]
         local_uri=song['title']+'-'+song['artist']+'.mp3'
-        if os.path.exists(local_uri):
+        if os.path.exists('top100/'+local_uri):
             print local_uri,u'已存在!'
             return
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
@@ -208,25 +208,27 @@ class Lists:
         s.feed(text)
         Download(s.url,local_uri)
         
-    def listen(self,i=0):
-        song=self.songlist[i]
-        local_uri=song['title']+'-'+song['artist']+'.mp3'
-        if os.path.exists(local_uri):
-            os.system('mid3iconv -e gbk "'+local_uri + '"')
-            os.system('pkill mpg123')
-            os.system('mpg123 "'+local_uri + '"')
-            return
-        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-        s=SongParser()
+    def listen(self,start=0):
+        for i in range(start,len(self.songlist)):
+            song=self.songlist[i]
+            local_uri=song['title']+'-'+song['artist']+'.mp3'
+            if os.path.exists('top100/'+local_uri):
+                os.system('mid3iconv -e gbk "top100/'+local_uri + '"')
+                os.system('pkill mpg123')
+                os.system('mpg123 "top100/'+local_uri + '"')
+                continue
+            songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+            s=SongParser()
 
-        try:
-            text = urllib2.urlopen(songurl).read()
-        except:
-            print "Reading URL Error: %s" % local_uri
-            return
+            try:
+                text = urllib2.urlopen(songurl).read()
+            except:
+                print "Reading URL Error: %s" % local_uri
+                continue
 
-        s.feed(text)
-        Listen(s.url,local_uri)
+            s.feed(text)
+            Listen(s.url,local_uri)
+        return
 
     def get_title(self,i=0):
         song=self.songlist[i]
