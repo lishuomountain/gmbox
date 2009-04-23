@@ -3,6 +3,7 @@
 import re,urllib,urllib2,sys,os,time
 from HTMLParser import HTMLParser
 import thread
+from stat import *
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -136,8 +137,8 @@ class Listen:
         self.remote_uri= remote_uri
         self.local_uri=local_uri
         thread.start_new_thread(self.download,(local_uri,))
-        time.sleep(1)
-        thread.start_new_thread(self.play,(local_uri,))
+        time.sleep(2)
+        self.play(local_uri,)
 
     def play(self,a):
         os.system('mid3iconv -e gbk "top100/'+self.local_uri+'.cache"')
@@ -245,7 +246,57 @@ class Lists:
     def download(self,songids=[]):
         for i in songids:
             self.downone(i)
-        
+
+class ListFile:
+    def __init__(self,top):
+        self.songlist=[]
+        self.songtemplate={
+            'title':'',
+            'artist':'',
+            'id':''}
+        self.tmplist=self.songtemplate.copy()
+        self.walktree(top,self.visitfile)
+    def walktree(self,top, callback):
+        for log in os.listdir(top):
+            pathname = os.path.join(top, log)
+            mode = os.stat(pathname)[ST_MODE]
+            if S_ISDIR(mode):
+                # It's a directory, recurse into it
+                self.walktree(pathname, callback)
+            elif S_ISREG(mode):
+                # It's a file, call the callback function
+                callback(pathname)
+            else:
+                # Unknown file type, print a message
+                print 'Skipping %s' % pathname
+    def visitfile(self,file):
+        size = os.path.getsize(file)
+        mt = time.ctime(os.stat(file).st_mtime);
+        ct = time.ctime(os.stat(file).st_ctime);
+        self.tmplist['artist']=file.split('-')[1].split('.')[0]
+        self.tmplist['title']=file.split('-')[0].split('/')[1]
+        self.tmplist['id']=len(self.songlist)
+        self.songlist.append(self.tmplist.copy())
+        self.tmplist=self.songtemplate.copy()
+
+    def get_title(self,i=0):
+        song=self.songlist[i]
+        return song['title']
+    def get_artist(self,i=0):
+        song=self.songlist[i]
+        return song['artist']
+    def __str__(self):
+        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+            (song['title'],song['artist'],song['id']) for song in self.songlist]) \
+            +u'\n共 '+str(len(self.songlist))+u' 首歌.'
+    def listen(self,start=0):
+        song=self.songlist[start]
+        local_uri=song['title']+'-'+song['artist']+'.mp3'
+        print local_uri
+        os.system('mid3iconv -e gbk "top100/'+local_uri + '"')
+        os.system('pkill mpg123')
+        os.system('mpg123 "top100/'+local_uri + '"')
+
 if __name__ == '__main__':
     l=Lists(u'华语新歌')
     #print l

@@ -39,6 +39,14 @@ class MainWindow():
         opt.set_size_request(size[0]+150, -1)
         self.list_button.connect('clicked', self.doSearch, opt)
         hbox.pack_start(self.list_button, False)
+
+        self.list_button = gtk.Button('本地歌曲列表')
+        size = self.list_button.size_request()
+        self.list_button.set_size_request(size[0]+50, -1)
+        opt.set_size_request(size[0]+150, -1)
+        self.list_button.connect('clicked', self.dolistLocalFile, opt)
+        hbox.pack_start(self.list_button, False)
+
         vbox.pack_start(hbox, False)
         
         scroll = gtk.ScrolledWindow()
@@ -178,6 +186,17 @@ class MainWindow():
         text=opt.get_active_text().decode('utf8')
         self.list_button.set_sensitive(False)
         thread.start_new_thread(self.downList,(text,))
+
+    def dolistLocalFile(self,widget,opt):
+        self.list_button.set_sensitive(False)
+        thread.start_new_thread(self.listLocalFile,("top100",))
+    def listLocalFile(self,path):
+        self._songlist = gmbox.ListFile(path)
+        self.list_model.clear()
+        for song in self._songlist.songlist:
+            self.list_model.append(
+                [self._songlist.songlist.index(song)+1,song['title'],song['artist']])
+        self.list_button.set_sensitive(True)
 
     def getListTreeView(self):
         """get hot song list treeview widget"""
@@ -326,10 +345,13 @@ class MainWindow():
         self.notification.show()
 
     def listen(self, widget):
-        self.notification = pynotify.Notification("试听", self._songlist.get_title(self.path[0]), "dialog-warning")
-        self.notification.set_timeout(1)
-        self.notification.show()
-        thread.start_new_thread(self._songlist.listen, (self.path[0],))
+        thread.start_new_thread(self.play, ())
+    def play(self):
+        for i in range(self.path[0],len(self._songlist.songlist)):
+            self.notification = pynotify.Notification("试听", self._songlist.get_title(i), "dialog-warning")
+            self.notification.set_timeout(1)
+            self.notification.show()
+            self._songlist.listen(i)
 
     def click_checker(self, view, event):
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
