@@ -16,11 +16,17 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 
-#player="mplayer"
-player="mpg123"
-userhome = os.path.expanduser('~')
-musicdir=userhome+'/Music/google_music/top100/'
-gmbox_home=userhome+'/.gmbox/'
+if os.name=='posix':
+    #player="mplayer"
+    player="mpg123"
+    userhome = os.path.expanduser('~')
+    musicdir=userhome+'/Music/google_music/top100/'
+    gmbox_home=userhome+'/.gmbox/'
+if os.name=='nt':
+    player="mpxplay.exe"
+    userhome = 'C:'
+    musicdir=userhome+'\Music\google_music\op100'
+    gmbox_home=userhome+'\.gmbox'
 if os.path.exists(musicdir)==0:
     os.mkdir(musicdir)
 if os.path.exists(gmbox_home)==0:
@@ -159,9 +165,7 @@ class Listen:
         os.rename(musicdir+self.local_uri+'.cache', musicdir+self.local_uri)
 
     def play(self,a):
-        os.system('mid3iconv -e gbk "'+musicdir+self.local_uri+'.cache"')
-        os.system('pkill '+player)
-        os.system(player+' "'+musicdir+self.local_uri+'.cache"')
+        newplay(self.local_uri,"true")
 
     def download(self,a):
             print u'正在缓冲:',self.local_uri
@@ -230,9 +234,7 @@ class Lists:
         song=self.songlist[start]
         local_uri=song['title']+'-'+song['artist']+'.mp3'
         if os.path.exists(musicdir+local_uri):
-            os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
-            os.system('pkill '+player)
-            os.system(player+' "'+musicdir+local_uri + '"')
+            newplay(self.local_uri,'false')
             return
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
         s=SongParser()
@@ -312,9 +314,7 @@ class ListFile:
         song=self.songlist[start]
         local_uri=song['title']+'-'+song['artist']+'.mp3'
         print local_uri
-        os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
-        os.system('pkill '+player)
-        os.system(player+' "'+musicdir+local_uri + '"')
+        newplay(local_uri,"false")
 
 class PlayList:
     def __init__(self):
@@ -385,9 +385,7 @@ class PlayList:
         song=self.songlist[start]
         local_uri=song['title']+'-'+song['artist']+'.mp3'
         if os.path.exists(musicdir+local_uri):
-            os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
-            os.system('pkill '+player)
-            os.system(player+' "'+musicdir+local_uri + '"')
+            newplay(local_uri,'false')
             return
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
         s=SongParser()
@@ -480,6 +478,23 @@ class SearchParse(HTMLParser):
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
+
+def newplay(uri,trylisten):
+    if os.name=='posix':
+        full_uri=musicdir+uri
+        if trylisten=='true':
+            full_uri=full_uri+'.cache'
+        os.system('mid3iconv -e gbk "'+full_uri+'"')
+        os.system('pkill '+player)
+        os.system(player+' "'+full_uri+'"')
+    if os.name == 'nt':
+        full_uri=musicdir+uri
+        if bool=='true':
+            full_uri=full_uri+'.cache'
+        pid = os.system('tasklist')
+        os.system('taskkill '+pid)
+        os.system('ntsd '+pid)
+        os.system(player+' "'+musicdir+uri+'.cache"')
 
 if __name__ == '__main__':
     l=Lists(u'华语新歌')

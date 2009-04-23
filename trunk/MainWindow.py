@@ -7,7 +7,9 @@ import gtk
 import gtk.glade
 import gmbox
 import thread
-import pynotify
+
+if os.name=='posix':
+    import pynotify
 
 (COL_NUM, COL_TITLE, COL_ARTIST,COL_DOWN) = range(4)
 class MainWindow():
@@ -120,10 +122,20 @@ class MainWindow():
         popup_menu = gtk.Menu()
         restore_item = gtk.MenuItem("Restore")
         restore_item.connect("activate", self.systrayCb)
+        popup_menu.append(restore_item)
+
+        next_item = gtk.MenuItem("Next")
+        restore_item.connect("activate", self.playnext)
+        popup_menu.append(next_item)
+
+        prev_item = gtk.MenuItem("Previous")
+        restore_item.connect("activate", self.playprev)
+        popup_menu.append(prev_item)
+
         quit_item = gtk.ImageMenuItem(gtk.STOCK_QUIT)
         quit_item.connect("activate", gtk.main_quit)
-        popup_menu.append(restore_item)
         popup_menu.append(quit_item)
+
         popup_menu.show_all()
         time = gtk.get_current_event_time()
         popup_menu.popup(None, None, None, 0, time)
@@ -383,6 +395,11 @@ class MainWindow():
             self.notification.show()
             self.playbar.set_text("now playing " + playlist.get_title(start))
             playlist.listen(start)
+
+    def playnext(self):
+        pass
+    def playprev(self):
+        pass
 
     def click_checker(self, view, event):
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
