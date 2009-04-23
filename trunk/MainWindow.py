@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 import gtk
 import gtk.glade
 import gmbox
@@ -40,12 +41,12 @@ class MainWindow():
         self.list_button.connect('clicked', self.doSearch, opt)
         hbox.pack_start(self.list_button, False)
 
-        self.list_button = gtk.Button('本地歌曲列表')
-        size = self.list_button.size_request()
-        self.list_button.set_size_request(size[0]+50, -1)
+        self.local_list_button = gtk.Button('本地歌曲列表')
+        size = self.local_list_button.size_request()
+        self.local_list_button.set_size_request(size[0]+50, -1)
         opt.set_size_request(size[0]+150, -1)
-        self.list_button.connect('clicked', self.dolistLocalFile, opt)
-        hbox.pack_start(self.list_button, False)
+        self.local_list_button.connect('clicked', self.dolistLocalFile, opt)
+        hbox.pack_start(self.local_list_button, False)
 
         vbox.pack_start(hbox, False)
         
@@ -70,6 +71,7 @@ class MainWindow():
         playlist_vbox.pack_start(playlist_scroll)
 
 
+
         #setup system tray icon
         self.setupSystray()
         
@@ -82,6 +84,9 @@ class MainWindow():
         down_tree.set_rules_hint(True)
         down_scroll.add(down_tree)
         down_vbox.pack_start(down_scroll)
+
+        self.playbar = self.xml.get_widget("playbar")
+        self.playbar.set_text("playing")
 
         self.window.set_title("GMBox")
         self.window.set_default_size(800, 600)
@@ -188,15 +193,15 @@ class MainWindow():
         thread.start_new_thread(self.downList,(text,))
 
     def dolistLocalFile(self,widget,opt):
-        self.list_button.set_sensitive(False)
-        thread.start_new_thread(self.listLocalFile,("top100",))
+        self.local_list_button.set_sensitive(False)
+        thread.start_new_thread(self.listLocalFile,(gmbox.musicdir,))
     def listLocalFile(self,path):
         self._songlist = gmbox.ListFile(path)
         self.list_model.clear()
         for song in self._songlist.songlist:
             self.list_model.append(
                 [self._songlist.songlist.index(song)+1,song['title'],song['artist']])
-        self.list_button.set_sensitive(True)
+        self.local_list_button.set_sensitive(True)
 
     def getListTreeView(self):
         """get hot song list treeview widget"""
@@ -254,7 +259,7 @@ class MainWindow():
 
         
         treeview = gtk.TreeView(self.playlist_model)
-        #treeview.connect('button-press-event', self.click_checker)
+        treeview.connect('button-press-event', self.click_checker2)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
         renderer = gtk.CellRendererText()
@@ -292,6 +297,14 @@ class MainWindow():
 #        column = gtk.TreeViewColumn("长度", renderer, text=COL_SIZE)
 #        column.set_resizable(True)
 #        treeview.append_column(column)
+
+
+        self.playlist = gmbox.PlayList()
+        self.playlist_model.clear()
+        for song in self.playlist.songlist:
+            self.playlist_model.append(
+                [self.playlist.songlist.index(song)+1,song['title'],song['artist']])
+
         return treeview
 
     def SetupPopup(self):
@@ -303,7 +316,7 @@ class MainWindow():
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('试听')
-        menuitem.connect('activate', self.listen)
+        menuitem.connect('activate', self.listen,self._songlist)
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('添加到播放列表')
@@ -314,6 +327,22 @@ class MainWindow():
         #menuitem.connect('activate', self.delete, selected)
         popupmenu.append(menuitem)
 
+        popupmenu.show_all()
+        popupmenu.popup(None, None, None, 0, time)
+
+    def SetupPopup2(self):
+        time = gtk.get_current_event_time()
+
+        popupmenu = gtk.Menu()
+
+        menuitem = gtk.MenuItem('试听')
+        menuitem.connect('activate', self.listen,self.playlist)
+        popupmenu.append(menuitem)
+        
+        menuitem = gtk.MenuItem('从列表删除')
+        menuitem.connect('activate', self.addToPlaylist)
+        popupmenu.append(menuitem)
+        
         popupmenu.show_all()
         popupmenu.popup(None, None, None, 0, time)
 
@@ -332,26 +361,28 @@ class MainWindow():
         thread.start_new_thread(self._songlist.downone, (self.path[0],))
 
     def addToPlaylist(self, widget):
-
         selected = self.list_tree.get_selection().get_selected()
         list_model,iter = selected
         num = self.list_model.get_value(iter,COL_NUM)
         artist = self.list_model.get_value(iter, COL_ARTIST)
         title = self.list_model.get_value(iter, COL_TITLE)
         self.playlist_model.append([num,title,artist])
+        self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
 
         self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
         self.notification.set_timeout(1)
         self.notification.show()
 
-    def listen(self, widget):
-        thread.start_new_thread(self.play, ())
-    def play(self):
-        for i in range(self.path[0],len(self._songlist.songlist)):
-            self.notification = pynotify.Notification("试听", self._songlist.get_title(i), "dialog-warning")
+    def listen(self, widget,list):
+        thread.start_new_thread(self.play,(list,self.path[0],))
+    def play(self,playlist,start):
+        #for i in range(start,len(self._songlist.songlist)):
+        #    self.notification = pynotify.Notification("试听", self._songlist.get_title(i), "dialog-warning")
+            self.notification = pynotify.Notification("试听", playlist.get_title(start), "dialog-warning")
             self.notification.set_timeout(1)
             self.notification.show()
-            self._songlist.listen(i)
+            self.playbar.set_text("now playing " + playlist.get_title(start))
+            playlist.listen(start)
 
     def click_checker(self, view, event):
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
@@ -363,6 +394,28 @@ class MainWindow():
             try:
                 if self._songlist:
                     self.SetupPopup()
+            except:
+                pass
+
+            x = int(event.x)
+            y = int(event.y)
+            pth = view.get_path_at_pos(x, y)
+
+            if not pth:
+                pass
+            else:
+                self.path, col, cell_x, cell_y = pth
+
+    def click_checker2(self, view, event):
+        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
+            #selected,iter = view.get_selection().get_selected()
+            #index = selected.get_value(iter, 0)
+            #print index
+
+            # Here test whether we have songlist, if have, show popup menu
+            try:
+                if self.playlist:
+                    self.SetupPopup2()
             except:
                 pass
 

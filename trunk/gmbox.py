@@ -5,8 +5,26 @@ from HTMLParser import HTMLParser
 import thread
 from stat import *
 
+#"""用sax解析xml歌曲列表"""
+#import xml.parsers.expat
+
+#还是用dom吧。。
+from xml.dom import minidom
+import codecs
+
 reload(sys)
 sys.setdefaultencoding('utf8')
+
+
+#player="mplayer"
+player="mpg123"
+userhome = os.path.expanduser('~')
+musicdir=userhome+'/Music/google_music/top100/'
+gmbox_home=userhome+'/.gmbox/'
+if os.path.exists(musicdir)==0:
+    os.mkdir(musicdir)
+if os.path.exists(gmbox_home)==0:
+    os.mkdir(gmbox_home)
 
 songlists={
 u'华语新歌':('chinese_new_songs_cn',100),
@@ -28,6 +46,7 @@ u'轻音乐热歌':('easy-listening_songs_cn',100),
 u'爵士蓝调热歌':('jnb_songs_cn',100)
 }
 urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
+searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
 
 def unistr(m):
     return unichr(int(m.group(1)))
@@ -94,7 +113,6 @@ class ListParser(HTMLParser):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
         
-
 class SongParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
@@ -107,19 +125,18 @@ class SongParser(HTMLParser):
     def __str__(self):
         return self.url
 
-
 class Download:
     def __init__(self, remote_uri, local_uri):
-        if os.path.exists("top100/"+local_uri):
+        if os.path.exists(musicdir+local_uri):
             print local_uri,u'已存在!'
         else:
             print u'正在下载:',local_uri
             self.T=self.startT=time.time()
             (self.D,self.speed)=(0,0)
-            urllib.urlretrieve(remote_uri, "top100/"+local_uri+'.downloading', self.update_progress)
-            os.rename("top100/"+local_uri+'.downloading', "top100/"+local_uri)
-            os.system('mid3iconv -e gbk "top100/'+local_uri + '"')
-            speed=os.stat("top100/"+local_uri).st_size/(time.time()-self.startT)
+            urllib.urlretrieve(remote_uri, musicdir+local_uri+'.downloading', self.update_progress)
+            os.rename(musicdir+local_uri+'.downloading', musicdir+local_uri)
+            os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
+            speed=os.stat(musicdir+local_uri).st_size/(time.time()-self.startT)
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
     def update_progress(self, blocks, block_size, total_size):
@@ -139,19 +156,19 @@ class Listen:
         thread.start_new_thread(self.download,(local_uri,))
         time.sleep(2)
         self.play(local_uri,)
+        os.rename(musicdir+self.local_uri+'.cache', musicdir+self.local_uri)
 
     def play(self,a):
-        os.system('mid3iconv -e gbk "top100/'+self.local_uri+'.cache"')
-        os.system('pkill mpg123')
-        os.system('mpg123 "top100/'+self.local_uri+'.cache"')
-        os.rename('top100/'+self.local_uri+'.cache', 'top100/'+self.local_uri)
+        os.system('mid3iconv -e gbk "'+musicdir+self.local_uri+'.cache"')
+        os.system('pkill '+player)
+        os.system(player+' "'+musicdir+self.local_uri+'.cache"')
 
     def download(self,a):
             print u'正在缓冲:',self.local_uri
             self.T=self.startT=time.time()
             (self.D,self.speed)=(0,0)
-            urllib.urlretrieve(self.remote_uri, 'top100/'+self.local_uri+'.cache', self.update_progress)
-            speed=os.stat('top100'+self.local_uri).st_size/(time.time()-self.startT)
+            urllib.urlretrieve(self.remote_uri, musicdir+self.local_uri+'.cache', self.update_progress)
+            speed=os.stat(musicdir+self.local_uri).st_size/(time.time()-self.startT)
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
     def update_progress(self, blocks, block_size, total_size):
@@ -194,7 +211,7 @@ class Lists:
     def downone(self,i=0):
         song=self.songlist[i]
         local_uri=song['title']+'-'+song['artist']+'.mp3'
-        if os.path.exists('top100/'+local_uri):
+        if os.path.exists(musicdir+local_uri):
             print local_uri,u'已存在!'
             return
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
@@ -210,26 +227,23 @@ class Lists:
         Download(s.url,local_uri)
         
     def listen(self,start=0):
-        for i in range(start,len(self.songlist)):
-            song=self.songlist[i]
-            local_uri=song['title']+'-'+song['artist']+'.mp3'
-            if os.path.exists('top100/'+local_uri):
-                os.system('mid3iconv -e gbk "top100/'+local_uri + '"')
-                os.system('pkill mpg123')
-                os.system('mpg123 "top100/'+local_uri + '"')
-                continue
-            songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-            s=SongParser()
+        song=self.songlist[start]
+        local_uri=song['title']+'-'+song['artist']+'.mp3'
+        if os.path.exists(musicdir+local_uri):
+            os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
+            os.system('pkill '+player)
+            os.system(player+' "'+musicdir+local_uri + '"')
+            return
+        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+        s=SongParser()
 
-            try:
-                text = urllib2.urlopen(songurl).read()
-            except:
-                print "Reading URL Error: %s" % local_uri
-                continue
+        try:
+            text = urllib2.urlopen(songurl).read()
+        except:
+            print "Reading URL Error: %s" % local_uri
 
-            s.feed(text)
-            Listen(s.url,local_uri)
-        return
+        s.feed(text)
+        Listen(s.url,local_uri)
 
     def get_title(self,i=0):
         song=self.songlist[i]
@@ -256,6 +270,7 @@ class ListFile:
             'id':''}
         self.tmplist=self.songtemplate.copy()
         self.walktree(top,self.visitfile)
+
     def walktree(self,top, callback):
         for log in os.listdir(top):
             pathname = os.path.join(top, log)
@@ -269,12 +284,13 @@ class ListFile:
             else:
                 # Unknown file type, print a message
                 print 'Skipping %s' % pathname
+
     def visitfile(self,file):
         size = os.path.getsize(file)
         mt = time.ctime(os.stat(file).st_mtime);
         ct = time.ctime(os.stat(file).st_ctime);
-        self.tmplist['artist']=file.split('-')[1].split('.')[0]
-        self.tmplist['title']=file.split('-')[0].split('/')[1]
+        self.tmplist['artist']=os.path.basename(file).split('-')[1].split('.')[0]
+        self.tmplist['title']=os.path.basename(file).split('-')[0]
         self.tmplist['id']=len(self.songlist)
         self.songlist.append(self.tmplist.copy())
         self.tmplist=self.songtemplate.copy()
@@ -282,24 +298,191 @@ class ListFile:
     def get_title(self,i=0):
         song=self.songlist[i]
         return song['title']
+
     def get_artist(self,i=0):
         song=self.songlist[i]
         return song['artist']
+
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist]) \
             +u'\n共 '+str(len(self.songlist))+u' 首歌.'
+
     def listen(self,start=0):
         song=self.songlist[start]
         local_uri=song['title']+'-'+song['artist']+'.mp3'
         print local_uri
-        os.system('mid3iconv -e gbk "top100/'+local_uri + '"')
-        os.system('pkill mpg123')
-        os.system('mpg123 "top100/'+local_uri + '"')
+        os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
+        os.system('pkill '+player)
+        os.system(player+' "'+musicdir+local_uri + '"')
+
+class PlayList:
+    def __init__(self):
+        self.songlist=[]
+        self.songtemplate={
+            'title':'',
+            'artist':'',
+            'id':''}
+        self.tmplist=self.songtemplate.copy()
+
+        """
+        self.level = 0
+        p = xml.parsers.expat.ParserCreate()  
+        #p.StartElementHandler = start_element  
+        #p.EndElementHandler = end_element  
+        p.CharacterDataHandler = self.char_data  
+        #p.returns_unicode = False
+        f = file(gmbox_home+'default.xml')
+        p.ParseFile(f)  
+        f.close()  
+        """
+        if os.path.exists(gmbox_home+'default.xml'):
+            self.xmldoc = minidom.parse(gmbox_home+'default.xml')
+            items = self.xmldoc.getElementsByTagName('item')
+            for item in items:
+                title = item.getAttribute('title')
+                artist = item.getAttribute('artist')
+                id = item.getAttribute('id')
+                self.tmplist['artist']=artist
+                self.tmplist['title']=title
+                self.tmplist['id']=id
+                self.songlist.append(self.tmplist.copy())
+                self.tmplist=self.songtemplate.copy()
+        else:
+            impl = minidom.getDOMImplementation()
+            self.xmldoc = impl.createDocument(None, 'playlist', None)
+            f = file(gmbox_home+'default.xml','w')
+            writer = codecs.lookup('utf-8')[3](f)
+            self.xmldoc.writexml(writer)
+            writer.close
+        self.root = self.xmldoc.documentElement
+
+    def __str__(self):
+        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+            (song['title'],song['artist'],song['id']) for song in self.songlist]) \
+            +u'\n共 '+str(len(self.songlist))+u' 首歌.'
+
+    def add(self,title,artist,id):
+        item = self.xmldoc.createElement('item')
+        item.setAttribute('title',title)
+        item.setAttribute('artist',artist)
+        item.setAttribute('id',id)
+        self.root.appendChild(item)
+        f = file(gmbox_home+'default.xml','w')
+        writer = codecs.lookup('utf-8')[3](f)
+        self.xmldoc.writexml(writer)
+        writer.close
+
+    def get_title(self,i=0):
+        song=self.songlist[i]
+        return song['title']
+
+    def get_artist(self,i=0):
+        song=self.songlist[i]
+        return song['artist']
+
+    def listen(self,start=0):
+        song=self.songlist[start]
+        local_uri=song['title']+'-'+song['artist']+'.mp3'
+        if os.path.exists(musicdir+local_uri):
+            os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
+            os.system('pkill '+player)
+            os.system(player+' "'+musicdir+local_uri + '"')
+            return
+        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+        s=SongParser()
+
+        try:
+            text = urllib2.urlopen(songurl).read()
+        except:
+            print "Reading URL Error: %s" % local_uri
+
+        s.feed(text)
+        Listen(s.url,local_uri)
+
+    """
+    # 获取某节点名称及属性值集合
+    def start_element(self,name, attrs):  
+        print 'Start element:', name, attrs  
+        self.level = self.level + 1  
+      
+    # 获取某节点结束名称  
+    def end_element(self,name):  
+        self.level = self.level - 1  
+        print 'End element:', name  
+          
+    # 获取某节点中间的值  
+    def char_data(self,file): 
+        if(file== '\n'):
+            return
+        if(file.isspace()):
+            return
+        self.tmplist['artist']=os.path.basename(file).split('-')[1]
+        self.tmplist['title']=os.path.basename(file).split('-')[0]
+        self.tmplist['id']=len(self.songlist)
+        self.songlist.append(self.tmplist.copy())
+        self.tmplist=self.songtemplate.copy()
+    """
+class SearchParse(HTMLParser):
+    """
+    解析搜索结果页面
+    """
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.songlist=[]
+        self.songtemplate={
+            'title':'',
+            'artist':'',
+            'id':''}
+        self.tmpsong=self.songtemplate.copy()
+        (self.isa,self.ispan,self.insongtable,self.tdclass)=(0,0,0,'')
+    
+    def handle_starttag(self, tag, attrs):
+        if tag == 'a':
+            self.isa=1
+            if self.insongtable and self.tdclass == 'Download BottomBorder':
+                for (n,v) in attrs:
+                    if n=='onclick':
+                        #self.tmpsong['link']=re.match(r'.*"(.*)".*"(.*)".*',v,re.S).group(1)
+                        self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',v,re.S).group(1)
+        if tag == 'table':
+            for (n,v) in attrs:
+                if n=='id' and v=='song_list':
+                    self.insongtable=1
+        if self.insongtable and tag == 'td':
+            for (n,v) in attrs:
+                if n=='class':
+                    self.tdclass=v
+        if tag == 'span':
+            self.ispan=1
+
+    def handle_endtag(self, tag):
+        if tag == 'a':
+            self.isa=0
+        if tag == 'table':
+            self.insongtable=0
+        if tag == 'span':
+            self.ispan=0
+
+    def handle_data(self, data):
+        if self.insongtable and (self.isa or self.ispan):
+            if self.tdclass == 'Title BottomBorder':
+                self.tmpsong['title']=data
+            elif self.tdclass == 'Artist BottomBorder':
+                if  self.tmpsong['artist']:
+                    self.tmpsong['artist']+=u'、'+data
+                else:
+                    self.tmpsong['artist']=data
+            elif self.tdclass == 'Download BottomBorder':
+                self.songlist.append(self.tmpsong.copy())
+                self.tmpsong=self.songtemplate.copy()
+                
+    def __str__(self):
+        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+            (song['title'],song['artist'],song['id']) for song in self.songlist])
 
 if __name__ == '__main__':
     l=Lists(u'华语新歌')
     #print l
     #l.download([0,2,6])
     l.downall()
-    
