@@ -103,10 +103,11 @@ class MainWindow():
         self.systray.set_tooltip("Click to toggle window visibility")
         self.systray.set_visible(True)
 
-        pynotify.init("Some Application or Title")
-        self.notification = pynotify.Notification("Title", "body", "dialog-warning")
-        self.notification.set_urgency(pynotify.URGENCY_NORMAL)
-        self.notification.set_timeout(1)
+        if os.name=='posix':
+            pynotify.init("Some Application or Title")
+            self.notification = pynotify.Notification("Title", "body", "dialog-warning")
+            self.notification.set_urgency(pynotify.URGENCY_NORMAL)
+            self.notification.set_timeout(1)
         return
 
     def systrayCb(self, widget):
@@ -367,7 +368,8 @@ class MainWindow():
         title = self.list_model.get_value(iter, COL_TITLE)
         self.down_model.append([num,title,artist,"start"])
 
-        self.notification = pynotify.Notification("下载", self._songlist.get_title(self.path[0]), "dialog-warning")
+        if os.name=='posix':
+            self.notification = pynotify.Notification("下载", self._songlist.get_title(self.path[0]), "dialog-warning")
         self.notification.set_timeout(1)
         self.notification.show()
         thread.start_new_thread(self._songlist.downone, (self.path[0],))
@@ -381,20 +383,22 @@ class MainWindow():
         self.playlist_model.append([num,title,artist])
         self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
 
-        self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
-        self.notification.set_timeout(1)
-        self.notification.show()
+        if os.name=='posix':
+            self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
+            self.notification.set_timeout(1)
+            self.notification.show()
 
     def listen(self, widget,list):
         thread.start_new_thread(self.play,(list,self.path[0],))
     def play(self,playlist,start):
         #for i in range(start,len(self._songlist.songlist)):
+        if os.name=='posix':
         #    self.notification = pynotify.Notification("试听", self._songlist.get_title(i), "dialog-warning")
             self.notification = pynotify.Notification("试听", playlist.get_title(start), "dialog-warning")
             self.notification.set_timeout(1)
-            self.notification.show()
-            self.playbar.set_text("now playing " + playlist.get_title(start))
-            playlist.listen(start)
+        self.notification.show()
+        self.playbar.set_text("now playing " + playlist.get_title(start))
+        playlist.listen(start)
 
     def playnext(self):
         pass
@@ -451,7 +455,8 @@ def test():
 
 def main():
     win = MainWindow();
-    gtk.gdk.threads_init()
+    if os.name=='posix':
+        gtk.gdk.threads_init()
     gtk.main()
 
 

@@ -20,17 +20,15 @@ if os.name=='posix':
     #player="mplayer"
     player="mpg123"
     userhome = os.path.expanduser('~')
-    musicdir=userhome+'/Music/google_music/top100/'
-    gmbox_home=userhome+'/.gmbox/'
 if os.name=='nt':
     player="mpxplay.exe"
     userhome = 'C:'
-    musicdir=userhome+'\Music\google_music\op100'
-    gmbox_home=userhome+'\.gmbox'
+musicdir=userhome+'/Music/google_music/top100/'
+gmbox_home=userhome+'/.gmbox/'
 if os.path.exists(musicdir)==0:
-    os.mkdir(musicdir)
+    os.makedirs(musicdir)   #递归创建目录  mkdir是创建最后一层目录！amoblin
 if os.path.exists(gmbox_home)==0:
-    os.mkdir(gmbox_home)
+    os.makedirs(gmbox_home)
 
 songlists={
 u'华语新歌':('chinese_new_songs_cn',100),
