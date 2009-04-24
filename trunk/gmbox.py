@@ -79,11 +79,12 @@ class ListParser(HTMLParser):
         #print "starting tag..."
         if tag == 'a':
             self.isa=1
-            if self.insongtable and self.tdclass == 'Download BottomBorder':
-                for (n,v) in attrs:
-                    if n=='onclick':
-                        #self.tmpsong['link']=re.match(r'.*"(.*)".*"(.*)".*',v,re.S).group(1)
-                        self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',v,re.S).group(1)
+            if self.insongtable and self.tdclass == 'Icon BottomBorder':
+                (n,v)=zip(*attrs)
+                if v[n.index('title')]==u'下载':
+                    self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',v[n.index('onclick')],re.S).group(1)
+                    self.songlist.append(self.tmpsong)
+                    self.tmpsong=self.songtemplate.copy()
         if tag == 'table':
             for (n,v) in attrs:
                 if n=='id' and v=='song_list':
@@ -124,11 +125,9 @@ class ListParser(HTMLParser):
                     self.tmpsong['artist']=data
                 #print "the artist is " , data
             #elif self.tdclass == 'Download BottomBorder':
-            elif self.tdclass == 'Related BottomBorder':
+#            elif self.tdclass == 'Related BottomBorder':
                 #print "add to songlist...**********************************"
                 #time.sleep(3)
-                self.songlist.append(self.tmpsong)
-                self.tmpsong=self.songtemplate.copy()
                 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
@@ -156,8 +155,8 @@ class Download:
             (self.D,self.speed)=(0,0)
             urllib.urlretrieve(remote_uri, musicdir+local_uri+'.downloading', self.update_progress)
             os.rename(musicdir+local_uri+'.downloading', musicdir+local_uri)
-            if os.name=='posix':
-                os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
+#            if os.name=='posix':
+#                os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
             speed=os.stat(musicdir+local_uri).st_size/(time.time()-self.startT)
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
