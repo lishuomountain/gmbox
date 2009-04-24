@@ -130,8 +130,12 @@ class MainWindow():
         self.window.set_title("GMBox")
         self.window.set_default_size(800, 600)
         self.window.connect('destroy', gtk.main_quit)
+        self.window.connect('key_press_event', self.key_checker)
         self.window.show_all();
 
+        accel_group = gtk.AccelGroup()
+        self.window.add_accel_group(accel_group)
+        #self.window.add_accelerator("hide()",accel_group,ord('w'),gtk.gdk.CONTROL_MASK,0)
 
         gmbox.loop_number == 0 #初始信号量为1,表示循环播放的进程个数为0
 
@@ -232,8 +236,7 @@ class MainWindow():
         """Hold song index and prepare for download"""
         self._songlist = gmbox.Lists(text)
         self.currentlist=self._songlist
-        
-        self.list_model.clear()
+        print len(self._songlist.songlist)
         for song in self._songlist.songlist:
             self.list_model.append(
                 [self._songlist.songlist.index(song)+1,song['title'],song['artist']])
@@ -251,6 +254,7 @@ class MainWindow():
         thread.start_new_thread(self.listLocalFile,(gmbox.musicdir,))
     def listLocalFile(self,path):
         self._songlist = gmbox.ListFile(path)
+        #self._songlist = gmbox.Lists("华语热歌")
         self.currentlist = self._songlist
         self.list_model.clear()
         for song in self._songlist.songlist:
@@ -267,6 +271,8 @@ class MainWindow():
         
         treeview = gtk.TreeView(self.list_model)
         treeview.connect('button-press-event', self.click_checker)
+        #treeview.bind('<Button-3>', self.click_checker)
+        #treeview.bind('<Double-Button-1>', self.listen)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
         renderer = gtk.CellRendererText()
@@ -510,6 +516,23 @@ class MainWindow():
                 pass
             else:
                 self.path, col, cell_x, cell_y = pth
+
+    def key_checker(self,widget, event):
+        if event.type == gtk.gdk.KEY_PRESS:
+            if event.keyval == ord('h'):
+                self.window.hide()
+            if event.keyval == ord('n'):
+                self.playnext(widget)
+            if event.keyval == ord('p'):
+                self.playprev(widget)
+            #if event.keyval == gtk.gdk.SPACE:
+                #self.listen(widget)
+            if event.keyval == ord('j'):
+                """聚焦下一曲，暂由播放下一曲代替"""
+                self.playnext(widget)
+            if event.keyval == ord('k'):
+                """聚焦上一曲，暂由播放上一曲代替"""
+                self.playprev(widget)
 
 def test():
     print "testing for thread"

@@ -198,12 +198,14 @@ class Lists:
             sys.stdout.flush()
             for i in range(0,songlists[stype][1],25):
             #for i in range(0,25,25):
+                print songlists[stype][0]
                 html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
                 p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                 print '.',
                 sys.stdout.flush()
             self.songlist=p.songlist
             print 'done!'
+            print len(self.songlist)
         else:
             #raise Exception
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
@@ -266,6 +268,7 @@ class Lists:
             self.downone(i)
 
 class ListFile:
+    """本地文件列表"""
     def __init__(self,top):
         self.songlist=[]
         self.songtemplate={
