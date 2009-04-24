@@ -51,6 +51,7 @@ u'爵士蓝调热歌':('jnb_songs_cn',100)
 }
 urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
 searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
+lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
 loop_number=0
 
 def unistr(m):
@@ -75,6 +76,7 @@ class ListParser(HTMLParser):
         (self.isa,self.ispan,self.insongtable,self.tdclass)=(0,0,0,'')
     
     def handle_starttag(self, tag, attrs):
+        #print "starting tag..."
         if tag == 'a':
             self.isa=1
             if self.insongtable and self.tdclass == 'Download BottomBorder':
@@ -102,16 +104,30 @@ class ListParser(HTMLParser):
             self.ispan=0
 
     def handle_data(self, data):
+        #print "now will parse data..."
         if self.insongtable and (self.isa or self.ispan):
+            #time.sleep(1)
+            #print "I got it!"
+            #print "self.tdclass here is :",self.tdclass
+            #time.sleep(3)
             if self.tdclass == 'Title BottomBorder':
+                #print "found title..."
+                #time.sleep(1)
                 self.tmpsong['title']=data
+                #print "the title is ",data
             elif self.tdclass == 'Artist BottomBorder':
+                #print "found artist..."
+                #time.sleep(1)
                 if  self.tmpsong['artist']:
                     self.tmpsong['artist']+=u'、'+data
                 else:
                     self.tmpsong['artist']=data
-            elif self.tdclass == 'Download BottomBorder':
-                self.songlist.append(self.tmpsong.copy())
+                #print "the artist is " , data
+            #elif self.tdclass == 'Download BottomBorder':
+            elif self.tdclass == 'Related BottomBorder':
+                #print "add to songlist...**********************************"
+                #time.sleep(3)
+                self.songlist.append(self.tmpsong)
                 self.tmpsong=self.songtemplate.copy()
                 
     def __str__(self):
@@ -198,14 +214,13 @@ class Lists:
             sys.stdout.flush()
             for i in range(0,songlists[stype][1],25):
             #for i in range(0,25,25):
-                print songlists[stype][0]
                 html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
                 p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                 print '.',
                 sys.stdout.flush()
             self.songlist=p.songlist
             print 'done!'
-            print len(self.songlist)
+            html=urllib2.urlopen(urltemplate%(songlists[stype][0],0)).read()
         else:
             #raise Exception
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
@@ -409,29 +424,6 @@ class PlayList:
         s.feed(text)
         Listen(s.url,local_uri)
 
-    """
-    # 获取某节点名称及属性值集合
-    def start_element(self,name, attrs):  
-        print 'Start element:', name, attrs  
-        self.level = self.level + 1  
-      
-    # 获取某节点结束名称  
-    def end_element(self,name):  
-        self.level = self.level - 1  
-        print 'End element:', name  
-          
-    # 获取某节点中间的值  
-    def char_data(self,file): 
-        if(file== '\n'):
-            return
-        if(file.isspace()):
-            return
-        self.tmplist['artist']=os.path.basename(file).split('-')[1]
-        self.tmplist['title']=os.path.basename(file).split('-')[0]
-        self.tmplist['id']=len(self.songlist)
-        self.songlist.append(self.tmplist.copy())
-        self.tmplist=self.songtemplate.copy()
-    """
 class SearchParse(HTMLParser):
     """
     解析搜索结果页面
