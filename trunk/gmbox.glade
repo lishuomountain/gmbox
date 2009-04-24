@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <glade-interface>
-  <!-- interface-requires gtk+ 2.16 -->
+  <!-- interface-requires gtk+ 2.8 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <widget class="GtkWindow" id="window_main">
     <child>
@@ -234,7 +234,60 @@ lerosua</property>
           <widget class="GtkHBox" id="hbox1">
             <property name="visible">True</property>
             <child>
-              <placeholder/>
+              <widget class="GtkHBox" id="statusbar">
+                <property name="visible">True</property>
+                <child>
+                  <widget class="GtkButton" id="mbutton_previous">
+                    <property name="label" translatable="yes">&#x4E0A;&#x4E00;&#x9996;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="on_mbutton_previous_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="mbutton_play">
+                    <property name="label" translatable="yes">&#x64AD;&#x653E;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="on_mbutton_play_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="mbutton_pause">
+                    <property name="label" translatable="yes">&#x6682;&#x505C;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="on_mbutton_pause_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="mbutton_next">
+                    <property name="label" translatable="yes">&#x4E0B;&#x4E00;&#x9996;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="on_mbutton_next_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <widget class="GtkProgressBar" id="playbar">
@@ -245,7 +298,13 @@ lerosua</property>
               </packing>
             </child>
             <child>
-              <placeholder/>
+              <widget class="GtkImage" id="image1">
+                <property name="visible">True</property>
+                <property name="stock">gtk-missing-image</property>
+              </widget>
+              <packing>
+                <property name="position">2</property>
+              </packing>
             </child>
           </widget>
           <packing>

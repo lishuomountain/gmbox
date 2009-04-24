@@ -51,6 +51,7 @@ u'爵士蓝调热歌':('jnb_songs_cn',100)
 }
 urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
 searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
+loop_number=0
 
 def unistr(m):
     return unichr(int(m.group(1)))
@@ -139,7 +140,8 @@ class Download:
             (self.D,self.speed)=(0,0)
             urllib.urlretrieve(remote_uri, musicdir+local_uri+'.downloading', self.update_progress)
             os.rename(musicdir+local_uri+'.downloading', musicdir+local_uri)
-            os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
+            if os.name=='posix':
+                os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
             speed=os.stat(musicdir+local_uri).st_size/(time.time()-self.startT)
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
@@ -161,6 +163,8 @@ class Listen:
         time.sleep(2)
         self.play(local_uri,)
         os.rename(musicdir+self.local_uri+'.cache', musicdir+self.local_uri)
+        if os.name=='posix':
+            os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
 
     def play(self,a):
         newplay(self.local_uri,"true")
@@ -289,6 +293,12 @@ class ListFile:
         size = os.path.getsize(file)
         mt = time.ctime(os.stat(file).st_mtime);
         ct = time.ctime(os.stat(file).st_ctime);
+        if os.path.basename(file).split('.')[-1]=='cache':
+            print 'ignoring '+os.path.basename(file)
+            return
+        if os.path.basename(file).split('.')[-1]=='downloading':
+            print 'ignoring '+os.path.basename(file)
+            return
         self.tmplist['artist']=os.path.basename(file).split('-')[1].split('.')[0]
         self.tmplist['title']=os.path.basename(file).split('-')[0]
         self.tmplist['id']=len(self.songlist)
@@ -482,7 +492,6 @@ def newplay(uri,trylisten):
         full_uri=musicdir+uri
         if trylisten=='true':
             full_uri=full_uri+'.cache'
-        os.system('mid3iconv -e gbk "'+full_uri+'"')
         os.system('pkill '+player)
         os.system(player+' "'+full_uri+'"')
     if os.name == 'nt':

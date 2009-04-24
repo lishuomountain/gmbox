@@ -22,10 +22,15 @@ class MainWindow():
         self.notebook.set_show_tabs(False)
 
         dic={"on_pbutton_album_clicked":self.btnAlbum_clicked,
-                "on_pbutton_down_clicked": self.btnDown_clicked,
-                "on_pbutton_list_clicked": self.btnList_clicked,
-                "on_pbutton_searched_clicked": self.btnSearched_clicked,
-                "on_pbutton_about_clicked": self.btnAbout_clicked}
+             "on_pbutton_down_clicked": self.btnDown_clicked,
+             "on_pbutton_list_clicked": self.btnList_clicked,
+             "on_pbutton_searched_clicked": self.btnSearched_clicked,
+             "on_pbutton_about_clicked": self.btnAbout_clicked,
+
+             "on_mbutton_previous_clicked":self.playprev,
+             "on_mbutton_play_clicked": self.listen,
+             "on_mbutton_pause_clicked": self.pause_music,
+             "on_mbutton_next_clicked": self.playnext}
         self.xml.signal_autoconnect(dic)
 
         #page 1
@@ -87,6 +92,38 @@ class MainWindow():
         down_scroll.add(down_tree)
         down_vbox.pack_start(down_scroll)
 
+        statusbar = self.xml.get_widget("statusbar")
+
+        #button = self.xml.get_widget("mbutton_previous")
+        button = gtk.Button()
+        image=gtk.Image()
+        image.set_from_file("images/media-previous.png")
+        button.add(image)
+        statusbar.add(button)
+
+        #button = self.xml.get_widget("mbutton_play")
+        button = gtk.Button()
+        image=gtk.Image()
+        image.set_from_file("images/media-play.png")
+        button.add(image)
+        statusbar.add(button)
+
+        #button= self.xml.get_widget("mbutton_pause")
+        button = gtk.Button()
+        image=gtk.Image()
+        image.set_from_file("images/media-pause.png")
+        button.add(image)
+        statusbar.add(button)
+
+        #button = self.xml.get_widget("mbutton_next")
+        button = gtk.Button()
+        image=gtk.Image()
+        image.set_from_file("images/media-next.png")
+        button.add(image)
+        statusbar.add(button)
+
+        logo = self.xml.get_widget("logo")
+
         self.playbar = self.xml.get_widget("playbar")
         self.playbar.set_text("playing")
 
@@ -95,9 +132,12 @@ class MainWindow():
         self.window.connect('destroy', gtk.main_quit)
         self.window.show_all();
 
+
+        gmbox.loop_number == 0 #初始信号量为1,表示循环播放的进程个数为0
+
     def setupSystray(self):
         self.systray = gtk.StatusIcon()
-        self.systray.set_from_file("systray.png")
+        self.systray.set_from_file("images/systray.png")
         self.systray.connect("activate", self.systrayCb)
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip("Click to toggle window visibility")
@@ -125,13 +165,13 @@ class MainWindow():
         restore_item.connect("activate", self.systrayCb)
         popup_menu.append(restore_item)
 
-        next_item = gtk.MenuItem("Next")
-        restore_item.connect("activate", self.playnext)
-        popup_menu.append(next_item)
-
         prev_item = gtk.MenuItem("Previous")
-        restore_item.connect("activate", self.playprev)
+        prev_item.connect("activate", self.playprev)
         popup_menu.append(prev_item)
+
+        next_item = gtk.MenuItem("Next")
+        next_item.connect("activate", self.playnext)
+        popup_menu.append(next_item)
 
         quit_item = gtk.ImageMenuItem(gtk.STOCK_QUIT)
         quit_item.connect("activate", gtk.main_quit)
@@ -191,6 +231,7 @@ class MainWindow():
     def downList(self,text):
         """Hold song index and prepare for download"""
         self._songlist = gmbox.Lists(text)
+        self.currentlist=self._songlist
         
         self.list_model.clear()
         for song in self._songlist.songlist:
@@ -210,6 +251,7 @@ class MainWindow():
         thread.start_new_thread(self.listLocalFile,(gmbox.musicdir,))
     def listLocalFile(self,path):
         self._songlist = gmbox.ListFile(path)
+        self.currentlist = self._songlist
         self.list_model.clear()
         for song in self._songlist.songlist:
             self.list_model.append(
@@ -329,7 +371,7 @@ class MainWindow():
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('试听')
-        menuitem.connect('activate', self.listen,self._songlist)
+        menuitem.connect('activate', self.listen)
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('添加到播放列表')
@@ -349,7 +391,7 @@ class MainWindow():
         popupmenu = gtk.Menu()
 
         menuitem = gtk.MenuItem('试听')
-        menuitem.connect('activate', self.listen,self.playlist)
+        menuitem.connect('activate', self.listen_init)
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('从列表删除')
@@ -388,23 +430,41 @@ class MainWindow():
             self.notification.set_timeout(1)
             self.notification.show()
 
-    def listen(self, widget,list):
-        thread.start_new_thread(self.play,(list,self.path[0],))
-    def play(self,playlist,start):
-        #for i in range(start,len(self._songlist.songlist)):
+    def listen(self, widget):
         if os.name=='posix':
-        #    self.notification = pynotify.Notification("试听", self._songlist.get_title(i), "dialog-warning")
-            self.notification = pynotify.Notification("试听", playlist.get_title(start), "dialog-warning")
-            self.notification.set_timeout(1)
-        self.notification.show()
-        self.playbar.set_text("now playing " + playlist.get_title(start))
-        playlist.listen(start)
+            os.system("pkill "+gmbox.player)
+        thread.start_new_thread(self.play,(self.current_path,))
+    def play(self,start):
+        flag=1
+        while start < len(self.currentlist.songlist) and gmbox.loop_number < 2:   #实现播放列表自动循环播放 loop_play为信号量
+            if flag==1:
+                print "I'm the only thread"
+                gmbox.loop_number = gmbox.loop_number + 1
+                flag=0
+            if os.name=='posix':
+                self.notification = pynotify.Notification("试听", self.currentlist.get_title(start), "dialog-warning")
+                self.notification.set_timeout(1)
+                self.notification.show()
+                self.playbar.set_text("now playing " + self.currentlist.get_title(start))
+            self.currentlist.listen(start)
+            start = start + 1
+            #self.current_path = self.current_path + 1
+        gmbox.loop_number = gmbox.loop_number - 1
 
-    def playnext(self):
-        pass
-    def playprev(self):
-        pass
+    def listen_init(self, widget):
+        self.currentlist=self.playlist
+        self.current_path=self.path[0]
+        self.listen(widget)
 
+    def playnext(self,widget):
+        self.current_path= self.current_path+ 1
+        self.listen(widget)
+    def playprev(self,widget):
+        self.current_path= self.current_path - 1
+        self.listen(widget)
+
+    def pause_music(self,widget):
+        pass
     def click_checker(self, view, event):
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
             #selected,iter = view.get_selection().get_selected()
@@ -426,6 +486,8 @@ class MainWindow():
                 pass
             else:
                 self.path, col, cell_x, cell_y = pth
+                print self.path
+                self.current_path=self.path[0]
 
     def click_checker2(self, view, event):
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:

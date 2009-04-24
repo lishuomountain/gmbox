@@ -1,0 +1,22 @@
+#!/bin/bash
+#===============================================================================
+#
+#          FILE:  install.sh
+# 
+#         USAGE:  ./install.sh 
+# 
+#   DESCRIPTION:  install to release
+# 
+#       OPTIONS:  ---
+#  REQUIREMENTS:  ---
+#          BUGS:  ---
+#         NOTES:  ---
+#        AUTHOR:  amoblin 崔 (), amoblin@gmail.com
+#       COMPANY:  bistu
+#       VERSION:  1.0
+#       CREATED:  2009年04月23日 11时54分51秒 CST
+#      REVISION:  ---
+#===============================================================================
+
+sudo cp -vr * /usr/share/gmbox/
+sudo ln -s /usr/share/gmbox/gmbox /bin/gmbox
