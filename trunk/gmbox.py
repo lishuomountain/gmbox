@@ -55,8 +55,10 @@ lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce
 loop_number=0
 
 def unistr(m):
+    '''给re.sub做第二个参数,返回&#nnnnn;对应的中文'''
     return unichr(int(m.group(1)))
 def sizeread(size):
+    '''传入整数,传出B/KB/MB'''
     if size>1024*1024:
         return '%0.2fMB' % (float(size)/1024/1024)
     elif size>1024:
@@ -65,6 +67,7 @@ def sizeread(size):
         return '%dB' % size
 
 class ListParser(HTMLParser):
+    '''解析榜单列表页面的类'''
     def __init__(self):
         HTMLParser.__init__(self)
         self.songlist=[]
@@ -134,6 +137,7 @@ class ListParser(HTMLParser):
             (song['title'],song['artist'],song['id']) for song in self.songlist])
         
 class SongParser(HTMLParser):
+    '''解析歌曲页面,得到真实的歌曲下载地址'''
     def __init__(self):
         HTMLParser.__init__(self)
         self.url=''
@@ -146,6 +150,7 @@ class SongParser(HTMLParser):
         return self.url
 
 class Download:
+    '''下载文件的类'''
     def __init__(self, remote_uri, local_uri):
         if os.path.exists(musicdir+local_uri):
             print local_uri,u'已存在!'
@@ -161,6 +166,7 @@ class Download:
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
     def update_progress(self, blocks, block_size, total_size):
+        '''处理进度显示的回调函数'''
         if total_size>0 :
             percentage = float(blocks) / (total_size/block_size+1) * 100
             if int(time.time()) != int(self.T):
@@ -205,6 +211,7 @@ class Listen:
                 (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
         
 class Lists:
+    '''榜单类,可以自动处理分页的榜单页面'''
     def __init__(self,stype):
         self.songlist=[]
         if stype in songlists:
@@ -231,6 +238,7 @@ class Lists:
             +u'\n共 '+str(len(self.songlist))+u' 首歌.'
         
     def downone(self,i=0):
+        '''下载榜单中的一首歌曲'''
         song=self.songlist[i]
         local_uri=song['title']+'-'+song['artist']+'.mp3'
         if os.path.exists(musicdir+local_uri):
@@ -274,10 +282,12 @@ class Lists:
         return song['artist']
 
     def downall(self):
+        '''下载榜单中的所有歌曲'''
         for i in range(len(self.songlist)):
             self.downone(i)
     
     def download(self,songids=[]):
+        '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
         for i in songids:
             self.downone(i)
 
