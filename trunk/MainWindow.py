@@ -256,7 +256,7 @@ class MainWindow():
         thread.start_new_thread(self.listLocalFile,(gmbox.musicdir,))
     def listLocalFile(self,path):
         self.local_list_button.set_sensitive(False)
-        self._songlist = gmbox.ListFile(path)
+        self._songlist = gmbox.FileList(path)
         #self._songlist = gmbox.Lists("华语热歌")
         self.currentlist = self._songlist
         self.list_model.clear()
@@ -429,12 +429,14 @@ class MainWindow():
     def addToPlaylist(self, widget):
         selected = self.list_tree.get_selection().get_selected()
         list_model,iter = selected
-        num = self.list_model.get_value(iter,COL_NUM)
+        #num = self.list_model.get_value(iter,COL_NUM)
+        num = len(self.playlist.songlist)+1
         artist = self.list_model.get_value(iter, COL_ARTIST)
         title = self.list_model.get_value(iter, COL_TITLE)
         self.playlist_model.append([num,title,artist])
         #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
-        self.playlist.add(title,artist,str(self.path[0]))
+        id = self._songlist.get_id(self.path[0])
+        self.playlist.add(title,artist,id)
 
         if os.name=='posix':
             self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
@@ -450,6 +452,15 @@ class MainWindow():
             print "Error"
             pass
     def play(self,start):
+        '''试听,播放'''
+        if os.name=='posix':
+            self.notification = pynotify.Notification("试听", self.currentlist.get_title(start), "dialog-warning")
+            self.notification.set_timeout(1)
+            self.notification.show()
+        self.playbar.set_text("now playing " + self.currentlist.get_title(start))
+        #self.currentlist.listen(start) 改为下面的play，参见gmbox.py中 play函数
+        self.currentlist.play(start)
+        """
         flag=1
         print "begin to play"
         while start < len(self.currentlist.songlist) and gmbox.loop_number < 2:   #实现播放列表自动循环播放 loop_play为信号量
@@ -462,11 +473,14 @@ class MainWindow():
                 self.notification.set_timeout(1)
                 self.notification.show()
                 self.playbar.set_text("now playing " + self.currentlist.get_title(start))
-            self.currentlist.listen(start)
+            #self.currentlist.listen(start) 改为下面的play，参见gmbox.py中 play函数
+            print "begin play"
+            self.currentlist.play(start)
             print "begin next"
             start = start + 1
             #self.current_path = self.current_path + 1
         gmbox.loop_number = gmbox.loop_number - 1
+        """
 
     def listen_init(self, widget):
         self.currentlist=self.playlist

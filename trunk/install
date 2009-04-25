@@ -1,10 +1,5 @@
 #!/bin/bash
 
-<<<<<<< .mine
-sudo cp -v gmbox.py /usr/share/gmbox/
-sudo cp -v MainWindow.py /usr/share/gmbox/
-#sudo ln -s /usr/share/gmbox/gmbox /bin/gmbox
-=======
 [[ $UID == 0 ]] || { echo "Must be root to run this script."; exit 0; }
 
 INSTALL(){
@@ -39,4 +34,3 @@ Uasge:
 EOF
 	;;
 esac
->>>>>>> .r42
