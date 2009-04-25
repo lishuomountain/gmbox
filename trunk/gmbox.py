@@ -145,6 +145,8 @@ class Download:
         local_uri=musicdir+filename
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
+        print local_uri+'.downloading'
+        print remote_uri
         urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
         if mode:
             os.rename(local_uri+'.downloading', local_uri)
@@ -166,57 +168,15 @@ class Download:
                 ''.join([' ' for i in range((int)(50-percentage/2))])+ \
                 (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
         
-class Listen:
-    def __init__(self, remote_uri, local_uri):
-        self.remote_uri= remote_uri
-        self.local_uri=local_uri
-        thread.start_new_thread(self.download,(local_uri,))
-        time.sleep(1)
-        self.local_uri = musicdir + self.local_uri
-        newplay(self.local_uri,"true")
-        os.rename(self.local_uri+'.cache', self.local_uri)
-        if os.name=='posix':
-            os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
-
-
-    def download(self,filename):
-            print u'正在缓冲:',filename
-            self.T=self.startT=time.time()
-            (self.D,self.speed)=(0,0)
-            urllib.urlretrieve(self.remote_uri, musicdir+filename+'.cache', self.update_progress)
-            speed=os.stat(musicdir+filename).st_size/(time.time()-self.startT)
-            print '\r['+''.join(['=' for i in range(50)])+ \
-                '] 100.00%%  %s/s       '%sizeread(speed)
-    def update_progress(self, blocks, block_size, total_size):
-        if total_size>0 :
-            percentage = float(blocks) / (total_size/block_size+1) * 100
-            if int(time.time()) != int(self.T):
-                self.speed=(blocks*block_size-self.D)/(time.time()-self.T)
-                (self.D,self.T)=(blocks*block_size,time.time())
-            print '\r['+''.join(['=' for i in range((int)(percentage/2))])+'>'+ \
-                ''.join([' ' for i in range((int)(50-percentage/2))])+ \
-                (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
-        
-class Lists:
-    '''榜单类,可以自动处理分页的榜单页面'''
+class Abs_Lists:
+    '''Lists,FileList,PlayList 的抽象类'''
     def __init__(self,stype):
         self.songlist=[]
-        if stype in songlists:
-            p=ListParser()
-            print u'正在获取"'+stype+u'"的歌曲列表',
-            sys.stdout.flush()
-            for i in range(0,songlists[stype][1],25):
-            #for i in range(0,25,25):
-                html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
-                p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-                print '.',
-                sys.stdout.flush()
-            self.songlist=p.songlist
-            print 'done!'
-        else:
-            #raise Exception
-            print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
-            ['"%s"'%key for key in songlists])
+        self.songtemplate={
+            'title':'',
+            'artist':'',
+            'id':''}
+        self.tmplist=self.songtemplate.copy()
 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
@@ -234,6 +194,7 @@ class Lists:
                 print local_uri,u'已存在!'
                 return
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+        print songurl
         s=SongParser()
 
         try:
@@ -242,8 +203,10 @@ class Lists:
             print "Reading URL Error: %s" % local_uri
             return
 
+        #print "text is ",text
         s.feed(text)
-        #Download(s.url,local_uri)
+        print "filename is ",filename
+        print "s.url is ",s.url
         Download(s.url,filename,mode)
 
 
@@ -252,32 +215,6 @@ class Lists:
         filename=song['title']+'-'+song['artist']+'.mp3'
         return filename
 
-    def download_(self,i=0,mode=1):
-        song=self.songlist[i]
-        local_uri=musicdir+self.get_filename(i)
-        print local_uri
-        #time.sleep(3)
-        if mode:
-            if os.path.exists(local_uri):
-                print local_uri,u'已存在!'
-                #time.sleep(3)
-                return
-        #time.sleep(3)
-        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-        s=SongParser()
-
-        try:
-            text = urllib2.urlopen(songurl).read()
-        except:
-            print "Reading URL Error: %s" % local_uri
-            return
-
-        s.feed(text)
-        #Download(s.url,local_uri)
-        Download(s.url,self.get_filename(i),mode)
-
-        
-    #def listen(self,i=0):
     def play(self,i=0):
         '''试听，播放'''
         filename=self.get_filename(i)
@@ -321,8 +258,85 @@ class Lists:
         '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
         for i in songids:
             self.downone(i)
+        
+class Lists(Abs_Lists):
+    '''榜单类,可以自动处理分页的榜单页面'''
+    def __init__(self,stype):
+        self.songlist=[]
+        if stype in songlists:
+            p=ListParser()
+            print u'正在获取"'+stype+u'"的歌曲列表',
+            sys.stdout.flush()
+            for i in range(0,songlists[stype][1],25):
+            #for i in range(0,25,25):
+                html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
+                p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+                print '.',
+                sys.stdout.flush()
+            self.songlist=p.songlist
+            print 'done!'
+        else:
+            #raise Exception
+            print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
+            ['"%s"'%key for key in songlists])
 
-class FileList:
+    def downone(self,i=0,mode=1):
+        '''下载榜单中的一首歌曲 mode：1，下载模式，0,试听模式'''
+        song=self.songlist[i]
+        #local_uri=song['title']+'-'+song['artist']+'.mp3'
+        filename = self.get_filename(i)
+        local_uri=musicdir+filename
+        if mode:    #下载模式
+            if os.path.exists(local_uri):
+                print local_uri,u'已存在!'
+                return
+        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+        s=SongParser()
+
+        try:
+            text = urllib2.urlopen(songurl).read()
+        except:
+            print "Reading URL Error: %s" % local_uri
+            return
+
+        s.feed(text)
+        print "filename is ",filename
+        print "s.url is ",s.url
+        Download(s.url,filename,mode)
+
+    def play(self,i=0):
+        '''试听，播放'''
+        filename=self.get_filename(i)
+        local_uri=musicdir+filename
+
+        if os.name=='posix':
+            os.system("pkill "+player)
+
+        if os.path.exists(local_uri):
+            print filename,u'已存在!'
+            print "directly play..."
+            os.system(player+' "'+local_uri+'"')
+            return
+        thread.start_new_thread(self.downone,(i,0,))
+        time.sleep(2)
+        local_uri= local_uri + '.downloading'
+        if os.name=='posix':
+            os.system("pkill "+player)
+            os.system('mid3iconv -e gbk "'+local_uri +'"')
+
+        os.system(player+' "'+local_uri+'"')
+
+    def downall(self):
+        '''下载榜单中的所有歌曲'''
+        for i in range(len(self.songlist)):
+            self.downone(i)
+    
+    def download(self,songids=[]):
+        '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
+        for i in songids:
+            self.downone(i)
+
+class FileList(Abs_Lists):
     '''本地文件列表'''
     def __init__(self,top):
         self.songlist=[]
@@ -363,27 +377,20 @@ class FileList:
         self.songlist.append(self.tmplist.copy())
         self.tmplist=self.songtemplate.copy()
 
-    def get_title(self,i=0):
-        song=self.songlist[i]
-        return song['title']
-
-    def get_artist(self,i=0):
-        song=self.songlist[i]
-        return song['artist']
-
-    def __str__(self):
-        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
-            (song['title'],song['artist'],song['id']) for song in self.songlist]) \
-            +u'\n共 '+str(len(self.songlist))+u' 首歌.'
-
-    #def listen(self,start=0):
     def play(self,start=0):
         '''直接播放文件'''
         song=self.songlist[start]
         local_uri=musicdir+song['title']+'-'+song['artist']+'.mp3'
-        newplay(local_uri,"false")
+        if os.name=='posix':
+            os.system('pkill '+player)
+            os.system(player+' "'+local_uri+'"')
+        if os.name == 'nt':
+            pid = os.system('tasklist')
+            os.system('taskkill '+pid)
+            os.system('ntsd '+pid)
+            os.system(player+' "'+full_uri+'"')
 
-class PlayList:
+class PlayList(Abs_Lists):
     '''读写歌词文件'''
     def __init__(self):
         self.songlist=[]
@@ -414,11 +421,6 @@ class PlayList:
             writer.close
         self.root = self.xmldoc.documentElement
 
-    def __str__(self):
-        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
-            (song['title'],song['artist'],song['id']) for song in self.songlist]) \
-            +u'\n共 '+str(len(self.songlist))+u' 首歌.'
-
     def add(self,title,artist,id):
         item = self.xmldoc.createElement('item')
         item.setAttribute('title',title)
@@ -429,14 +431,6 @@ class PlayList:
         writer = codecs.lookup('utf-8')[3](f)
         self.xmldoc.writexml(writer)
         writer.close
-
-    def get_title(self,i=0):
-        song=self.songlist[i]
-        return song['title']
-
-    def get_artist(self,i=0):
-        song=self.songlist[i]
-        return song['artist']
 
     def play(self,i=0):
         '''试听，播放, 依次检测mp3文件，缓存文件'''
@@ -457,38 +451,8 @@ class PlayList:
 
         os.system(player+' "'+local_uri+'"')
 
-    def get_filename(self,i=0):
-        song=self.songlist[i]
-        filename=song['title']+'-'+song['artist']+'.mp3'
-        return filename
-
-    def downone(self,i=0,mode=1):   #完全复制自Lists，以后可以合并
-        '''下载榜单中的一首歌曲 mode：1，下载模式，0,试听模式'''
-        song=self.songlist[i]
-        #local_uri=song['title']+'-'+song['artist']+'.mp3'
-        filename = self.get_filename(i)
-        local_uri=musicdir+filename
-        if mode:    #下载模式
-            if os.path.exists(local_uri):
-                print local_uri,u'已存在!'
-                return
-        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-        s=SongParser()
-
-        try:
-            text = urllib2.urlopen(songurl).read()
-        except:
-            print "Reading URL Error: %s" % local_uri
-            return
-
-        s.feed(text)
-        #Download(s.url,local_uri)
-        Download(s.url,filename,mode)
-
 class SearchParse(HTMLParser):
-    """
-    解析搜索结果页面
-    """
+    '''解析搜索结果页面 '''
     def __init__(self):
         HTMLParser.__init__(self)
         self.songlist=[]
@@ -543,21 +507,6 @@ class SearchParse(HTMLParser):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
 
-def newplay(uri,trylisten):
-    if os.name=='posix':
-        full_uri=uri
-        if trylisten=='true':
-            full_uri=uri+'.cache'
-        os.system('pkill '+player)
-        os.system(player+' "'+full_uri+'"')
-    if os.name == 'nt':
-        full_uri=uri
-        if bool=='true':
-            full_uri='.cache'
-        pid = os.system('tasklist')
-        os.system('taskkill '+pid)
-        os.system('ntsd '+pid)
-        os.system(player+' "'+full_uri+'"')
 
 if __name__ == '__main__':
     l=Lists(u'华语新歌')
