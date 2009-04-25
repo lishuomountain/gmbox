@@ -166,20 +166,19 @@ class Listen:
         self.local_uri=local_uri
         thread.start_new_thread(self.download,(local_uri,))
         time.sleep(2)
-        self.play(local_uri,)
-        os.rename(musicdir+self.local_uri+'.cache', musicdir+self.local_uri)
+        self.local_uri = musicdir + self.local_uri
+        newplay(self.local_uri,"true")
+        os.rename(self.local_uri+'.cache', self.local_uri)
         if os.name=='posix':
             os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
 
-    def play(self,a):
-        newplay(self.local_uri,"true")
 
-    def download(self,a):
-            print u'正在缓冲:',self.local_uri
+    def download(self,filename):
+            print u'正在缓冲:',filename
             self.T=self.startT=time.time()
             (self.D,self.speed)=(0,0)
-            urllib.urlretrieve(self.remote_uri, musicdir+self.local_uri+'.cache', self.update_progress)
-            speed=os.stat(musicdir+self.local_uri).st_size/(time.time()-self.startT)
+            urllib.urlretrieve(self.remote_uri, musicdir+filename+'.cache', self.update_progress)
+            speed=os.stat(musicdir+filename).st_size/(time.time()-self.startT)
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
     def update_progress(self, blocks, block_size, total_size):
@@ -239,9 +238,11 @@ class Lists:
         
     def listen(self,start=0):
         song=self.songlist[start]
-        local_uri=song['title']+'-'+song['artist']+'.mp3'
-        if os.path.exists(musicdir+local_uri):
-            newplay(self.local_uri,'false')
+        filename=song['title']+'-'+song['artist']+'.mp3'
+        local_uri=musicdir+filename
+        if os.path.exists(local_uri):
+            print "exist local file, so begin to play directly!"
+            newplay(local_uri,'false')
             return
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
         s=SongParser()
@@ -252,7 +253,7 @@ class Lists:
             print "Reading URL Error: %s" % local_uri
 
         s.feed(text)
-        Listen(s.url,local_uri)
+        Listen(s.url,filename)
 
     def get_title(self,i=0):
         song=self.songlist[i]
@@ -328,8 +329,7 @@ class ListFile:
 
     def listen(self,start=0):
         song=self.songlist[start]
-        local_uri=song['title']+'-'+song['artist']+'.mp3'
-        print local_uri
+        local_uri=musicdir+song['title']+'-'+song['artist']+'.mp3'
         newplay(local_uri,"false")
 
 class PlayList:
@@ -399,8 +399,8 @@ class PlayList:
 
     def listen(self,start=0):
         song=self.songlist[start]
-        local_uri=song['title']+'-'+song['artist']+'.mp3'
-        if os.path.exists(musicdir+local_uri):
+        local_uri=musicdir+song['title']+'-'+song['artist']+'.mp3'
+        if os.path.exists(local_uri):
             newplay(local_uri,'false')
             return
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
@@ -474,19 +474,19 @@ class SearchParse(HTMLParser):
 
 def newplay(uri,trylisten):
     if os.name=='posix':
-        full_uri=musicdir+uri
+        full_uri=uri
         if trylisten=='true':
-            full_uri=full_uri+'.cache'
+            full_uri=uri+'.cache'
         os.system('pkill '+player)
         os.system(player+' "'+full_uri+'"')
     if os.name == 'nt':
-        full_uri=musicdir+uri
+        full_uri=uri
         if bool=='true':
-            full_uri=full_uri+'.cache'
+            full_uri='.cache'
         pid = os.system('tasklist')
         os.system('taskkill '+pid)
         os.system('ntsd '+pid)
-        os.system(player+' "'+musicdir+uri+'.cache"')
+        os.system(player+' "'+full_uri+'"')
 
 if __name__ == '__main__':
     l=Lists(u'华语新歌')
