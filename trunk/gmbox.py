@@ -19,10 +19,9 @@ sys.setdefaultencoding('utf8')
 if os.name=='posix':
     #player="mplayer"
     player="mpg123"
-    userhome = os.path.expanduser('~')
 if os.name=='nt':
     player="mpxplay.exe"
-    userhome = 'C:'
+userhome = os.path.expanduser('~')
 musicdir=userhome+'/Music/google_music/top100/'
 gmbox_home=userhome+'/.gmbox/'
 if os.path.exists(musicdir)==0:
@@ -59,6 +58,7 @@ def unistr(m):
     return unichr(int(m.group(1)))
 def sizeread(size):
     '''传入整数,传出B/KB/MB'''
+    #FIXME:这个有现成的函数没?
     if size>1024*1024:
         return '%0.2fMB' % (float(size)/1024/1024)
     elif size>1024:
@@ -79,7 +79,7 @@ class ListParser(HTMLParser):
         (self.isa,self.ispan,self.insongtable,self.tdclass)=(0,0,0,'')
     
     def handle_starttag(self, tag, attrs):
-        #print "starting tag..."
+        '''处理标签开始的函数'''
         if tag == 'a':
             self.isa=1
             if self.insongtable and self.tdclass == 'Icon BottomBorder':
@@ -100,6 +100,7 @@ class ListParser(HTMLParser):
             self.ispan=1
 
     def handle_endtag(self, tag):
+        '''处理标签结束的函数'''
         if tag == 'a':
             self.isa=0
         if tag == 'table':
@@ -108,29 +109,12 @@ class ListParser(HTMLParser):
             self.ispan=0
 
     def handle_data(self, data):
-        #print "now will parse data..."
+        '''处理html节点数据的函数'''
         if self.insongtable and (self.isa or self.ispan):
-            #time.sleep(1)
-            #print "I got it!"
-            #print "self.tdclass here is :",self.tdclass
-            #time.sleep(3)
             if self.tdclass == 'Title BottomBorder':
-                #print "found title..."
-                #time.sleep(1)
                 self.tmpsong['title']=data
-                #print "the title is ",data
             elif self.tdclass == 'Artist BottomBorder':
-                #print "found artist..."
-                #time.sleep(1)
-                if  self.tmpsong['artist']:
-                    self.tmpsong['artist']+=u'、'+data
-                else:
-                    self.tmpsong['artist']=data
-                #print "the artist is " , data
-            #elif self.tdclass == 'Download BottomBorder':
-#            elif self.tdclass == 'Related BottomBorder':
-                #print "add to songlist...**********************************"
-                #time.sleep(3)
+                self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
                 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
@@ -226,7 +210,6 @@ class Lists:
                 sys.stdout.flush()
             self.songlist=p.songlist
             print 'done!'
-            html=urllib2.urlopen(urltemplate%(songlists[stype][0],0)).read()
         else:
             #raise Exception
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
@@ -509,6 +492,6 @@ def newplay(uri,trylisten):
 
 if __name__ == '__main__':
     l=Lists(u'华语新歌')
-    #print l
+    print l
     #l.download([0,2,6])
-    l.downall()
+    #l.downall()
