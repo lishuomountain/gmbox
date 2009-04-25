@@ -1,0 +1,9 @@
+[Desktop Entry]
+_Name=gmbox
+_Comment=google music box
+Exec=gmbox
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=gmbox
+Categories=AudioVideo;

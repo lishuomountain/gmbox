@@ -1,22 +1,36 @@
 #!/bin/bash
-#===============================================================================
-#
-#          FILE:  install.sh
-# 
-#         USAGE:  ./install.sh 
-# 
-#   DESCRIPTION:  install to release
-# 
-#       OPTIONS:  ---
-#  REQUIREMENTS:  ---
-#          BUGS:  ---
-#         NOTES:  ---
-#        AUTHOR:  amoblin 崔 (), amoblin@gmail.com
-#       COMPANY:  bistu
-#       VERSION:  1.0
-#       CREATED:  2009年04月23日 11时54分51秒 CST
-#      REVISION:  ---
-#===============================================================================
 
-sudo cp -vr * /usr/share/gmbox/
-sudo ln -s /usr/share/gmbox/gmbox /bin/gmbox
+[[ $UID == 0 ]] || { echo "Must be root to run this script."; exit 0; }
+
+INSTALL(){
+	install -d /usr/share/gmbox/
+	install -d /usr/share/gmbox/images
+	install images/* /usr/share/gmbox/images
+	install -m 0755 gmbox gmbox.py MainWindow.py /usr/share/gmbox/
+	install -m 0644 gmbox.glade /usr/share/gmbox/
+	install -m 0644 gmbox.desktop /usr/share/applications
+	ln -s /usr/share/gmbox/gmbox /usr/bin/gmbox
+	echo "install successful."
+}
+UNINSTALL(){
+	rm /usr/bin/gmbox
+	rm -r /usr/share/gmbox/
+	rm /usr/share/applications/gmbox.desktop
+	echo "uninstall successful."
+}
+
+case "$1" in
+	"-i"|"--install")
+		INSTALL
+	;;
+	"-u"|"--uninstall")
+		UNINSTALL
+	;;
+	*)
+		cat << EOF
+Uasge: 
+	run $0 -i to install
+	run $0 -u to uninstall
+EOF
+	;;
+esac

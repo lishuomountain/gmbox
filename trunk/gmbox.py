@@ -188,8 +188,6 @@ class Listen:
             if int(time.time()) != int(self.T):
                 self.speed=(blocks*block_size-self.D)/(time.time()-self.T)
                 (self.D,self.T)=(blocks*block_size,time.time())
-            #print blocks
-            #print total_size/block_size
             print '\r['+''.join(['=' for i in range((int)(percentage/2))])+'>'+ \
                 ''.join([' ' for i in range((int)(50-percentage/2))])+ \
                 (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
@@ -492,6 +490,6 @@ def newplay(uri,trylisten):
 
 if __name__ == '__main__':
     l=Lists(u'华语新歌')
-    print l
+    #print l
     #l.download([0,2,6])
-    #l.downall()
+    l.downall()
