@@ -238,10 +238,11 @@ lerosua</property>
                 <property name="visible">True</property>
                 <child>
                   <widget class="GtkButton" id="mbutton_previous">
-                    <property name="label" translatable="yes">&#x4E0A;&#x4E00;&#x9996;</property>
+                    <property name="label" translatable="yes">gtk-media-previous</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="clicked" handler="on_mbutton_previous_clicked"/>
                   </widget>
                   <packing>
@@ -250,10 +251,11 @@ lerosua</property>
                 </child>
                 <child>
                   <widget class="GtkButton" id="mbutton_play">
-                    <property name="label" translatable="yes">&#x64AD;&#x653E;</property>
+                    <property name="label" translatable="yes">gtk-media-play</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="clicked" handler="on_mbutton_play_clicked"/>
                   </widget>
                   <packing>
@@ -262,10 +264,11 @@ lerosua</property>
                 </child>
                 <child>
                   <widget class="GtkButton" id="mbutton_pause">
-                    <property name="label" translatable="yes">&#x6682;&#x505C;</property>
+                    <property name="label" translatable="yes">gtk-media-pause</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="clicked" handler="on_mbutton_pause_clicked"/>
                   </widget>
                   <packing>
@@ -274,10 +277,11 @@ lerosua</property>
                 </child>
                 <child>
                   <widget class="GtkButton" id="mbutton_next">
-                    <property name="label" translatable="yes">&#x4E0B;&#x4E00;&#x9996;</property>
+                    <property name="label" translatable="yes">gtk-media-next</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="clicked" handler="on_mbutton_next_clicked"/>
                   </widget>
                   <packing>
