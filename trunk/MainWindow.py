@@ -238,7 +238,8 @@ class MainWindow():
 
     def downList(self,text):
         """Hold song index and prepare for download"""
-        self._songlist = gmbox.Lists(text)
+        self._songlist = gmbox.Lists()
+        self._songlist.get_list(text)
         self.list_model.clear()
         for song in self._songlist.songlist:
             self.list_model.append(

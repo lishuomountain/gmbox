@@ -25,25 +25,6 @@ if os.path.exists(musicdir)==0:
 if os.path.exists(gmbox_home)==0:
     os.makedirs(gmbox_home)
 
-songlists={
-u'华语新歌':('chinese_new_songs_cn',100),
-u'欧美新歌':('ea_new_songs_cn',100),
-u'华语热歌':('chinese_songs_cn',200),
-u'欧美热歌':('ea_songs_cn',200),
-u'日韩热歌':('jk_songs_cn',200),
-u'流行热歌':('pop_songs_cn',100),
-u'摇滚热歌':('rock_songs_cn',100),
-u'嘻哈热歌':('hip-hop_songs_cn',100),
-u'影视热歌':('soundtrack_songs_cn',100),
-u'民族热歌':('ethnic_songs_cn',100),
-u'拉丁热歌':('latin_songs_cn',100),
-u'R&B热歌':('rnb_songs_cn',100),
-u'乡村热歌':('country_songs_cn',100),
-u'民谣热歌':('folk_songs_cn',100),
-u'灵歌热歌':('soul_songs_cn',100),
-u'轻音乐热歌':('easy-listening_songs_cn',100),
-u'爵士蓝调热歌':('jnb_songs_cn',100)
-}
 urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
 searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
 lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
@@ -114,8 +95,14 @@ class ListParser(HTMLParser):
                 self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
                 
     def __str__(self):
-        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
-            (song['title'],song['artist'],song['id']) for song in self.songlist])
+        str = '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+            (song['title'],song['artist'],song['id']) for song in self.songlist]) \
+            +u'\n共 '+str(len(self.songlist))+u' 首歌.'
+        if os.name=='nt':
+            #return str.decode('utf-8').encode('cp936')
+            return 'nt'
+        #return str
+        return 'linux'
         
 class SongParser(HTMLParser):
     '''解析歌曲页面,得到真实的歌曲下载地址'''
@@ -144,14 +131,13 @@ class Download:
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
         urllib.urlretrieve(remote_uri, cache_uri, self.update_progress)
+        speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
         if mode:
             '''下载模式'''
             os.rename(cache_uri, local_uri)
             if os.name=='posix':
                 '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
                 os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
-            speed=os.stat(local_uri).st_size/(time.time()-self.startT)
-        speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
         print '\r['+''.join(['=' for i in range(50)])+ \
             '] 100.00%%  %s/s       '%sizeread(speed)
 
@@ -178,9 +164,21 @@ class Abs_Lists:
         self.tmplist=self.songtemplate.copy()
 
     def __str__(self):
-        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
-            (song['title'],song['artist'],song['id']) for song in self.songlist]) \
-            +u'\n共 '+str(len(self.songlist))+u' 首歌.'
+        str = '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+            (song['title'],song['artist'],song['id']) for song in self.songlist])
+        if os.name=='nt':
+            #return str.decode('utf-8').encode('cp936')
+            return str
+        return str
+
+    def listall(self):
+        type = sys.getfilesystemencoding()
+        #if os.name=='nt':
+        #    #return str(self).decode('utf-8').encode('cp936')
+        #    return str(self).decode('utf-8').encode('GBK')
+        #else:
+        #    return str(self).decode('utf-8').encode('cp936')
+        return str(self).encode(type)
 
     def downone(self,i=0):
         '''下载榜单中的一首歌曲 '''
@@ -283,15 +281,38 @@ class Abs_Lists:
 
 class Lists(Abs_Lists):
     '''榜单类,可以自动处理分页的榜单页面'''
-    def __init__(self,stype):
+    #def __init__(self,stype):
+    def __init__(self):
         self.songlist=[]
-        if stype in songlists:
+
+        self.songlists={
+        u'华语新歌':('chinese_new_songs_cn',100),
+        u'欧美新歌':('ea_new_songs_cn',100),
+        u'华语热歌':('chinese_songs_cn',200),
+        u'欧美热歌':('ea_songs_cn',200),
+        u'日韩热歌':('jk_songs_cn',200),
+        u'流行热歌':('pop_songs_cn',100),
+        u'摇滚热歌':('rock_songs_cn',100),
+        u'嘻哈热歌':('hip-hop_songs_cn',100),
+        u'影视热歌':('soundtrack_songs_cn',100),
+        u'民族热歌':('ethnic_songs_cn',100),
+        u'拉丁热歌':('latin_songs_cn',100),
+        u'R&B热歌':('rnb_songs_cn',100),
+        u'乡村热歌':('country_songs_cn',100),
+        u'民谣热歌':('folk_songs_cn',100),
+        u'灵歌热歌':('soul_songs_cn',100),
+        u'轻音乐热歌':('easy-listening_songs_cn',100),
+        u'爵士蓝调热歌':('jnb_songs_cn',100)
+        }
+
+    def get_list(self,stype):
+        if stype in self.songlists:
             p=ListParser()
             print u'正在获取"'+stype+u'"的歌曲列表',
             sys.stdout.flush()
-            for i in range(0,songlists[stype][1],25):
+            for i in range(0,self.songlists[stype][1],25):
             #for i in range(0,25,25):
-                html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
+                html=urllib2.urlopen(urltemplate%(self.songlists[stype][0],i)).read()
                 p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                 print '.',
                 sys.stdout.flush()
@@ -300,7 +321,7 @@ class Lists(Abs_Lists):
         else:
             #raise Exception
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
-            ['"%s"'%key for key in songlists])
+            ['"%s"'%key for key in self.songlists])
 
     def downall(self):
         '''下载榜单中的所有歌曲'''
@@ -478,42 +499,77 @@ class ConfigFile:
             writer.close
         self.root = self.xmldoc.documentElement
 
-def command_line():
+class CMD:
     '''解析命令行参数'''
-    if len(sys.argv)==1:
-        print "Try '",sys.argv[0]," --help' for more information"
-    elif sys.argv[1]=='-l':
-        list_name = u'华语新歌'
-        #if len(sys.argv)==3:
-            #list_name = sys.argv[2]
-        l=Lists(list_name)
-        print l
+    def __init__(self):
+        if len(sys.argv)==1:
+            '''Face to Face Mode'''
+            self.welcome()
+            while 1:
+                command=raw_input('gmbox>')
+                if command =='exit':
+                    return
+                if command =='list':
+                    l=Lists()
+                    list_name = u'华语新歌'
+                    l.get_list(list_name)
+                    print l.listall()
+                elif command =='get':
+                    l.downone(0)
+                elif command =='help':
+                    self.help()
+                else:
+                    self.help()
+        else:
+            '''command mode'''
+            if sys.argv[1]=='-l':
+                list_name = u'华语新歌'
+                if len(sys.argv)==3:
+                    if os.name=='nt':
+                        list_name = sys.argv[2].encode('GBK')
+                    else:
+                        list_name = sys.argv[2].decode('UTF-8')
+                l=Lists()
+                l.get_list(list_name)
+                print l.listall()
+            elif sys.argv[1]=='-d':
+                list_name = u'华语新歌'
+                index=0
+                if len(sys.argv)==3:
+                    index = sys.argv[2]
+                l=Lists(list_name)
+                l.downone(int(index))
+                #l.download([0,2,6])
+                #l.downall()
+            elif sys.argv[1]=='-t':
+                '''input your function to test here'''
+                playlist = PlayList()
+                playlist.play(0)
+                #playlist.get_information(0)
+                #ele = playlist.getElementByIndex(0).getAttribute("id")
+                #print ele
+                #playlist.delete(ele)
+            elif sys.argv[1]=='-h' or sys.argv[1] == '--help':
+                self.help()
+            else:
+                self.error()
 
-    elif sys.argv[1]=='-d':
-        list_name = u'华语新歌'
-        index=0
-        if len(sys.argv)==3:
-            index = sys.argv[2]
-        l=Lists(list_name)
-        l.downone(int(index))
-        #l.download([0,2,6])
-        #l.downall()
-        
-    elif sys.argv[1]=='-t':
-        '''input your function to test here'''
-        playlist = PlayList()
-        playlist.play(0)
-        #playlist.get_information(0)
-        #ele = playlist.getElementByIndex(0).getAttribute("id")
-        #print ele
-        #playlist.delete(ele)
-    elif sys.argv[1]=='-h' or sys.argv[1] == '--help':
+    def welcome(self):
+        print "Welcom to gmbox! gmbox is a music client for mp3 download from google music."
+        print "For more information please visit http://code.google.com/p/gmbox/"
+        print "Type 'help' to start"
+
+    def help(self):
+        print "Command Line Mode:"
         print "Usage: ",sys.argv[0],"[OPTION]..."
-        print " -l      list 华语新歌"
-        print " -d  n  下载第n首歌"
-    else:
+        print " -l      list top100"
+        print " -d  n  download the nth music"
+        print "Face to Face Mode:"
+        print "list         list song from google"
+
+    def error(self):
         print sys.argv[0],": invalid option -- ",sys.argv[1]
         print "Try '",sys.argv[0]," --help' for more information"
 
 if __name__ == '__main__':
-    command_line()
+    CMD()
