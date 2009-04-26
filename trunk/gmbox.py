@@ -5,10 +5,6 @@ from HTMLParser import HTMLParser
 import thread
 from stat import *
 
-#"""用sax解析xml歌曲列表"""
-#import xml.parsers.expat
-
-#还是用dom吧。。
 from xml.dom import minidom
 import codecs
 
@@ -51,7 +47,6 @@ u'爵士蓝调热歌':('jnb_songs_cn',100)
 urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
 searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
 lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
-loop_number=0
 
 def unistr(m):
     '''给re.sub做第二个参数,返回&#nnnnn;对应的中文'''
@@ -143,17 +138,18 @@ class Download:
         else:
             print u'正在缓冲:',filename
         local_uri=musicdir+filename
+        cache_uri=local_uri+'.downloading'
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
-        print local_uri+'.downloading'
-        print remote_uri
-        urllib.urlretrieve(remote_uri, local_uri+'.downloading', self.update_progress)
+        urllib.urlretrieve(remote_uri, cache_uri, self.update_progress)
         if mode:
-            os.rename(local_uri+'.downloading', local_uri)
+            '''下载模式'''
+            os.rename(cache_uri, local_uri)
             if os.name=='posix':
                 '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
                 os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
-        speed=os.stat(musicdir+local_uri).st_size/(time.time()-self.startT)
+            speed=os.stat(local_uri).st_size/(time.time()-self.startT)
+        speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
         print '\r['+''.join(['=' for i in range(50)])+ \
             '] 100.00%%  %s/s       '%sizeread(speed)
 
@@ -172,6 +168,7 @@ class Abs_Lists:
     '''Lists,FileList,PlayList 的抽象类'''
     def __init__(self,stype):
         self.songlist=[]
+        self.loop_number=0  #信号量
         self.songtemplate={
             'title':'',
             'artist':'',
@@ -182,60 +179,80 @@ class Abs_Lists:
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist]) \
             +u'\n共 '+str(len(self.songlist))+u' 首歌.'
-        
-    def downone(self,i=0,mode=1):
-        '''下载榜单中的一首歌曲 mode：1，下载模式，0,试听模式'''
-        song=self.songlist[i]
-        #local_uri=song['title']+'-'+song['artist']+'.mp3'
+
+    def downone(self,i=0):
+        '''下载榜单中的一首歌曲 '''
+        filename = self.get_filename(i)
+        localuri = musicdir + filename
+        if os.path.exists(localuri):
+            print filename,u'已存在!'
+            return
+        url=self.find_final_uri(i)
+        if url:
+            Download(url,filename,1)
+        else:   #下载页有验证码时url为空
+            print "Error, maybe the page is protected..."
+
+    def directly_down(self,uri,i):
+        '''直接下载，用于试听中得到最终下载地址后调用'''
         filename = self.get_filename(i)
         local_uri=musicdir+filename
-        if mode:    #下载模式
-            if os.path.exists(local_uri):
-                print local_uri,u'已存在!'
-                return
-        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-        print songurl
-        s=SongParser()
-
-        try:
-            text = urllib2.urlopen(songurl).read()
-        except:
-            print "Reading URL Error: %s" % local_uri
-            return
-
-        #print "text is ",text
-        s.feed(text)
-        print "filename is ",filename
-        print "s.url is ",s.url
-        Download(s.url,filename,mode)
-
-
-    def get_filename(self,i=0):
-        song=self.songlist[i]
-        filename=song['title']+'-'+song['artist']+'.mp3'
-        return filename
+        Download(uri,filename,0)
 
     def play(self,i=0):
         '''试听，播放'''
         filename=self.get_filename(i)
         local_uri=musicdir+filename
-
-        if os.name=='posix':
-            os.system("pkill "+player)
-
         if os.path.exists(local_uri):
             print filename,u'已存在!'
             print "directly play..."
             os.system(player+' "'+local_uri+'"')
             return
-        thread.start_new_thread(self.downone,(i,0,))
-        time.sleep(2)
-        local_uri= local_uri + '.downloading'
-        if os.name=='posix':
-            os.system("pkill "+player)
-            os.system('mid3iconv -e gbk "'+local_uri +'"')
+        uri = self.find_final_uri(i)
+        if uri:
+            thread.start_new_thread(self.directly_down,(uri,i,))
+            time.sleep(1)
+            cache_uri=local_uri+'.downloading'
+            if os.name=='posix':
+                os.system("pkill "+player)
+                os.system('mid3iconv -e gbk "'+local_uri +'"')
+            os.system(player+' "'+cache_uri+'"')
+            os.rename(cache_uri, local_uri)
+        else:
+            print "Error, maybe the page is protected..."
 
-        os.system(player+' "'+local_uri+'"')
+    def autoplay(self,start=0):
+        '''从当前首开始依次播放'''
+        flag=1
+        print "begin to play"
+        while start < len(self.songlist) and self.loop_number < 2:   #loop_number为信号量
+            if flag==1:
+                print "set loop number"
+                self.loop_number = self.loop_number + 1
+                flag=0
+            self.play(start)
+            print "begin next"
+            start = start + 1
+            #self.current_path = self.current_path + 1
+        self.loop_number = self.loop_number - 1
+
+    def find_final_uri(self,i=0):
+        '''找到最终真实下载地址，以供下一步DownLoad类下载'''
+        song=self.songlist[i]
+        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+        s=SongParser()
+        try:
+            text = urllib2.urlopen(songurl).read()
+        except:
+            print "Reading URL Error: %s" % local_uri
+            return
+        s.feed(text)
+        return s.url
+
+    def get_filename(self,i=0):
+        song=self.songlist[i]
+        filename=song['title']+'-'+song['artist']+'.mp3'
+        return filename
 
     def get_title(self,i=0):
         song=self.songlist[i]
@@ -249,16 +266,6 @@ class Abs_Lists:
         song=self.songlist[i]
         return song['id']
 
-    def downall(self):
-        '''下载榜单中的所有歌曲'''
-        for i in range(len(self.songlist)):
-            self.downone(i)
-    
-    def download(self,songids=[]):
-        '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
-        for i in songids:
-            self.downone(i)
-        
 class Lists(Abs_Lists):
     '''榜单类,可以自动处理分页的榜单页面'''
     def __init__(self,stype):
@@ -280,52 +287,6 @@ class Lists(Abs_Lists):
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
             ['"%s"'%key for key in songlists])
 
-    def downone(self,i=0,mode=1):
-        '''下载榜单中的一首歌曲 mode：1，下载模式，0,试听模式'''
-        song=self.songlist[i]
-        #local_uri=song['title']+'-'+song['artist']+'.mp3'
-        filename = self.get_filename(i)
-        local_uri=musicdir+filename
-        if mode:    #下载模式
-            if os.path.exists(local_uri):
-                print local_uri,u'已存在!'
-                return
-        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-        s=SongParser()
-
-        try:
-            text = urllib2.urlopen(songurl).read()
-        except:
-            print "Reading URL Error: %s" % local_uri
-            return
-
-        s.feed(text)
-        print "filename is ",filename
-        print "s.url is ",s.url
-        Download(s.url,filename,mode)
-
-    def play(self,i=0):
-        '''试听，播放'''
-        filename=self.get_filename(i)
-        local_uri=musicdir+filename
-
-        if os.name=='posix':
-            os.system("pkill "+player)
-
-        if os.path.exists(local_uri):
-            print filename,u'已存在!'
-            print "directly play..."
-            os.system(player+' "'+local_uri+'"')
-            return
-        thread.start_new_thread(self.downone,(i,0,))
-        time.sleep(2)
-        local_uri= local_uri + '.downloading'
-        if os.name=='posix':
-            os.system("pkill "+player)
-            os.system('mid3iconv -e gbk "'+local_uri +'"')
-
-        os.system(player+' "'+local_uri+'"')
-
     def downall(self):
         '''下载榜单中的所有歌曲'''
         for i in range(len(self.songlist)):
@@ -339,12 +300,7 @@ class Lists(Abs_Lists):
 class FileList(Abs_Lists):
     '''本地文件列表'''
     def __init__(self,top):
-        self.songlist=[]
-        self.songtemplate={
-            'title':'',
-            'artist':'',
-            'id':''}
-        self.tmplist=self.songtemplate.copy()
+        Abs_Lists.__init__(self,top)
         self.walktree(top,self.visitfile)
 
     def walktree(self,top, callback):
@@ -377,31 +333,13 @@ class FileList(Abs_Lists):
         self.songlist.append(self.tmplist.copy())
         self.tmplist=self.songtemplate.copy()
 
-    def play(self,start=0):
-        '''直接播放文件'''
-        song=self.songlist[start]
-        local_uri=musicdir+song['title']+'-'+song['artist']+'.mp3'
-        if os.name=='posix':
-            os.system('pkill '+player)
-            os.system(player+' "'+local_uri+'"')
-        if os.name == 'nt':
-            pid = os.system('tasklist')
-            os.system('taskkill '+pid)
-            os.system('ntsd '+pid)
-            os.system(player+' "'+full_uri+'"')
-
 class PlayList(Abs_Lists):
     '''读写歌词文件'''
-    def __init__(self):
-        self.songlist=[]
-        self.songtemplate={
-            'title':'',
-            'artist':'',
-            'id':''}
-        self.tmplist=self.songtemplate.copy()
+    def __init__(self,config_file=gmbox_home+'default.xml'):
+        Abs_Lists.__init__(self,config_file)
 
-        if os.path.exists(gmbox_home+'default.xml'):
-            self.xmldoc = minidom.parse(gmbox_home+'default.xml')
+        if os.path.exists(config_file):
+            self.xmldoc = minidom.parse(config_file)
             items = self.xmldoc.getElementsByTagName('item')
             for item in items:
                 title = item.getAttribute('title')
@@ -415,7 +353,7 @@ class PlayList(Abs_Lists):
         else:
             impl = minidom.getDOMImplementation()
             self.xmldoc = impl.createDocument(None, 'playlist', None)
-            f = file(gmbox_home+'default.xml','w')
+            f = file(config_file,'w')
             writer = codecs.lookup('utf-8')[3](f)
             self.xmldoc.writexml(writer)
             writer.close
@@ -432,25 +370,21 @@ class PlayList(Abs_Lists):
         self.xmldoc.writexml(writer)
         writer.close
 
-    def play(self,i=0):
-        '''试听，播放, 依次检测mp3文件，缓存文件'''
-        filename=self.get_filename(i)
-        local_uri=musicdir+filename
+    def delete(self,id):
+        item = self.xmldoc.getElementById(id)
+        self.root.removeChild(item)
+        f = file(gmbox_home+'default.xml','w')
+        writer = codecs.lookup('utf-8')[3](f)
+        self.xmldoc.writexml(writer)
+        writer.close
 
-        if os.path.exists(local_uri):
-            print filename,u'已存在!'
-            print "directly play..."
-            os.system(player+' "'+local_uri+'"')
-            return
-        thread.start_new_thread(self.downone,(i,0,))
-        time.sleep(2)
-        local_uri= local_uri + '.downloading'
-        if os.name=='posix':
-            os.system("pkill "+player)
-            os.system('mid3iconv -e gbk "'+local_uri +'"')
-
-        os.system(player+' "'+local_uri+'"')
-
+    def get_information(self,index):
+        items = self.xmldoc.getElementsByTagName('item')
+        print "the first item is :"
+        print items[index].toxml()
+    def getElementByIndex(self,index):
+        items = self.xmldoc.getElementsByTagName('item')
+        return items[index]
 class SearchParse(HTMLParser):
     '''解析搜索结果页面 '''
     def __init__(self):
@@ -507,9 +441,42 @@ class SearchParse(HTMLParser):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
 
+class ConfigFile:
+    '''读写配置文件'''
+    def __init__(self,configfile=gmbox_home+"gmboxrc"):
+        if os.path.exists(configfile):
+            self.xmldoc = minidom.parse(configfile)
+            actions = self.xmldoc.getElementsByTagName('action')
+            for action in actions:
+                name = item.getAttribute('name')
+        else:
+            impl = minidom.getDOMImplementation()
+            self.xmldoc = impl.createDocument(None, 'gmbox_config', None)
+            f = file(gmbox_home+'gmboxrc','w')
+            writer = codecs.lookup('utf-8')[3](f)
+            self.xmldoc.writexml(writer)
+            writer.close
+        self.root = self.xmldoc.documentElement
+
+def command_line():
+    '''解析命令行参数'''
+    if len(sys.argv)==1:
+        l=Lists(u'华语新歌')
+        #print l
+        #l.download([0,2,6])
+        l.downall()
+    elif sys.argv[1]=='-d':
+        '''input your function to debug here'''
+        playlist = PlayList()
+        playlist.get_information(0)
+        ele = playlist.getElementByIndex(0).getAttribute("id")
+        print ele
+        playlist.delete(ele)
+    elif sys.argv[1]=='-h' or sys.argv[1] == '--help':
+        print "这是帮助"
+    else:
+        print sys.argv[0],": invalid option -- ",sys.argv[1]
+        print "Try '",sys.argv[0]," --help' for more information"
 
 if __name__ == '__main__':
-    l=Lists(u'华语新歌')
-    #print l
-    #l.download([0,2,6])
-    l.downall()
+    command_line()

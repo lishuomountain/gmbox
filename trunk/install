@@ -9,7 +9,7 @@ INSTALL(){
 	install -m 0755 gmbox gmbox.py MainWindow.py /usr/share/gmbox/
 	install -m 0644 gmbox.glade /usr/share/gmbox/
 	install -m 0644 gmbox.desktop /usr/share/applications
-	ln -s /usr/share/gmbox/gmbox /usr/bin/gmbox
+	ln -sf /usr/share/gmbox/gmbox /usr/bin/gmbox
 	echo "install successful."
 }
 UNINSTALL(){

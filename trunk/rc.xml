@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<gmbox_config>
+	<keyboard>
+		<action name="Play">
+			<keybind key="Return"/>
+		</action>
+		<action name="Play">
+			<keybind key="Space"/>
+		</action>
+		<action name="focus next item">
+			<keybind key="j"/>
+		</action>
+		<action name="focus previous item">
+			<keybind key="k"/>
+		</action>
+		<action name="Play next item">
+			<keybind key="n"/>
+		</action>
+		<action name="Play previous item">
+			<keybind key="p"/>
+		</action>
+		<action name="Add to playlist">
+			<keybind key="a"/>
+		</action>
+	</keyboard>
+</gmbox_config>

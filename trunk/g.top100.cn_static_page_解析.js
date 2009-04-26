@@ -7,7 +7,17 @@ function g(b,a)
 {
     return b.height=a
 }
-var h="clientWidth",i="getElementById",j="location",k="style",l="body",m="clientHeight",n="documentElement",o="http://www.google.cn/music/top100/",p=o+"lyrics",q="http://www.google.cn/music/top100/musicdownload",r=o+"player_page",s="Top100 Online Player";
+var h="clientWidth",
+    i="getElementById",
+    j="location",
+    k="style",
+    l="body",
+    m="clientHeight",
+    n="documentElement",
+    o="http://www.google.cn/music/top100/",
+    p=o+"lyrics",
+    q="http://www.google.cn/music/top100/musicdownload",
+    r=o+"player_page",s="Top100 Online Player";
 function t(frame_type)
 {
     var a=document["getElementById"](frame_type);
@@ -72,6 +82,7 @@ function w()
 var _onloadLyricsPage=u, _onloadDownloadPage=v, _onloadPlayerPage=w, _onWindowResize=t;
 
 
+有时下载页会出验证码，也是这个js的缘故。
 
 
 花蝴蝶

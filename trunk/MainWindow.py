@@ -139,8 +139,7 @@ class MainWindow():
         accel_group = gtk.AccelGroup()
         self.window.add_accel_group(accel_group)
         #self.window.add_accelerator("hide()",accel_group,ord('w'),gtk.gdk.CONTROL_MASK,0)
-
-        gmbox.loop_number == 0 #初始信号量为1,表示循环播放的进程个数为0
+        self.current_path=0
 
     def setupSystray(self):
         self.systray = gtk.StatusIcon()
@@ -194,6 +193,7 @@ class MainWindow():
         
     def btnList_clicked(self,widget):
         self.notebook.set_current_page(3)
+        self.currentlist=self.playlist
 
     def btnSearched_clicked(self,widget):
         self.notebook.set_current_page(1)
@@ -208,6 +208,7 @@ class MainWindow():
         #依次存入：歌曲编号，歌曲名，歌手，下载状态，下载进度
         self.down_model=gtk.ListStore(str,str,str,str)
         treeview = gtk.TreeView(self.down_model)
+        treeview.set_enable_search(0)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
         renderer = gtk.CellRendererText()
@@ -273,6 +274,7 @@ class MainWindow():
 
         
         treeview = gtk.TreeView(self.list_model)
+        treeview.set_enable_search(0)
         treeview.connect('button-press-event', self.click_checker)
         treeview.connect('key_press_event', self.tree_view_key_checker)
         #treeview.bind('<Button-3>', self.click_checker)
@@ -324,7 +326,9 @@ class MainWindow():
 
         
         treeview = gtk.TreeView(self.playlist_model)
-        treeview.connect('button-press-event', self.click_checker2)
+        treeview.set_enable_search(0)
+        treeview.connect('button-press-event', self.playlist_click_checker)
+        treeview.connect('key_press_event', self.tree_view_key_checker)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
         renderer = gtk.CellRendererText()
@@ -405,7 +409,7 @@ class MainWindow():
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('从列表删除')
-        #menuitem.connect('activate', self.addToPlaylist)
+        menuitem.connect('activate', self.DelFromPlaylist)
         popupmenu.append(menuitem)
         
         popupmenu.show_all()
@@ -435,14 +439,30 @@ class MainWindow():
         title = self.list_model.get_value(iter, COL_TITLE)
         self.playlist_model.append([num,title,artist])
         #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
-        id = self._songlist.get_id(self.path[0])
-        self.playlist.add(title,artist,id)
+        id = self.currentlist.get_id(self.path[0])
+        self.playlist.add(title,artist,str(id))
 
         if os.name=='posix':
             self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
             self.notification.set_timeout(1)
             self.notification.show()
 
+    def DelFromPlaylist(self, widget):
+        selected = self.playlist_tree.get_selection().get_selected()
+        list_model,iter = selected
+        #num = self.list_model.get_value(iter,COL_NUM)
+        num = len(self.playlist.songlist)+1
+        artist = self.playlist_model.get_value(iter, COL_ARTIST)
+        title = self.playlist_model.get_value(iter, COL_TITLE)
+        #self.playlist_model.remove(self.path[0])
+        #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
+        id = self.currentlist.get_id(self.path[0])
+        self.playlist.delete(str(id))
+
+        if os.name=='posix':
+            self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
+            self.notification.set_timeout(1)
+            self.notification.show()
     def listen(self, widget):
         if os.name=='posix':
             os.system("pkill "+gmbox.player)
@@ -458,29 +478,8 @@ class MainWindow():
             self.notification.set_timeout(1)
             self.notification.show()
         self.playbar.set_text("now playing " + self.currentlist.get_title(start))
-        #self.currentlist.listen(start) 改为下面的play，参见gmbox.py中 play函数
         self.currentlist.play(start)
-        """
-        flag=1
-        print "begin to play"
-        while start < len(self.currentlist.songlist) and gmbox.loop_number < 2:   #实现播放列表自动循环播放 loop_play为信号量
-            if flag==1:
-                print "set loop number"
-                gmbox.loop_number = gmbox.loop_number + 1
-                flag=0
-            if os.name=='posix':
-                self.notification = pynotify.Notification("试听", self.currentlist.get_title(start), "dialog-warning")
-                self.notification.set_timeout(1)
-                self.notification.show()
-                self.playbar.set_text("now playing " + self.currentlist.get_title(start))
-            #self.currentlist.listen(start) 改为下面的play，参见gmbox.py中 play函数
-            print "begin play"
-            self.currentlist.play(start)
-            print "begin next"
-            start = start + 1
-            #self.current_path = self.current_path + 1
-        gmbox.loop_number = gmbox.loop_number - 1
-        """
+        #self.currentlist.autoplay(start)
 
     def listen_init(self, widget):
         self.currentlist=self.playlist
@@ -512,14 +511,14 @@ class MainWindow():
             print "now playing",self.current_path
 
     def tray_play_next(self,widget):
-        current_treeview = self.find_current_treeview()
+        current_treeview = self.get_current_treeview()
         self.play_next(current_treeview)
 
     def tray_play_prev(self,widget):
-        current_treeview = self.find_current_treeview()
+        current_treeview = self.get_current_treeview()
         self.play_prev(current_treeview)
 
-    def find_current_treeview(self):
+    def get_current_treeview(self):
         if self.currentlist==self._songlist:
             return self.list_tree
         elif self.currentlist==self.playlist:
@@ -528,17 +527,7 @@ class MainWindow():
     def pause_music(self,widget):
         pass
     def click_checker(self, view, event):
-        x = int(event.x)
-        y = int(event.y)
-        pth = view.get_path_at_pos(x, y)
-
-        if not pth:
-            pass
-        else:
-            self.path, col, cell_x, cell_y = pth
-            print self.path
-            self.current_path=self.path[0]
-
+        self.get_current_locatioin(view,event)
         if event.type == gtk.gdk._2BUTTON_PRESS:
             self.listen(view)
 
@@ -555,7 +544,12 @@ class MainWindow():
                 pass
 
 
-    def click_checker2(self, view, event):
+    def playlist_click_checker(self, view, event):
+        self.get_current_locatioin(view,event)
+
+        if event.type == gtk.gdk._2BUTTON_PRESS:
+            self.listen(view)
+
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
             #selected,iter = view.get_selection().get_selected()
             #index = selected.get_value(iter, 0)
@@ -568,14 +562,18 @@ class MainWindow():
             except:
                 pass
 
-            x = int(event.x)
-            y = int(event.y)
-            pth = view.get_path_at_pos(x, y)
+    def get_current_locatioin(self,view,event):
+        x = int(event.x)
+        y = int(event.y)
+        pth = view.get_path_at_pos(x, y)
 
-            if not pth:
-                pass
-            else:
-                self.path, col, cell_x, cell_y = pth
+        if not pth:
+            pass
+        else:
+            self.path, col, cell_x, cell_y = pth
+            self.current_path=self.path[0]
+            title = self.currentlist.get_title(self.current_path)
+            print "选中 ",title
 
     def key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:
@@ -596,6 +594,10 @@ class MainWindow():
                 self.focus_next(widget)
             if event.keyval == ord('k'):
                 self.focus_prev(widget)
+            if event.keyval == ord('a'):
+                self.addToPlaylist(widget)
+            if event.keyval == ord('d'):
+                self.DelFromPlaylist(widget)
 def test():
     print "testing for thread"
 
