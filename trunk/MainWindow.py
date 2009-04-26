@@ -30,17 +30,18 @@ class MainWindow():
              "on_pbutton_searched_clicked": self.btnSearched_clicked,
              "on_pbutton_about_clicked": self.btnAbout_clicked,
 
-             "on_mbutton_previous_clicked":self.play_prev,
+             "on_mbutton_previous_clicked":self.tray_play_prev,
              "on_mbutton_play_clicked": self.listen,
              "on_mbutton_pause_clicked": self.pause_music,
-             "on_mbutton_next_clicked": self.play_next}
+             "on_mbutton_next_clicked": self.tray_play_next}
         self.xml.signal_autoconnect(dic)
 
         #page 1
         vbox= self.xml.get_widget("vbox_p1")
         hbox = gtk.HBox()
         opt = gtk.combo_box_new_text()
-        for slist in gmbox.songlists:
+        self._songlist = gmbox.Lists()
+        for slist in self._songlist.get_songlists():
             opt.append_text(slist)
         opt.set_active(0)
         hbox.pack_start(opt, False)
@@ -97,10 +98,7 @@ class MainWindow():
 
         statusbar = self.xml.get_widget("statusbar")
 
-        #button = self.xml.get_widget("mbutton_previous")
-        #button = gtk.Button()
-        #image=gtk.Image()
-        #image.set_from_file("images/media-previous.png")
+        button = self.xml.get_widget("mbutton_previous")
         #button.add(image)
         #statusbar.add(button)
 
@@ -143,7 +141,7 @@ class MainWindow():
 
     def setupSystray(self):
         self.systray = gtk.StatusIcon()
-        self.systray.set_from_file("images/systray.png")
+        self.systray.set_from_file("data/systray.png")
         self.systray.connect("activate", self.systrayCb)
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip("Click to toggle window visibility")
@@ -417,7 +415,6 @@ class MainWindow():
         popupmenu.popup(None, None, None, 0, time)
 
     def downone(self, widget):
-
         selected = self.list_tree.get_selection().get_selected()
         list_model,iter = selected
         num = self.list_model.get_value(iter,COL_NUM)
@@ -429,7 +426,11 @@ class MainWindow():
             self.notification = pynotify.Notification("下载", self._songlist.get_title(self.current_path), "dialog-warning")
         self.notification.set_timeout(1)
         self.notification.show()
-        thread.start_new_thread(self._songlist.downone, (self.current_path,))
+        print 'being to download'
+        try:
+            thread.start_new_thread(self._songlist.downone, (self.current_path,))
+        except:
+            print "Error"
 
     def addToPlaylist(self, widget):
         selected = self.list_tree.get_selection().get_selected()
@@ -453,15 +454,13 @@ class MainWindow():
         list_model,iter = selected
         #num = self.list_model.get_value(iter,COL_NUM)
         num = len(self.playlist.songlist)+1
-        artist = self.playlist_model.get_value(iter, COL_ARTIST)
-        title = self.playlist_model.get_value(iter, COL_TITLE)
         #self.playlist_model.remove(self.path[0])
         #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
-        id = self.currentlist.get_id(self.current_path)
-        self.playlist.delete(str(id))
+        #id = self.currentlist.get_id(self.current_path)
+        self.playlist.delete(self.current_path)
 
         if os.name=='posix':
-            self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.current_path), "dialog-warning")
+            self.notification = pynotify.Notification("从播放列表删除", self.playlist.get_title(self.current_path), "dialog-warning")
             self.notification.set_timeout(1)
             self.notification.show()
     def listen(self, widget):
@@ -469,7 +468,7 @@ class MainWindow():
             thread.start_new_thread(self.play,(self.current_path,))
         except:
             print "Error"
-            pass
+
     def play(self,start):
         '''试听,播放'''
         if os.name=='posix':
@@ -477,8 +476,8 @@ class MainWindow():
             self.notification.set_timeout(1)
             self.notification.show()
         self.playbar.set_text("now playing " + self.currentlist.get_title(start))
-        self.currentlist.play(start)
-        #self.currentlist.autoplay(start)
+        #self.currentlist.play(start)
+        self.currentlist.autoplay(start)
 
     def listen_init(self, widget):
         self.currentlist=self.playlist
@@ -552,10 +551,9 @@ class MainWindow():
         num = len(self.playlist.songlist)+1
         artist = self.list_model.get_value(iter, COL_ARTIST)
         title = self.list_model.get_value(iter, COL_TITLE)
-        self.list_model.remove([num,title,artist])
+        #self.list_model.remove()
         #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
-        id = self.currentlist.get_id(self.current_path)
-        self.playlist.add(title,artist,str(id))
+        self._songlist.delete_file(self.current_path)
 
 
     def playlist_click_checker(self, view, event):
@@ -611,7 +609,10 @@ class MainWindow():
             if event.keyval == ord('a'):
                 self.addToPlaylist(widget)
             if event.keyval == ord('d'):
-                self.DelFromPlaylist(widget)
+                if self.currentlist==song._songlist:
+                    self.delete_file(widget)
+                else:
+                    self.DelFromPlaylist(widget)
 def test():
     print "testing for thread"
 
