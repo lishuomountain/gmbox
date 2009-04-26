@@ -48,6 +48,8 @@ urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
 searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
 lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
 
+play_over=1  #标志信号量：自动播放完毕还是被打断，默认自动播放完
+
 def unistr(m):
     '''给re.sub做第二个参数,返回&#nnnnn;对应的中文'''
     return unichr(int(m.group(1)))
@@ -201,23 +203,36 @@ class Abs_Lists:
 
     def play(self,i=0):
         '''试听，播放'''
+        uri=''
+        global play_over
         filename=self.get_filename(i)
         local_uri=musicdir+filename
         if os.path.exists(local_uri):
             print filename,u'已存在!'
             print "directly play..."
+            play_over=0 #通知原来播放线程，你已被打断，退出吧，别保存！
             os.system(player+' "'+local_uri+'"')
             return
         uri = self.find_final_uri(i)
         if uri:
             thread.start_new_thread(self.directly_down,(uri,i,))
-            time.sleep(1)
             cache_uri=local_uri+'.downloading'
             if os.name=='posix':
                 os.system("pkill "+player)
-                os.system('mid3iconv -e gbk "'+local_uri +'"')
+                os.system('mid3iconv -e gbk "'+cache_uri +'"')
+            play_over=0 #通知原来播放线程，你已被打断，退出吧，别保存！
+            time.sleep(1)
+            play_over=1
+            print "here play_over is ",play_over
             os.system(player+' "'+cache_uri+'"')
-            os.rename(cache_uri, local_uri)
+
+            '''自动播放完成后保存，播到一半切换歌曲则不保存'''
+            if play_over:   
+                os.rename(cache_uri, local_uri)
+                print "it seems like you love this song, so save file ",filename
+            else:
+                print "the song was interrupted..."
+                play_over=1 #恢复默认自动播放完毕状态
         else:
             print "Error, maybe the page is protected..."
 
@@ -332,6 +347,11 @@ class FileList(Abs_Lists):
         self.tmplist['id']=len(self.songlist)
         self.songlist.append(self.tmplist.copy())
         self.tmplist=self.songtemplate.copy()
+
+    def delete_file(self,i):
+        filename=self.get_filename()
+        local_uri = musicdir + filename
+        os.remove(local_uri)
 
 class PlayList(Abs_Lists):
     '''读写歌词文件'''
@@ -461,19 +481,36 @@ class ConfigFile:
 def command_line():
     '''解析命令行参数'''
     if len(sys.argv)==1:
-        l=Lists(u'华语新歌')
-        #print l
-        #l.download([0,2,6])
-        l.downall()
+        print "Try '",sys.argv[0]," --help' for more information"
+    elif sys.argv[1]=='-l':
+        list_name = u'华语新歌'
+        #if len(sys.argv)==3:
+            #list_name = sys.argv[2]
+        l=Lists(list_name)
+        print l
+
     elif sys.argv[1]=='-d':
-        '''input your function to debug here'''
+        list_name = u'华语新歌'
+        index=0
+        if len(sys.argv)==3:
+            index = sys.argv[2]
+        l=Lists(list_name)
+        l.downone(int(index))
+        #l.download([0,2,6])
+        #l.downall()
+        
+    elif sys.argv[1]=='-t':
+        '''input your function to test here'''
         playlist = PlayList()
-        playlist.get_information(0)
-        ele = playlist.getElementByIndex(0).getAttribute("id")
-        print ele
-        playlist.delete(ele)
+        playlist.play(0)
+        #playlist.get_information(0)
+        #ele = playlist.getElementByIndex(0).getAttribute("id")
+        #print ele
+        #playlist.delete(ele)
     elif sys.argv[1]=='-h' or sys.argv[1] == '--help':
-        print "这是帮助"
+        print "Usage: ",sys.argv[0],"[OPTION]..."
+        print " -l      list 华语新歌"
+        print " -d  n  下载第n首歌"
     else:
         print sys.argv[0],": invalid option -- ",sys.argv[1]
         print "Try '",sys.argv[0]," --help' for more information"

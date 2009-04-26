@@ -18,7 +18,7 @@ if os.name=='posix':
 class MainWindow():
     def __init__(self):
 
-        self.gladefile="gmbox.glade"
+        self.gladefile="data/gmbox.glade"
         self.xml=gtk.glade.XML(self.gladefile)
         self.window = self.xml.get_widget("window_main")
         self.notebook = self.xml.get_widget("notebook_top")
@@ -98,32 +98,32 @@ class MainWindow():
         statusbar = self.xml.get_widget("statusbar")
 
         #button = self.xml.get_widget("mbutton_previous")
-        button = gtk.Button()
-        image=gtk.Image()
-        image.set_from_file("images/media-previous.png")
-        button.add(image)
-        statusbar.add(button)
+        #button = gtk.Button()
+        #image=gtk.Image()
+        #image.set_from_file("images/media-previous.png")
+        #button.add(image)
+        #statusbar.add(button)
 
         #button = self.xml.get_widget("mbutton_play")
-        button = gtk.Button()
-        image=gtk.Image()
-        image.set_from_file("images/media-play.png")
-        button.add(image)
-        statusbar.add(button)
+        #button = gtk.Button()
+        #image=gtk.Image()
+        #image.set_from_file("images/media-play.png")
+        #button.add(image)
+        #statusbar.add(button)
 
         #button= self.xml.get_widget("mbutton_pause")
-        button = gtk.Button()
-        image=gtk.Image()
-        image.set_from_file("images/media-pause.png")
-        button.add(image)
-        statusbar.add(button)
+        #button = gtk.Button()
+        #image=gtk.Image()
+        #image.set_from_file("images/media-pause.png")
+        #button.add(image)
+        #statusbar.add(button)
 
         #button = self.xml.get_widget("mbutton_next")
-        button = gtk.Button()
-        image=gtk.Image()
-        image.set_from_file("images/media-next.png")
-        button.add(image)
-        statusbar.add(button)
+        #button = gtk.Button()
+        #image=gtk.Image()
+        #image.set_from_file("images/media-next.png")
+        #button.add(image)
+        #statusbar.add(button)
 
         logo = self.xml.get_widget("logo")
 
@@ -393,7 +393,7 @@ class MainWindow():
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('删除已有下载')
-        #menuitem.connect('activate', self.delete, selected)
+        menuitem.connect('activate', self.delete_file)
         popupmenu.append(menuitem)
 
         popupmenu.show_all()
@@ -425,10 +425,10 @@ class MainWindow():
         self.down_model.append([num,title,artist,"start"])
 
         if os.name=='posix':
-            self.notification = pynotify.Notification("下载", self._songlist.get_title(self.path[0]), "dialog-warning")
+            self.notification = pynotify.Notification("下载", self._songlist.get_title(self.current_path), "dialog-warning")
         self.notification.set_timeout(1)
         self.notification.show()
-        thread.start_new_thread(self._songlist.downone, (self.path[0],))
+        thread.start_new_thread(self._songlist.downone, (self.current_path,))
 
     def addToPlaylist(self, widget):
         selected = self.list_tree.get_selection().get_selected()
@@ -439,11 +439,11 @@ class MainWindow():
         title = self.list_model.get_value(iter, COL_TITLE)
         self.playlist_model.append([num,title,artist])
         #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
-        id = self.currentlist.get_id(self.path[0])
+        id = self.currentlist.get_id(self.current_path)
         self.playlist.add(title,artist,str(id))
 
         if os.name=='posix':
-            self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
+            self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.current_path), "dialog-warning")
             self.notification.set_timeout(1)
             self.notification.show()
 
@@ -456,16 +456,14 @@ class MainWindow():
         title = self.playlist_model.get_value(iter, COL_TITLE)
         #self.playlist_model.remove(self.path[0])
         #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
-        id = self.currentlist.get_id(self.path[0])
+        id = self.currentlist.get_id(self.current_path)
         self.playlist.delete(str(id))
 
         if os.name=='posix':
-            self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.path[0]), "dialog-warning")
+            self.notification = pynotify.Notification("添加到播放列表", self._songlist.get_title(self.current_path), "dialog-warning")
             self.notification.set_timeout(1)
             self.notification.show()
     def listen(self, widget):
-        if os.name=='posix':
-            os.system("pkill "+gmbox.player)
         try:
             thread.start_new_thread(self.play,(self.current_path,))
         except:
@@ -527,6 +525,7 @@ class MainWindow():
     def pause_music(self,widget):
         pass
     def click_checker(self, view, event):
+        '''榜单页，下载页击键处理'''
         self.get_current_locatioin(view,event)
         if event.type == gtk.gdk._2BUTTON_PRESS:
             self.listen(view)
@@ -542,6 +541,20 @@ class MainWindow():
                     self.SetupPopup()
             except:
                 pass
+
+    def delete_file(self,event):
+        self._songlist.delete_file(self.current_path)
+
+        selected = self.list_tree.get_selection().get_selected()
+        list_model,iter = selected
+        #num = self.list_model.get_value(iter,COL_NUM)
+        num = len(self.playlist.songlist)+1
+        artist = self.list_model.get_value(iter, COL_ARTIST)
+        title = self.list_model.get_value(iter, COL_TITLE)
+        self.list_model.remove([num,title,artist])
+        #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
+        id = self.currentlist.get_id(self.current_path)
+        self.playlist.add(title,artist,str(id))
 
 
     def playlist_click_checker(self, view, event):
