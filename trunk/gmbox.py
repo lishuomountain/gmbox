@@ -98,10 +98,9 @@ class ListParser(HTMLParser):
                 self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
                 
     def __str__(self):
-        str = '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist]) \
             +u'\n共 '+str(len(self.songlist))+u' 首歌.'
-        return str
         
 class SongParser(HTMLParser):
     '''解析歌曲页面,得到真实的歌曲下载地址'''
@@ -166,9 +165,13 @@ class Abs_Lists:
         self.tmplist=self.songtemplate.copy()
 
     def __str__(self):
-        string = '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
-        return string.encode(system_charset)
+
+    def listall(self):
+        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+            (song['title'],song['artist'],song['id']) for song in self.songlist])
+        #return string.encode(system_charset)
 
     def downone(self,i=0):
         '''下载榜单中的一首歌曲 '''
@@ -369,9 +372,8 @@ class SearchLists(Abs_Lists):
         print 'done!'
 
     def __str__(self):
-        string = '\n'.join(['Title="%s" Artist="%s" Album="%s" ID="%s"'%
+        return '\n'.join(['Title="%s" Artist="%s" Album="%s" ID="%s"'%
             (song['title'],song['artist'],song['album'],song['id']) for song in self.songlist])
-        return string #.encode(system_charset)
 
 class FileList(Abs_Lists):
     '''本地文件列表'''
@@ -682,7 +684,7 @@ class CMD:
                         list_name = sys.argv[2].decode('UTF-8')
                 l=Lists()
                 l.get_list(list_name)
-                print l
+                print l.listall()
             elif sys.argv[1]=='-d':
                 list_name = u'华语新歌'
                 index=0
@@ -694,11 +696,10 @@ class CMD:
                 #l.download([0,2,6])
                 l.downall()
             elif sys.argv[1] == '-s':
-                key = 'jay abc'
+                key = '周杰伦'
                 l=SearchLists()
                 l.get_list(key)
-                print l
-                #print l.songlist
+                print l.listall()
             elif sys.argv[1]=='-t':
                 '''input your function to test here'''
                 playlist = PlayList()
