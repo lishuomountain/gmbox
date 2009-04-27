@@ -31,37 +31,43 @@ class MainWindow():
              "on_pbutton_searched_clicked": self.btnSearched_clicked,
              "on_pbutton_about_clicked": self.btnAbout_clicked,
 
+             "on_search_button_clicked":self.doSearchMusic,
+
              "on_mbutton_previous_clicked":self.tray_play_prev,
              "on_mbutton_play_clicked": self.listen,
              "on_mbutton_pause_clicked": self.pause_music,
              "on_mbutton_next_clicked": self.tray_play_next}
         self.xml.signal_autoconnect(dic)
 
-        #page 1
-        vbox= self.xml.get_widget("vbox_p1")
-        hbox = gtk.HBox()
+        #page 1 from glade
+        hbox = self.xml.get_widget('hbox2')
+        hbox = self.xml.get_widget('list_box_for_combox')
+        opt = self.xml.get_widget('combobox1')
         opt = gtk.combo_box_new_text()
+
         self._songlist = gmbox.Lists()
         for slist in self._songlist.get_songlists():
             opt.append_text(slist)
         opt.set_active(0)
         hbox.pack_start(opt, False)
-        self.list_button = gtk.Button('获取列表')
-        size = self.list_button.size_request()
-        self.list_button.set_size_request(size[0]+50, -1)
-        opt.set_size_request(size[0]+150, -1)
+        self.list_button = self.xml.get_widget('list_button')
+        #size = self.list_button.size_request()
+        #self.list_button.set_size_request(size[0]+50, -1)
+        #opt.set_size_request(size[0]+150, -1)
         self.list_button.connect('clicked', self.doSearch, opt)
-        hbox.pack_start(self.list_button, False)
+        #hbox.pack_start(self.list_button, False)
 
-        self.local_list_button = gtk.Button('本地歌曲列表')
-        size = self.local_list_button.size_request()
-        self.local_list_button.set_size_request(size[0]+50, -1)
-        opt.set_size_request(size[0]+150, -1)
+        self.local_list_button = self.xml.get_widget('local_list_button')
+        #size = self.local_list_button.size_request()
+        #self.local_list_button.set_size_request(size[0]+50, -1)
+        #opt.set_size_request(size[0]+150, -1)
         self.local_list_button.connect('clicked', self.dolistLocalFile, opt)
-        hbox.pack_start(self.local_list_button, False)
+        #hbox.pack_start(self.local_list_button, False)
 
-        vbox.pack_start(hbox, False)
+        #vbox.pack_start(hbox, False)
         
+        vbox = self.xml.get_widget('hbox4')
+
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
@@ -69,26 +75,20 @@ class MainWindow():
         self.list_tree.set_rules_hint(True)
         scroll.add(self.list_tree)
         vbox.pack_start(scroll)
-
-        #page 2: search page
-        search_vbox = self.xml.get_widget('vbox_p2')
-
-        search_hbox = gtk.HBox()
-        hbox = gtk.HBox()
-        search_hbox.add(hbox)
-        self.search_entry = gtk.Entry()
-        hbox.add(self.search_entry)
-        self.search_button= gtk.Button("搜索")
-        self.search_button.connect('clicked', self.doSearchMusic)
-        hbox.add(self.search_button)
-        search_vbox.pack_start(search_hbox, False)
+        
+        #page 2 from glade
+        search_vbox = self.xml.get_widget('hbox5')
+        self.search_entry = self.xml.get_widget('search_entry')
+        self.search_button = self.xml.get_widget('search_button')
 
         search_scroll = gtk.ScrolledWindow()
         search_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         search_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        search_tree = self.getSearchTreeView()
-        search_tree.set_rules_hint(True)
-        search_scroll.add(search_tree)
+        self.search_list_tree = self.getSearchListTreeView()
+        self.search_list_tree.set_rules_hint(True)
+        search_scroll.add(self.search_list_tree)
+
+        #search_scroll = MyScrolledWindow()
         search_vbox.pack_start(search_scroll)
 
         #page playlist
@@ -228,38 +228,6 @@ class MainWindow():
         treeview.append_column(column)
         return treeview
 
-    def getSearchTreeView(self):
-        #依次存入：歌曲编号，歌曲名，歌手，专辑名
-        self.search_model=gtk.ListStore(str,str,str,str)
-        treeview = gtk.TreeView(self.search_model)
-        treeview.set_enable_search(0)
-        treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
-        
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_NUM)
-        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
-        column.set_resizable(True)
-        treeview.append_column(column)
-        
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_TITLE)
-        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
-        column.set_resizable(True)
-        treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_ARTIST)
-        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
-        column.set_resizable(True)
-        treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_ALBUM)
-        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
-        column.set_resizable(True)
-        treeview.append_column(column)
-        return treeview
-
     def downList(self,text):
         """Hold song index and prepare for download"""
         self._songlist = gmbox.Lists()
@@ -279,12 +247,21 @@ class MainWindow():
         thread.start_new_thread(self.downList,(text,))
 
     def doSearchMusic(self,widget):
-        key = self.search_entry.get_text()
+        key = self.search_entry.get_text().decode('utf8')
+        print key
+        self.search_button.set_sensitive(False)
         thread.start_new_thread(self.SearchMusic,(key,))
+        #self.SearchMusic(key)
 
     def SearchMusic(self,key):
-        search_list = gmbox.SearchLists()
-        search_list.get_list(key)
+        self.search_list = gmbox.SearchLists()
+        self.search_list.get_list(key)
+        self.search_list_model.clear()
+        for song in self.search_list.songlist:
+            self.search_list_model.append(
+                [self.search_list.songlist.index(song)+1,song['title'],song['artist'],song['album']])
+        self.currentlist=self.search_list
+        self.search_button.set_sensitive(True)
 
     def dolistLocalFile(self,widget,opt):
         thread.start_new_thread(self.listLocalFile,(gmbox.musicdir,))
@@ -307,6 +284,7 @@ class MainWindow():
 
         
         treeview = gtk.TreeView(self.list_model)
+        #treeview = self.xml.get_widget('treeview1')
         treeview.set_enable_search(0)
         treeview.connect('button-press-event', self.click_checker)
         treeview.connect('key_press_event', self.tree_view_key_checker)
@@ -351,6 +329,52 @@ class MainWindow():
 #        treeview.append_column(column)
         return treeview
 
+    def getSearchListTreeView(self):
+        """get hot song list treeview widget"""
+        #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
+        self.search_list_model = gtk.ListStore(str, str, str,str)
+        #self.list_model.connect("row-changed", self.SaveSongIndex)
+
+        
+        treeview = gtk.TreeView(self.search_list_model)
+        #treeview = self.xml.get_widget('treeview1')
+        treeview.set_enable_search(0)
+        treeview.connect('button-press-event', self.click_checker)
+        treeview.connect('key_press_event', self.tree_view_key_checker)
+        #treeview.bind('<Button-3>', self.click_checker)
+        #treeview.bind('<Double-Button-1>', self.listen)
+        treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_NUM)
+        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_TITLE)
+        #renderer.set_property('editable', True)
+        #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ARTIST)
+        #renderer.set_property('editable', True)
+        #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ALBUM)
+        renderer.set_property('editable', False)
+       #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        return treeview
 
     def getPlaylistTreeView(self):
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
@@ -510,8 +534,8 @@ class MainWindow():
             self.notification.set_timeout(1)
             self.notification.show()
         self.playbar.set_text("now playing " + self.currentlist.get_title(start))
-        #self.currentlist.play(start)
-        self.currentlist.autoplay(start)
+        self.currentlist.play(start)
+        #self.currentlist.autoplay(start)
 
     def listen_init(self, widget):
         self.currentlist=self.playlist
@@ -555,11 +579,14 @@ class MainWindow():
             return self.list_tree
         elif self.currentlist==self.playlist:
             return self.playlist_tree
+        elif self.currentlist==self.search_list:
+            return self.search_list_tree
 
     def pause_music(self,widget):
         pass
     def click_checker(self, view, event):
         '''榜单页，下载页击键处理'''
+        self.get_current_list(view,event)
         self.get_current_locatioin(view,event)
         if event.type == gtk.gdk._2BUTTON_PRESS:
             self.listen(view)
@@ -621,10 +648,14 @@ class MainWindow():
             title = self.currentlist.get_title(self.current_path)
             print "选中 ",title
 
+    def get_current_list(self,view,event):
+        pass
+
     def key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:
             if event.keyval == ord('h'):
-                self.window.hide()
+                #self.window.hide()
+                pass
 
     def tree_view_key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:
@@ -647,6 +678,52 @@ class MainWindow():
                     self.delete_file(widget)
                 else:
                     self.DelFromPlaylist(widget)
+
+class MyScrolledWindow(gtk.ScrolledWindow):
+    def __init__(self):
+        #self.gladefile="data/gmbox.glade"
+        #self.xml=gtk.glade.XML(self.gladefile)
+
+        #page 2 from glade
+
+        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        search_list_tree = self.getSearchTreeView()
+        search_list_tree.set_rules_hint(True)
+        self.add(search_list_tree)
+
+    def getSearchTreeView(self):
+        #依次存入：歌曲编号，歌曲名，歌手，专辑名
+        self.search_model=gtk.ListStore(str,str,str,str)
+        treeview = gtk.TreeView(self.search_model)
+        treeview.set_enable_search(0)
+        treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_NUM)
+        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_TITLE)
+        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ARTIST)
+        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ALBUM)
+        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        return treeview
+
 def test():
     print "testing for thread"
 

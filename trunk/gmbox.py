@@ -166,12 +166,9 @@ class Abs_Lists:
         self.tmplist=self.songtemplate.copy()
 
     def __str__(self):
-        str = '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+        string = '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
-        return str
-
-    def listall(self):
-        return str(self).encode(system_charset)
+        return string.encode(system_charset)
 
     def downone(self,i=0):
         '''下载榜单中的一首歌曲 '''
@@ -349,13 +346,18 @@ class SearchLists(Abs_Lists):
     def get_list(self,key):
         search_uri_template = 'http://www.google.cn/music/search?q=%s&aq=f'
         p=SearchParser()
-        #print u'正在获取"'+key+u'"的搜索结果列表',
+        print u'正在获取"'+key+u'"的搜索结果列表',
         print search_uri_template%key
         html=urllib2.urlopen(search_uri_template%key).read()
         #print html
         p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
         self.songlist=p.songlist
-        #print 'done!'
+        print 'done!'
+
+    def __str__(self):
+        string = '\n'.join(['Title="%s" Artist="%s" Album="%s" ID="%s"'%
+            (song['title'],song['artist'],song['album'],song['id']) for song in self.songlist])
+        return string #.encode(system_charset)
 
 class FileList(Abs_Lists):
     '''本地文件列表'''
@@ -474,7 +476,7 @@ class SearchParser(HTMLParser):
                 if v[n.index('title')]==u'下载':
                     self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',v[n.index('onclick')],re.S).group(1)
                     self.songlist.append(self.tmpsong)
-                    self.tmpsong=self.songtmplate.copy()
+                    self.tmpsong=self.songtemplate.copy()
         if tag == 'table':
             for (n,v) in attrs:
                 if n=='id' and v=='song_list':
@@ -500,6 +502,8 @@ class SearchParser(HTMLParser):
                 self.tmpsong['title']=data
             elif self.tdclass == 'Artist BottomBorder':
                 self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
+            elif self.tdclass == 'Album BottomBorder':
+                self.tmpsong['album']+=(u'、' if self.tmpsong['album'] else '') + data
                 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
@@ -592,7 +596,7 @@ class CMD:
                     l=Lists()
                     list_name = u'华语新歌'
                     l.get_list(list_name)
-                    print l.listall()
+                    print l
                 elif command =='get':
                     l.downone(0)
                 elif command =='help':
@@ -610,7 +614,7 @@ class CMD:
                         list_name = sys.argv[2].decode('UTF-8')
                 l=Lists()
                 l.get_list(list_name)
-                print l.listall()
+                print l
             elif sys.argv[1]=='-d':
                 list_name = u'华语新歌'
                 index=0
@@ -625,7 +629,8 @@ class CMD:
                 key = 'jay'
                 l=SearchLists()
                 l.get_list(key)
-                print l.listall()
+                print l
+                #print l.songlist
             elif sys.argv[1]=='-t':
                 '''input your function to test here'''
                 playlist = PlayList()
