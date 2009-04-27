@@ -79,6 +79,7 @@ class MainWindow():
         #page 2 from glade
         search_vbox = self.xml.get_widget('hbox5')
         self.search_entry = self.xml.get_widget('search_entry')
+        self.search_entry.connect('key_press_event', self.entry_key_checker)
         self.search_button = self.xml.get_widget('search_button')
 
         search_scroll = gtk.ScrolledWindow()
@@ -121,6 +122,9 @@ class MainWindow():
 
         self.playbar = self.xml.get_widget("playbar")
         self.playbar.set_text("playing")
+
+        self.command_entry = self.xml.get_widget("command_entry")
+        self.command_entry.hide()
 
         self.window.set_title("GMBox")
         self.window.set_default_size(800, 600)
@@ -534,8 +538,8 @@ class MainWindow():
             self.notification.set_timeout(1)
             self.notification.show()
         self.playbar.set_text("now playing " + self.currentlist.get_title(start))
-        self.currentlist.play(start)
-        #self.currentlist.autoplay(start)
+        #self.currentlist.play(start)
+        self.currentlist.autoplay(start)
 
     def listen_init(self, widget):
         self.currentlist=self.playlist
@@ -653,9 +657,13 @@ class MainWindow():
 
     def key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:
-            if event.keyval == ord('h'):
-                #self.window.hide()
-                pass
+            if event.keyval == ord(':'):
+                self.set_cursor(self.command_entry)
+
+    def entry_key_checker(self,widget, event):
+        if event.type == gtk.gdk.KEY_PRESS:
+            if event.keyval == gtk.keysyms.Return:
+                self.doSearchMusic()
 
     def tree_view_key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:

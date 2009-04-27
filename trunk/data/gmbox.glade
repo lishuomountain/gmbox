@@ -4,408 +4,442 @@
   <!-- interface-naming-policy toplevel-contextual -->
   <widget class="GtkWindow" id="window_main">
     <child>
-      <widget class="GtkVBox" id="vbox_main">
+      <widget class="GtkHBox" id="hbox1">
         <property name="visible">True</property>
         <child>
-          <widget class="GtkHButtonBox" id="hbuttonbox1">
+          <widget class="GtkVBox" id="vbox_main">
             <property name="visible">True</property>
+            <property name="orientation">vertical</property>
             <child>
-              <widget class="GtkButton" id="pbutton_album">
-                <property name="label" translatable="yes">&#x699C;&#x5355;&#x4E0B;&#x8F7D;</property>
+              <widget class="GtkHButtonBox" id="hbuttonbox1">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="relief">none</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_pbutton_album_clicked"/>
+                <child>
+                  <widget class="GtkButton" id="pbutton_album">
+                    <property name="label" translatable="yes">&#x699C;&#x5355;&#x4E0B;&#x8F7D;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="relief">none</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="on_pbutton_album_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="pbutton_searched">
+                    <property name="label" translatable="yes">&#x97F3;&#x4E50;&#x641C;&#x7D22;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="relief">none</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="on_pbutton_searched_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="pbutton_down">
+                    <property name="label" translatable="yes">&#x4E0B;&#x8F7D;&#x7BA1;&#x7406;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="relief">none</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="on_pbutton_down_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="pbutton_list">
+                    <property name="label" translatable="yes">&#x64AD;&#x653E;&#x5217;&#x8868;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="relief">none</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="on_pbutton_list_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="pbutton_about">
+                    <property name="label" translatable="yes">&#x5173;&#x4E8E;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="relief">none</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="on_pbutton_about_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="pbutton_searched">
-                <property name="label" translatable="yes">&#x97F3;&#x4E50;&#x641C;&#x7D22;</property>
+              <widget class="GtkNotebook" id="notebook_top">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="relief">none</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_pbutton_searched_clicked"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="pbutton_down">
-                <property name="label" translatable="yes">&#x4E0B;&#x8F7D;&#x7BA1;&#x7406;</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="relief">none</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_pbutton_down_clicked"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="pbutton_list">
-                <property name="label" translatable="yes">&#x64AD;&#x653E;&#x5217;&#x8868;</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="relief">none</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_pbutton_list_clicked"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">3</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="pbutton_about">
-                <property name="label" translatable="yes">&#x5173;&#x4E8E;</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="relief">none</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_pbutton_about_clicked"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">4</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkNotebook" id="notebook_top">
-            <property name="visible">True</property>
-            <property name="show_tabs">False</property>
-            <child>
-              <widget class="GtkVBox" id="vbox_p1">
-                <property name="visible">True</property>
+                <property name="show_tabs">False</property>
                 <child>
-                  <widget class="GtkHBox" id="hbox2">
+                  <widget class="GtkVBox" id="vbox_p1">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <widget class="GtkHBox" id="list_box_for_combox">
+                      <widget class="GtkHBox" id="hbox2">
+                        <property name="visible">True</property>
+                        <child>
+                          <widget class="GtkHBox" id="list_box_for_combox">
+                            <property name="visible">True</property>
+                            <child>
+                              <placeholder/>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkButton" id="list_button">
+                            <property name="label" translatable="yes">&#x83B7;&#x53D6;&#x5217;&#x8868;</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkButton" id="local_list_button">
+                            <property name="label" translatable="yes">&#x83B7;&#x53D6;&#x672C;&#x5730;&#x5217;&#x8868;</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkHBox" id="hbox4">
                         <property name="visible">True</property>
                         <child>
                           <placeholder/>
                         </child>
                       </widget>
                       <packing>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkButton" id="list_button">
-                        <property name="label" translatable="yes">&#x83B7;&#x53D6;&#x5217;&#x8868;</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
+                  </widget>
+                </child>
+                <child>
+                  <widget class="GtkLabel" id="label1">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">page 1</property>
+                  </widget>
+                  <packing>
+                    <property name="tab_fill">False</property>
+                    <property name="type">tab</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkVBox" id="vbox_p2">
+                    <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <widget class="GtkButton" id="local_list_button">
-                        <property name="label" translatable="yes">&#x83B7;&#x53D6;&#x672C;&#x5730;&#x5217;&#x8868;</property>
+                      <widget class="GtkHBox" id="hbox3">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
+                        <child>
+                          <widget class="GtkEntry" id="search_entry">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x2022;</property>
+                          </widget>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkButton" id="search_button">
+                            <property name="label" translatable="yes">&#x641C;&#x7D22;</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <signal name="clicked" handler="on_search_button_clicked"/>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkHBox" id="hbox4">
-                    <property name="visible">True</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </widget>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label1">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">page 1</property>
-              </widget>
-              <packing>
-                <property name="tab_fill">False</property>
-                <property name="type">tab</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkVBox" id="vbox_p2">
-                <property name="visible">True</property>
-                <child>
-                  <widget class="GtkHBox" id="hbox3">
-                    <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkEntry" id="search_entry">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="invisible_char">&#x2022;</property>
-                      </widget>
-                      <packing>
                         <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkButton" id="search_button">
-                        <property name="label" translatable="yes">&#x641C;&#x7D22;</property>
+                      <widget class="GtkHBox" id="hbox5">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <signal name="clicked" handler="on_search_button_clicked"/>
+                        <child>
+                          <placeholder/>
+                        </child>
                       </widget>
                       <packing>
-                        <property name="expand">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
                   </widget>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="position">0</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkHBox" id="hbox5">
+                  <widget class="GtkLabel" id="label2">
                     <property name="visible">True</property>
+                    <property name="label" translatable="yes">page 2</property>
+                  </widget>
+                  <packing>
+                    <property name="position">1</property>
+                    <property name="tab_fill">False</property>
+                    <property name="type">tab</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkVBox" id="vbox_p3">
+                    <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </widget>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label2">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">page 2</property>
-              </widget>
-              <packing>
-                <property name="position">1</property>
-                <property name="tab_fill">False</property>
-                <property name="type">tab</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkVBox" id="vbox_p3">
-                <property name="visible">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </widget>
-              <packing>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label3">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">page 3</property>
-              </widget>
-              <packing>
-                <property name="position">2</property>
-                <property name="tab_fill">False</property>
-                <property name="type">tab</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkVBox" id="vbox_p4">
-                <property name="visible">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </widget>
-              <packing>
-                <property name="position">3</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label4">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">page 4</property>
-              </widget>
-              <packing>
-                <property name="position">3</property>
-                <property name="tab_fill">False</property>
-                <property name="type">tab</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkVBox" id="vbox_p5">
-                <property name="visible">True</property>
-                <child>
-                  <widget class="GtkLabel" id="label6">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">GMbox 0.0.1</property>
-                  </widget>
-                  <packing>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <widget class="GtkLabel" id="label7">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">&#x4F5C;&#x8005;:
-bones7456
-lerosua</property>
-                  </widget>
-                  <packing>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-              </widget>
-              <packing>
-                <property name="position">4</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label5">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">page 5</property>
-              </widget>
-              <packing>
-                <property name="position">4</property>
-                <property name="tab_fill">False</property>
-                <property name="type">tab</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox1">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkHBox" id="statusbar">
-                <property name="visible">True</property>
-                <child>
-                  <widget class="GtkButton" id="mbutton_previous">
-                    <property name="label" translatable="yes">gtk-media-previous</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_mbutton_previous_clicked"/>
-                  </widget>
-                  <packing>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkButton" id="mbutton_play">
-                    <property name="label" translatable="yes">gtk-media-play</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_mbutton_play_clicked"/>
-                  </widget>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkButton" id="mbutton_pause">
-                    <property name="label" translatable="yes">gtk-media-pause</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_mbutton_pause_clicked"/>
                   </widget>
                   <packing>
                     <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkButton" id="mbutton_next">
-                    <property name="label" translatable="yes">gtk-media-next</property>
+                  <widget class="GtkLabel" id="label3">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_mbutton_next_clicked"/>
+                    <property name="label" translatable="yes">page 3</property>
+                  </widget>
+                  <packing>
+                    <property name="position">2</property>
+                    <property name="tab_fill">False</property>
+                    <property name="type">tab</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkVBox" id="vbox_p4">
+                    <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                   <packing>
                     <property name="position">3</property>
                   </packing>
                 </child>
-              </widget>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkProgressBar" id="playbar">
-                <property name="visible">True</property>
+                <child>
+                  <widget class="GtkLabel" id="label4">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">page 4</property>
+                  </widget>
+                  <packing>
+                    <property name="position">3</property>
+                    <property name="tab_fill">False</property>
+                    <property name="type">tab</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkVBox" id="vbox_p5">
+                    <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <widget class="GtkLabel" id="label6">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">GMbox 0.0.1</property>
+                      </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="label7">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">&#x4F5C;&#x8005;:
+bones7456
+lerosua</property>
+                      </widget>
+                      <packing>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkLabel" id="label5">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">page 5</property>
+                  </widget>
+                  <packing>
+                    <property name="position">4</property>
+                    <property name="tab_fill">False</property>
+                    <property name="type">tab</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkImage" id="image1">
+              <widget class="GtkVBox" id="vbox1">
                 <property name="visible">True</property>
-                <property name="stock">gtk-missing-image</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <widget class="GtkHBox" id="statusbar">
+                    <property name="visible">True</property>
+                    <child>
+                      <widget class="GtkButton" id="mbutton_previous">
+                        <property name="label" translatable="yes">gtk-media-previous</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_mbutton_previous_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="mbutton_play">
+                        <property name="label" translatable="yes">gtk-media-play</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_mbutton_play_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="mbutton_pause">
+                        <property name="label" translatable="yes">gtk-media-pause</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_mbutton_pause_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="mbutton_next">
+                        <property name="label" translatable="yes">gtk-media-next</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_mbutton_next_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkProgressBar" id="playbar">
+                        <property name="visible">True</property>
+                      </widget>
+                      <packing>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkEntry" id="command_entry">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x2022;</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
+                <property name="expand">False</property>
                 <property name="position">2</property>
               </packing>
             </child>
           </widget>
           <packing>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkTextView" id="lyrics_view">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="editable">False</property>
+          </widget>
+          <packing>
             <property name="expand">False</property>
-            <property name="position">2</property>
+            <property name="position">1</property>
           </packing>
         </child>
       </widget>
