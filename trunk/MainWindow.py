@@ -40,7 +40,6 @@ class MainWindow():
         self.xml.signal_autoconnect(dic)
 
         #page 1 from glade
-        hbox = self.xml.get_widget('hbox2')
         hbox = self.xml.get_widget('list_box_for_combox')
         opt = self.xml.get_widget('combobox1')
         opt = gtk.combo_box_new_text()
@@ -51,86 +50,58 @@ class MainWindow():
         opt.set_active(0)
         hbox.pack_start(opt, False)
         self.list_button = self.xml.get_widget('list_button')
-        #size = self.list_button.size_request()
-        #self.list_button.set_size_request(size[0]+50, -1)
-        #opt.set_size_request(size[0]+150, -1)
         self.list_button.connect('clicked', self.doSearch, opt)
-        #hbox.pack_start(self.list_button, False)
 
         self.local_list_button = self.xml.get_widget('local_list_button')
-        #size = self.local_list_button.size_request()
-        #self.local_list_button.set_size_request(size[0]+50, -1)
-        #opt.set_size_request(size[0]+150, -1)
         self.local_list_button.connect('clicked', self.dolistLocalFile, opt)
-        #hbox.pack_start(self.local_list_button, False)
 
-        #vbox.pack_start(hbox, False)
-        
-        vbox = self.xml.get_widget('hbox4')
-
-        scroll = gtk.ScrolledWindow()
+        scroll = self.xml.get_widget("scrolledwindow1")
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         self.list_tree = self.getListTreeView()
         self.list_tree.set_rules_hint(True)
-        scroll.add(self.list_tree)
-        vbox.pack_start(scroll)
         
         #page 2 from glade
-        search_vbox = self.xml.get_widget('hbox5')
         self.search_entry = self.xml.get_widget('search_entry')
         self.search_entry.connect('key_press_event', self.entry_key_checker)
         self.search_button = self.xml.get_widget('search_button')
 
-        search_scroll = gtk.ScrolledWindow()
+        search_scroll = self.xml.get_widget("scrolledwindow2")
         search_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         search_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         self.search_list_tree = self.getSearchListTreeView()
         self.search_list_tree.set_rules_hint(True)
-        search_scroll.add(self.search_list_tree)
-
-        #search_scroll = MyScrolledWindow()
-        search_vbox.pack_start(search_scroll)
 
         #page playlist
-        playlist_vbox= self.xml.get_widget("vbox_p4")
-        
-        playlist_scroll = gtk.ScrolledWindow()
+        playlist_scroll = self.xml.get_widget("scrolledwindow4")
         playlist_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         playlist_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         self.playlist_tree = self.getPlaylistTreeView()
         self.playlist_tree.set_rules_hint(True)
-        playlist_scroll.add(self.playlist_tree)
-        playlist_vbox.pack_start(playlist_scroll)
-
-
 
         #setup system tray icon
         self.setupSystray()
         
         #page down
-        down_vbox= self.xml.get_widget("vbox_p3")
-        down_scroll = gtk.ScrolledWindow()
+        down_scroll = self.xml.get_widget("scrolledwindow3")
         down_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         down_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         down_tree = self.getDownTreeView()
         down_tree.set_rules_hint(True)
-        down_scroll.add(down_tree)
-        down_vbox.pack_start(down_scroll)
 
         statusbar = self.xml.get_widget("statusbar")
 
         self.playbar = self.xml.get_widget("playbar")
         self.playbar.set_text("playing")
 
-        self.command_entry = self.xml.get_widget("command_entry")
-        self.command_entry.hide()
+        #self.command_entry = self.xml.get_widget("command_entry")
 
         self.window.set_title("GMBox")
         self.window.set_default_size(800, 600)
         self.window.connect('destroy', gtk.main_quit)
         self.window.connect('key_press_event', self.key_checker)
         self.window.show_all();
+        #self.command_entry.hide()
 
         accel_group = gtk.AccelGroup()
         self.window.add_accel_group(accel_group)
@@ -186,6 +157,7 @@ class MainWindow():
 
     def btnAlbum_clicked(self,widget):
         self.notebook.set_current_page(0)
+        self.currentlist=self._songlist
         
     def btnList_clicked(self,widget):
         self.notebook.set_current_page(3)
@@ -193,9 +165,11 @@ class MainWindow():
 
     def btnSearched_clicked(self,widget):
         self.notebook.set_current_page(1)
+        self.currentlist=self.search_list
 
     def btnDown_clicked(self,widget):
         self.notebook.set_current_page(2)
+        #self.currentlist=self.download_list
 
     def btnAbout_clicked(self,widget):
         self.notebook.set_current_page(4)
@@ -203,7 +177,9 @@ class MainWindow():
     def getDownTreeView(self):
         #依次存入：歌曲编号，歌曲名，歌手，下载状态，下载进度
         self.down_model=gtk.ListStore(str,str,str,str)
-        treeview = gtk.TreeView(self.down_model)
+        treeview = self.xml.get_widget("download_treeview")
+        treeview.set_model(self.down_model)
+        #treeview = gtk.TreeView(self.down_model)
         treeview.set_enable_search(0)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
@@ -255,7 +231,6 @@ class MainWindow():
         print key
         self.search_button.set_sensitive(False)
         thread.start_new_thread(self.SearchMusic,(key,))
-        #self.SearchMusic(key)
 
     def SearchMusic(self,key):
         self.search_list = gmbox.SearchLists()
@@ -287,8 +262,8 @@ class MainWindow():
         #self.list_model.connect("row-changed", self.SaveSongIndex)
 
         
-        treeview = gtk.TreeView(self.list_model)
-        #treeview = self.xml.get_widget('treeview1')
+        treeview = self.xml.get_widget('list_treeview')
+        treeview.set_model(self.list_model)
         treeview.set_enable_search(0)
         treeview.connect('button-press-event', self.click_checker)
         treeview.connect('key_press_event', self.tree_view_key_checker)
@@ -340,8 +315,9 @@ class MainWindow():
         #self.list_model.connect("row-changed", self.SaveSongIndex)
 
         
-        treeview = gtk.TreeView(self.search_list_model)
-        #treeview = self.xml.get_widget('treeview1')
+        treeview = self.xml.get_widget('search_treeview')
+        treeview.set_model(self.search_list_model)
+        #treeview = gtk.TreeView(self.search_list_model)
         treeview.set_enable_search(0)
         treeview.connect('button-press-event', self.click_checker)
         treeview.connect('key_press_event', self.tree_view_key_checker)
@@ -386,7 +362,9 @@ class MainWindow():
         #self.model.connect("row-changed", self.SaveSongIndex)
 
         
-        treeview = gtk.TreeView(self.playlist_model)
+        treeview = self.xml.get_widget("playlist_treeview")
+        treeview.set_model(self.playlist_model)
+        #treeview = gtk.TreeView(self.playlist_model)
         treeview.set_enable_search(0)
         treeview.connect('button-press-event', self.playlist_click_checker)
         treeview.connect('key_press_event', self.tree_view_key_checker)
@@ -538,8 +516,8 @@ class MainWindow():
             self.notification.set_timeout(1)
             self.notification.show()
         self.playbar.set_text("now playing " + self.currentlist.get_title(start))
-        #self.currentlist.play(start)
-        self.currentlist.autoplay(start)
+        self.currentlist.play(start)
+        #self.currentlist.autoplay(start)
 
     def listen_init(self, widget):
         self.currentlist=self.playlist
@@ -658,12 +636,15 @@ class MainWindow():
     def key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:
             if event.keyval == ord(':'):
-                self.set_cursor(self.command_entry)
+                self.command_entry.show()
+                #self.set_cursor(self.command_entry)
+            if event.keyval == gtk.keysyms.Escape:
+                self.command_entry.hide()
 
     def entry_key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:
             if event.keyval == gtk.keysyms.Return:
-                self.doSearchMusic()
+                self.doSearchMusic(widget)
 
     def tree_view_key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:

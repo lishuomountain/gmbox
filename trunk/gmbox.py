@@ -135,7 +135,7 @@ class Download:
             os.rename(cache_uri, local_uri)
             if os.name=='posix':
                 '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
-                os.system('mid3iconv -e gbk "'+musicdir+local_uri + '"')
+                os.system('mid3iconv -e gbk "'+local_uri + '"')
         else:
             '''试听模式  由于此下载进程未设信号量，一旦运行，除了终止程序暂无终止办法，所以肯定会下载完全，所以保存'''
             os.rename(cache_uri, local_uri)
