@@ -236,6 +236,7 @@ class Abs_Lists:
         '''从当前首开始依次播放'''
         flag=1
         print "begin to play"
+        print start
         while start < len(self.songlist) and self.loop_number < 2:   #loop_number为信号量
             if flag==1:
                 print "set loop number"
@@ -356,6 +357,33 @@ class SearchLists(Abs_Lists):
             'title':'',
             'artist':'',
             'album':'',
+            'id':''}
+        self.tmplist=self.songtemplate.copy()
+
+    def get_list(self,key):
+        key = re.sub((r'\ '),'+',key)
+        search_uri_template = 'http://www.google.cn/music/search?q=%s&aq=f'
+        p=SearchParser()
+        print u'正在获取"'+key+u'"的搜索结果列表',
+        print search_uri_template%key
+        html=urllib2.urlopen(search_uri_template%key).read()
+        #print html
+        p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+        self.songlist=p.songlist
+        print 'done!'
+
+    def __str__(self):
+        return '\n'.join(['Title="%s" Artist="%s" Album="%s" ID="%s"'%
+            (song['title'],song['artist'],song['album'],song['id']) for song in self.songlist])
+
+class DownloadLists(Abs_Lists):
+    '''下载列表管理'''
+    def __init__(self):
+        self.songlist=[]
+        self.songtemplate={
+            'title':'',
+            'artist':'',
+            'status':'',
             'id':''}
         self.tmplist=self.songtemplate.copy()
 

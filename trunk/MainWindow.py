@@ -30,6 +30,8 @@ class MainWindow():
              "on_pbutton_list_clicked": self.btnList_clicked,
              "on_pbutton_searched_clicked": self.btnSearched_clicked,
              "on_pbutton_about_clicked": self.btnAbout_clicked,
+             "on_button_download_selected_clicked": self.download_selected,
+             "on_button_listen_selected_clicked":self.listen_selected,
 
              "on_search_button_clicked":self.doSearchMusic,
 
@@ -45,6 +47,7 @@ class MainWindow():
         opt = gtk.combo_box_new_text()
 
         self._songlist = gmbox.Lists()
+
         for slist in self._songlist.get_songlists():
             opt.append_text(slist)
         opt.set_active(0)
@@ -61,18 +64,28 @@ class MainWindow():
         self.list_tree = self.getListTreeView()
         self.list_tree.set_rules_hint(True)
         
-        #page 2 from glade
+        #page 2: search page
         self.search_entry = self.xml.get_widget('search_entry')
         self.search_entry.connect('key_press_event', self.entry_key_checker)
         self.search_button = self.xml.get_widget('search_button')
 
+        self.search_list = gmbox.SearchLists()
+
+        #page down
+        down_scroll = self.xml.get_widget("scrolledwindow3")
+        down_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        down_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        down_tree = self.getDownTreeView()
+        down_tree.set_rules_hint(True)
         search_scroll = self.xml.get_widget("scrolledwindow2")
         search_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         search_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         self.search_list_tree = self.getSearchListTreeView()
         self.search_list_tree.set_rules_hint(True)
 
-        #page playlist
+        self.download_list = gmbox.DownloadLists()
+
+        #page 4: playlist page
         playlist_scroll = self.xml.get_widget("scrolledwindow4")
         playlist_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         playlist_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
@@ -82,12 +95,6 @@ class MainWindow():
         #setup system tray icon
         self.setupSystray()
         
-        #page down
-        down_scroll = self.xml.get_widget("scrolledwindow3")
-        down_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        down_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        down_tree = self.getDownTreeView()
-        down_tree.set_rules_hint(True)
 
         statusbar = self.xml.get_widget("statusbar")
 
@@ -179,7 +186,6 @@ class MainWindow():
         self.down_model=gtk.ListStore(str,str,str,str)
         treeview = self.xml.get_widget("download_treeview")
         treeview.set_model(self.down_model)
-        #treeview = gtk.TreeView(self.down_model)
         treeview.set_enable_search(0)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         
@@ -233,7 +239,6 @@ class MainWindow():
         thread.start_new_thread(self.SearchMusic,(key,))
 
     def SearchMusic(self,key):
-        self.search_list = gmbox.SearchLists()
         self.search_list.get_list(key)
         self.search_list_model.clear()
         for song in self.search_list.songlist:
@@ -270,6 +275,12 @@ class MainWindow():
         #treeview.bind('<Button-3>', self.click_checker)
         #treeview.bind('<Double-Button-1>', self.listen)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+
+        checkbutton = gtk.CheckButton()
+        renderer = gtk.CellRendererToggle()
+        column = gtk.TreeViewColumn("选中", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
         
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_NUM)
@@ -324,6 +335,12 @@ class MainWindow():
         #treeview.bind('<Button-3>', self.click_checker)
         #treeview.bind('<Double-Button-1>', self.listen)
         treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+
+        checkbutton = gtk.CheckButton()
+        renderer = gtk.CellRendererToggle()
+        column = gtk.TreeViewColumn("选中", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
         
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_NUM)
@@ -406,8 +423,8 @@ class MainWindow():
 #        column.set_resizable(True)
 #        treeview.append_column(column)
 
-
         self.playlist = gmbox.PlayList()
+
         self.playlist_model.clear()
         for song in self.playlist.songlist:
             self.playlist_model.append(
@@ -457,7 +474,8 @@ class MainWindow():
     def downone(self, widget):
         selected = self.list_tree.get_selection().get_selected()
         list_model,iter = selected
-        num = self.list_model.get_value(iter,COL_NUM)
+        #num = self.list_model.get_value(iter,COL_NUM)
+        #num = len(self.downlist.songlist)+1
         artist = self.list_model.get_value(iter, COL_ARTIST)
         title = self.list_model.get_value(iter, COL_TITLE)
         self.down_model.append([num,title,artist,"start"])
@@ -667,6 +685,12 @@ class MainWindow():
                     self.delete_file(widget)
                 else:
                     self.DelFromPlaylist(widget)
+
+    def download_selected(self):
+        pass
+
+    def listen_selected(self):
+        pass
 
 class MyScrolledWindow(gtk.ScrolledWindow):
     def __init__(self):
