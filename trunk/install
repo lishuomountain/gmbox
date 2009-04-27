@@ -6,7 +6,7 @@ INSTALL(){
 	install -d /usr/share/gmbox/
 	install -d /usr/share/gmbox/data
 	install data/* /usr/share/gmbox/data
-	install -m 0755 gmbox gmbox.py MainWindow.py /usr/share/gmbox/
+	#install -m 0755 gmbox gmbox.py MainWindow.py /usr/share/gmbox/
 	#install -m 0644 gmbox.glade /usr/share/gmbox/
 	install -m 0644 gmbox.desktop /usr/share/applications
 	ln -sf /usr/share/gmbox/gmbox /usr/bin/gmbox

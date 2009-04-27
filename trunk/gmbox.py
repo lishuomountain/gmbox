@@ -24,6 +24,7 @@ if os.path.exists(musicdir)==0:
     os.makedirs(musicdir)   #递归创建目录  mkdir是创建最后一层目录！amoblin
 if os.path.exists(gmbox_home)==0:
     os.makedirs(gmbox_home)
+playlist_path=gmbox_home+'default.xml'
 
 urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
 searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
@@ -213,7 +214,7 @@ class Abs_Lists:
             if os.name=='posix':
                 os.system("pkill "+player)
             play_over=0 #通知原来播放线程，你已被打断，退出吧，别保存！
-            time.sleep(1)
+            time.sleep(2)   #应该选一个恰当的值...
             play_over=1
             print "here play_over is ",play_over
             if os.name=='posix':
@@ -338,7 +339,6 @@ class SearchLists(Abs_Lists):
     '''google music 搜索'''
     def __init__(self):
         self.songlist=[]
-        self.loop_number=0  #信号量
         self.songtemplate={
             'title':'',
             'artist':'',
@@ -401,7 +401,8 @@ class FileList(Abs_Lists):
 
 class PlayList(Abs_Lists):
     '''读写歌词文件'''
-    def __init__(self,config_file=gmbox_home+'default.xml'):
+    #def __init__(self,config_file=gmbox_home+'default.xml'):
+    def __init__(self,config_file=playlist_path):
         Abs_Lists.__init__(self)
 
         if os.path.exists(config_file):
@@ -508,18 +509,73 @@ class ConfigFile:
     '''读写配置文件'''
     def __init__(self,configfile=gmbox_home+"gmboxrc"):
         if os.path.exists(configfile):
+            print "found config file 'gmboxrc' , begin to init..."
             self.xmldoc = minidom.parse(configfile)
-            actions = self.xmldoc.getElementsByTagName('action')
-            for action in actions:
-                name = item.getAttribute('name')
+            self.set_musicdir()
+            self.set_playlist_path()
         else:
-            impl = minidom.getDOMImplementation()
-            self.xmldoc = impl.createDocument(None, 'gmbox_config', None)
-            f = file(gmbox_home+'gmboxrc','w')
-            writer = codecs.lookup('utf-8')[3](f)
-            self.xmldoc.writexml(writer)
-            writer.close
-        self.root = self.xmldoc.documentElement
+            print "No config file 'gmboxrc' found, so create it..."
+            self.init_configfile()
+
+    def init_configfile(self):
+        global musicdir
+        global playlist_path
+
+        impl = minidom.getDOMImplementation()
+        self.xmldoc = impl.createDocument(None, 'gmbox_config', None)
+        root = self.xmldoc.documentElement
+        xml_str = '<music_dir id="e1">/home/lapta/Music/google_music/top100</music_dir>\
+	<playlist_path id="e2">/home/laputa/.gmbox/default.xml</playlist_path>'
+        node = self.xmldoc.createElement("music_dir")
+        node.setAttribute("id","e1")
+        text = self.xmldoc.createTextNode(musicdir)
+        node.appendChild(text)
+        root.appendChild(node)
+        node = self.xmldoc.createElement("playlist_path")
+        node.setAttribute("id","e2")
+        text = self.xmldoc.createTextNode(playlist_path)
+        node.appendChild(text)
+        root.appendChild(node)
+        f = file(gmbox_home+'gmboxrc','w')
+        writer = codecs.lookup('utf-8')[3](f)
+        #self.xmldoc.writexml(writer,"  ", "","\n    ","UTF-8")
+        #self.xmldoc.writexml(writer,"  ", "","\n","UTF-8")
+        self.xmldoc.writexml(writer)
+        writer.close
+
+    def set_keybing(self):
+        actions = self.xmldoc.getElementsByTagName('action')
+        for action in actions:
+            name = item.getAttribute('name')
+    def set_musicdir(self):
+        global musicdir
+        root = self.xmldoc.documentElement
+        #node = root.getElementById('e1')
+        #node = root.getElementsByTagName('music_dir')
+        #node = root.firstChild
+        #musicdir = node.data
+        musicdir = self.getTagText(root,"music_dir")
+        print "The music directory is :",musicdir
+
+    def set_playlist_path(self):
+        global playlist_path
+        root = self.xmldoc.documentElement
+        #node = root.getElementByTagId('e2')
+        #node = root.getElementsByTagName('playlist_path')
+        #node = root.firstChild
+        #playlist_path = node.data
+        playlist_path = self.getTagText(root,"playlist_path")
+        print "The playlist file is :",playlist_path
+
+    def getTagText(self,root,tag):
+        '''得到文本节点的值'''
+        node = root.getElementsByTagName(tag)[0]
+        rc = ""
+        for node in node.childNodes:
+            #if node.nodeType in ( node.TEXT_NODE, node.CDATA_SECTION_NODE):
+            if node.nodeType == node.TEXT_NODE:
+                rc = rc + node.data
+        return rc
 
 class CMD:
     '''解析命令行参数'''
@@ -527,6 +583,7 @@ class CMD:
         if len(sys.argv)==1:
             '''Face to Face Mode'''
             self.welcome()
+            ConfigFile()
             while 1:
                 command=raw_input('gmbox>')
                 if command =='exit':
@@ -599,5 +656,8 @@ class CMD:
         print sys.argv[0],": invalid option -- ",sys.argv[1]
         print "Try '",sys.argv[0]," --help' for more information"
 
-if __name__ == '__main__':
+def main():
     CMD()
+
+if __name__ == '__main__':
+    main()

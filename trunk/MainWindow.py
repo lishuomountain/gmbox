@@ -15,6 +15,7 @@ if os.name=='posix':
     import pynotify
 
 (COL_NUM, COL_TITLE, COL_ARTIST,COL_DOWN) = range(4)
+(COL_NUM, COL_TITLE, COL_ARTIST,COL_ALBUM) = range(4)
 class MainWindow():
     def __init__(self):
 
@@ -69,6 +70,26 @@ class MainWindow():
         scroll.add(self.list_tree)
         vbox.pack_start(scroll)
 
+        #page 2: search page
+        search_vbox = self.xml.get_widget('vbox_p2')
+
+        search_hbox = gtk.HBox()
+        hbox = gtk.HBox()
+        search_hbox.add(hbox)
+        self.search_entry = gtk.Entry()
+        hbox.add(self.search_entry)
+        self.search_button= gtk.Button("搜索")
+        self.search_button.connect('clicked', self.doSearchMusic)
+        hbox.add(self.search_button)
+        search_vbox.pack_start(search_hbox, False)
+
+        search_scroll = gtk.ScrolledWindow()
+        search_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        search_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        search_tree = self.getSearchTreeView()
+        search_tree.set_rules_hint(True)
+        search_scroll.add(search_tree)
+        search_vbox.pack_start(search_scroll)
 
         #page playlist
         playlist_vbox= self.xml.get_widget("vbox_p4")
@@ -97,33 +118,6 @@ class MainWindow():
         down_vbox.pack_start(down_scroll)
 
         statusbar = self.xml.get_widget("statusbar")
-
-        button = self.xml.get_widget("mbutton_previous")
-        #button.add(image)
-        #statusbar.add(button)
-
-        #button = self.xml.get_widget("mbutton_play")
-        #button = gtk.Button()
-        #image=gtk.Image()
-        #image.set_from_file("images/media-play.png")
-        #button.add(image)
-        #statusbar.add(button)
-
-        #button= self.xml.get_widget("mbutton_pause")
-        #button = gtk.Button()
-        #image=gtk.Image()
-        #image.set_from_file("images/media-pause.png")
-        #button.add(image)
-        #statusbar.add(button)
-
-        #button = self.xml.get_widget("mbutton_next")
-        #button = gtk.Button()
-        #image=gtk.Image()
-        #image.set_from_file("images/media-next.png")
-        #button.add(image)
-        #statusbar.add(button)
-
-        logo = self.xml.get_widget("logo")
 
         self.playbar = self.xml.get_widget("playbar")
         self.playbar.set_text("playing")
@@ -234,6 +228,38 @@ class MainWindow():
         treeview.append_column(column)
         return treeview
 
+    def getSearchTreeView(self):
+        #依次存入：歌曲编号，歌曲名，歌手，专辑名
+        self.search_model=gtk.ListStore(str,str,str,str)
+        treeview = gtk.TreeView(self.search_model)
+        treeview.set_enable_search(0)
+        treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_NUM)
+        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_TITLE)
+        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ARTIST)
+        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
+        column.set_resizable(True)
+        treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ALBUM)
+        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        return treeview
+
     def downList(self,text):
         """Hold song index and prepare for download"""
         self._songlist = gmbox.Lists()
@@ -251,6 +277,14 @@ class MainWindow():
         text=opt.get_active_text().decode('utf8')
         self.list_button.set_sensitive(False)
         thread.start_new_thread(self.downList,(text,))
+
+    def doSearchMusic(self,widget):
+        key = self.search_entry.get_text()
+        thread.start_new_thread(self.SearchMusic,(key,))
+
+    def SearchMusic(self,key):
+        search_list = gmbox.SearchLists()
+        search_list.get_list(key)
 
     def dolistLocalFile(self,widget,opt):
         thread.start_new_thread(self.listLocalFile,(gmbox.musicdir,))
@@ -616,8 +650,8 @@ class MainWindow():
 def test():
     print "testing for thread"
 
-
 def main():
+    gmbox.ConfigFile()
     win = MainWindow();
     if os.name=='posix':
         gtk.gdk.threads_init()
