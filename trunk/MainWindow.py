@@ -94,7 +94,7 @@ class MainWindow():
 
         #setup system tray icon
         self.setupSystray()
-        
+
 
         statusbar = self.xml.get_widget("statusbar")
 
@@ -105,6 +105,11 @@ class MainWindow():
 
         self.window.set_title("GMBox")
         self.window.set_default_size(800, 600)
+
+        #ui_logo=gtk.gdk.Pixbuf.create_from_xpm("data/gmbox.xpm")
+        ui_logo=gtk.gdk.pixbuf_new_from_file("data/gmbox.png")
+        self.window.set_icon(ui_logo)
+
         self.window.connect('destroy', gtk.main_quit)
         self.window.connect('key_press_event', self.key_checker)
         self.window.show_all();
@@ -117,7 +122,7 @@ class MainWindow():
 
     def setupSystray(self):
         self.systray = gtk.StatusIcon()
-        self.systray.set_from_file("data/systray.png")
+        self.systray.set_from_file("data/gmbox.png")
         self.systray.connect("activate", self.systrayCb)
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip("Click to toggle window visibility")
@@ -534,8 +539,8 @@ class MainWindow():
             self.notification.set_timeout(1)
             self.notification.show()
         self.playbar.set_text("now playing " + self.currentlist.get_title(start))
-        self.currentlist.play(start)
-        #self.currentlist.autoplay(start)
+        #self.currentlist.play(start)
+        self.currentlist.autoplay(start)
 
     def listen_init(self, widget):
         self.currentlist=self.playlist

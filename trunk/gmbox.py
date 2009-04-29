@@ -324,10 +324,14 @@ class Lists(Abs_Lists):
             sys.stdout.flush()
             for i in range(0,self.songlists[stype][1],25):
             #for i in range(0,25,25):
-                html=urllib2.urlopen(urltemplate%(self.songlists[stype][0],i)).read()
-                p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-                print '.',
-                sys.stdout.flush()
+                try:
+                    html=urllib2.urlopen(urltemplate%(self.songlists[stype][0],i)).read()
+                    p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+                    print '.',
+                    sys.stdout.flush()
+                except:
+                    print 'Error! Maybe the internet is not well...'
+                    return
             self.songlist=p.songlist
             print 'done!'
         else:
