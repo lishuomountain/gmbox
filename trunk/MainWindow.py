@@ -7,6 +7,7 @@ import gtk
 import gtk.glade
 import gmbox
 import thread
+import downpage
 
 
 DEBUG=0
@@ -58,9 +59,6 @@ class MainWindow():
         self.local_list_button = self.xml.get_widget('local_list_button')
         self.local_list_button.connect('clicked', self.dolistLocalFile, opt)
 
-        scroll = self.xml.get_widget("scrolledwindow1")
-        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         self.list_tree = self.getListTreeView()
         self.list_tree.set_rules_hint(True)
         
@@ -70,25 +68,15 @@ class MainWindow():
         self.search_button = self.xml.get_widget('search_button')
 
         self.search_list = gmbox.SearchLists()
-
-        #page down
-        down_scroll = self.xml.get_widget("scrolledwindow3")
-        down_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        down_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        down_tree = self.getDownTreeView()
-        down_tree.set_rules_hint(True)
-        search_scroll = self.xml.get_widget("scrolledwindow2")
-        search_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        search_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         self.search_list_tree = self.getSearchListTreeView()
         self.search_list_tree.set_rules_hint(True)
+
+        #page 3:  downlist page
+        down_tree = downpage.DownTreeView(self.xml)
 
         self.download_list = gmbox.DownloadLists()
 
         #page 4: playlist page
-        playlist_scroll = self.xml.get_widget("scrolledwindow4")
-        playlist_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        playlist_scroll.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         self.playlist_tree = self.getPlaylistTreeView()
         self.playlist_tree.set_rules_hint(True)
 
@@ -185,39 +173,6 @@ class MainWindow():
 
     def btnAbout_clicked(self,widget):
         self.notebook.set_current_page(4)
-
-    def getDownTreeView(self):
-        #依次存入：歌曲编号，歌曲名，歌手，下载状态，下载进度
-        self.down_model=gtk.ListStore(str,str,str,str)
-        treeview = self.xml.get_widget("download_treeview")
-        treeview.set_model(self.down_model)
-        treeview.set_enable_search(0)
-        treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
-        
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_NUM)
-        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
-        column.set_resizable(True)
-        treeview.append_column(column)
-        
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_TITLE)
-        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
-        column.set_resizable(True)
-        treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_ARTIST)
-        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
-        column.set_resizable(True)
-        treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_DOWN)
-        column = gtk.TreeViewColumn("状态", renderer, text=COL_DOWN)
-        column.set_resizable(True)
-        treeview.append_column(column)
-        return treeview
 
     def downList(self,text):
         """Hold song index and prepare for download"""
