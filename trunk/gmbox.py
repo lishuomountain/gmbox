@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+'''gmbox核心'''
 import re,urllib,urllib2,sys,os,time
 from HTMLParser import HTMLParser
 import thread
@@ -68,7 +69,6 @@ class ListParser(HTMLParser):
                 if v[n.index('title')]==u'下载':
                     self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',v[n.index('onclick')],re.S).group(1)
                     self.songlist.append(self.tmpsong)
-                    self.tmpsong=self.songtemplate.copy()
         if tag == 'table':
             for (n,v) in attrs:
                 if n=='id' and v=='song_list':
@@ -93,6 +93,7 @@ class ListParser(HTMLParser):
         '''处理html节点数据的函数'''
         if self.insongtable and (self.isa or self.ispan):
             if self.tdclass == 'Title BottomBorder':
+                self.tmpsong=self.songtemplate.copy()
                 self.tmpsong['title']=data
             elif self.tdclass == 'Artist BottomBorder':
                 self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
@@ -169,7 +170,7 @@ class Abs_Lists:
             (song['title'],song['artist'],song['id']) for song in self.songlist])
 
     def listall(self):
-        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
+        print '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
         #return string.encode(system_charset)
 
@@ -290,7 +291,17 @@ class Abs_Lists:
         p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
         self.songlist=p.songlist
         print 'done!'
+        
+    def downall(self):
+        '''下载榜单中的所有歌曲'''
+        for i in range(len(self.songlist)):
+            self.downone(i)
 
+    def download(self,songids=[]):
+        '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
+        for i in songids:
+            self.downone(i)
+            
 class Lists(Abs_Lists):
     '''榜单类,可以自动处理分页的榜单页面'''
     def __init__(self):
@@ -339,20 +350,7 @@ class Lists(Abs_Lists):
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
             ['"%s"'%key for key in self.songlists])
 
-
-    def get_songlists(self):
-        return self.songlists;
-
-    def downall(self):
-        '''下载榜单中的所有歌曲'''
-        for i in range(len(self.songlist)):
-            self.downone(i)
-    
-    def download(self,songids=[]):
-        '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
-        for i in songids:
-            self.downone(i)
-
+ 
 class SearchLists(Abs_Lists):
     '''google music 搜索'''
     def __init__(self):
@@ -376,10 +374,6 @@ class SearchLists(Abs_Lists):
         self.songlist=p.songlist
         print 'done!'
 
-    def __str__(self):
-        return '\n'.join(['Title="%s" Artist="%s" Album="%s" ID="%s"'%
-            (song['title'],song['artist'],song['album'],song['id']) for song in self.songlist])
-
 class DownloadLists(Abs_Lists):
     '''下载列表管理'''
     def __init__(self):
@@ -402,10 +396,6 @@ class DownloadLists(Abs_Lists):
         p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
         self.songlist=p.songlist
         print 'done!'
-
-    def __str__(self):
-        return '\n'.join(['Title="%s" Artist="%s" Album="%s" ID="%s"'%
-            (song['title'],song['artist'],song['album'],song['id']) for song in self.songlist])
 
 class FileList(Abs_Lists):
     '''本地文件列表'''
@@ -683,87 +673,6 @@ class ConfigFile:
                 rc = rc + node.data
         return rc
 
-class CMD:
-    '''解析命令行参数'''
-    def __init__(self):
-        if len(sys.argv)==1:
-            '''Face to Face Mode'''
-            self.welcome()
-            ConfigFile()
-            while 1:
-                command=raw_input('gmbox>')
-                if command =='exit':
-                    return
-                if command =='list':
-                    l=Lists()
-                    list_name = u'华语新歌'
-                    l.get_list(list_name)
-                    print l
-                elif command =='get':
-                    l.downone(0)
-                elif command =='help':
-                    self.help()
-                else:
-                    self.help()
-        else:
-            '''command mode'''
-            if sys.argv[1]=='-l':
-                list_name = u'华语新歌'
-                if len(sys.argv)==3:
-                    if os.name=='nt':
-                        list_name = sys.argv[2].encode('GBK')
-                    else:
-                        list_name = sys.argv[2].decode('UTF-8')
-                l=Lists()
-                l.get_list(list_name)
-                print l.listall()
-            elif sys.argv[1]=='-d':
-                list_name = u'华语新歌'
-                index=0
-                if len(sys.argv)==3:
-                    index = sys.argv[2]
-                l=Lists()
-                l.get_list(list_name)
-                #l.downone(int(index))
-                #l.download([0,2,6])
-                l.downall()
-            elif sys.argv[1] == '-s':
-                key = '周杰伦'
-                l=SearchLists()
-                l.get_list(key)
-                print l.listall()
-            elif sys.argv[1]=='-t':
-                '''input your function to test here'''
-                playlist = PlayList()
-                playlist.play(0)
-                #playlist.get_information(0)
-                #ele = playlist.getElementByIndex(0).getAttribute("id")
-                #print ele
-                #playlist.delete(ele)
-            elif sys.argv[1]=='-h' or sys.argv[1] == '--help':
-                self.help()
-            else:
-                self.error()
-
-    def welcome(self):
-        print "Welcom to gmbox! gmbox is a music client for mp3 download from google music."
-        print "For more information please visit http://code.google.com/p/gmbox/"
-        print "Type 'help' to start"
-
-    def help(self):
-        print "Command Line Mode:"
-        print "Usage: ",sys.argv[0],"[OPTION]..."
-        print " -l      list top100"
-        print " -d  n  download the nth music"
-        print "Face to Face Mode:"
-        print "list         list song from google"
-
-    def error(self):
-        print sys.argv[0],": invalid option -- ",sys.argv[1]
-        print "Try '",sys.argv[0]," --help' for more information"
-
-def main():
-    CMD()
-
 if __name__ == '__main__':
-    main()
+    print u"请勿直接执行此文件,图选界面请执行MainWindow.py,命令行界面请执行cli.py"
+    

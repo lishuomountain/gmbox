@@ -49,8 +49,8 @@ class MainWindow():
 
         self._songlist = gmbox.Lists()
 
-        for slist in self._songlist.get_songlists():
-            opt.append_text(slist)
+        [opt.append_text(slist) for slist in self._songlist.songlists]
+
         opt.set_active(0)
         hbox.pack_start(opt, False)
         self.list_button = self.xml.get_widget('list_button')
@@ -208,17 +208,27 @@ class MainWindow():
         self.search_button.set_sensitive(True)
 
     def dolistLocalFile(self,widget,opt):
+        print "while start thread"
         thread.start_new_thread(self.listLocalFile,(gmbox.musicdir,))
+        print "OK"
     def listLocalFile(self,path):
+        print "in new thread"
         self.local_list_button.set_sensitive(False)
         self._songlist = gmbox.FileList(path)
+        print self._songlist
         #self._songlist = gmbox.Lists("华语热歌")
         self.currentlist = self._songlist
+        print "debug info 1"
         self.list_model.clear()
+        print "debug info 2"
         for song in self._songlist.songlist:
+            print "adding",song['title'],
             self.list_model.append(
-                [self._songlist.songlist.index(song)+1,song['title'],song['artist']])
+                [str(self._songlist.songlist.index(song)+1),song['title'],song['artist']])
+            print "done!"
+        print "debug info"
         self.local_list_button.set_sensitive(True)
+        print "exit thread"
 
     def getListTreeView(self):
         """get hot song list treeview widget"""
