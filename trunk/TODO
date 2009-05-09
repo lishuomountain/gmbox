@@ -125,13 +125,19 @@ SearchList
 				启动新线程 执行 play
 			菜单项 添加 执行 addToPlaylist
 
-关于当前位置：1,当前聚焦位置。当前列表,当前Treeview
+关于当前位置：
+		1.current path
+		2.current_list
+		3.current model
+		4.current Treeview
 
 本地文件列表：
 	扫描本地文件，忽略下载的临时文件
 	播放：检测是否循环播放，然后播放
 	添加到列表：
 下载管理：
+	down_tree
+	download_list
 播放列表： playlist_tree 鼠标 执行 click_check2
 		得到当前索引
 		设置当前播放位置

@@ -3,12 +3,14 @@
 
 import gtk
 import gtk.glade
+import gmbox
 
 (COL_NUM, COL_TITLE, COL_ARTIST,COL_DOWN) = range(4)
 (COL_NUM, COL_TITLE, COL_ARTIST,COL_ALBUM) = range(4)
 
-class DownTreeView():
+class DownTreeView(gmbox.DownloadLists):
     def __init__(self,xml):
+        gmbox.DownloadLists.__init__(self)
         #依次存入：歌曲编号，歌曲名，歌手，下载状态，下载进度
         self.down_model=gtk.ListStore(str,str,str,str)
         treeview = xml.get_widget("download_treeview")
