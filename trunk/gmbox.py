@@ -32,7 +32,6 @@ searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%
 lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
 
 play_over=1  #标志信号量：自动播放完毕还是被打断，默认自动播放完
-system_charset = sys.getfilesystemencoding()
 
 def unistr(m):
     '''给re.sub做第二个参数,返回&#nnnnn;对应的中文'''
@@ -56,9 +55,10 @@ class ListParser(HTMLParser):
         self.songtemplate={
             'title':'',
             'artist':'',
+            'album':'',
             'id':''}
         self.tmpsong=self.songtemplate.copy()
-        (self.isa,self.ispan,self.insongtable,self.tdclass)=(0,0,0,'')
+        (self.isa,self.ispan,self.isb,self.insongtable,self.tdclass)=(0,0,0,0,'')
     
     def handle_starttag(self, tag, attrs):
         '''处理标签开始的函数'''
@@ -77,8 +77,12 @@ class ListParser(HTMLParser):
             for (n,v) in attrs:
                 if n=='class':
                     self.tdclass=v
+                    if v=='Title BottomBorder':
+                        self.tmpsong=self.songtemplate.copy()
         if tag == 'span':
             self.ispan=1
+        if tag == 'b':
+            self.isb=1
 
     def handle_endtag(self, tag):
         '''处理标签结束的函数'''
@@ -88,15 +92,18 @@ class ListParser(HTMLParser):
             self.insongtable=0
         if tag == 'span':
             self.ispan=0
+        if tag == 'b':
+            self.isb=0
 
     def handle_data(self, data):
         '''处理html节点数据的函数'''
-        if self.insongtable and (self.isa or self.ispan):
+        if self.insongtable and (self.isa or self.ispan or self.isb):
             if self.tdclass == 'Title BottomBorder':
-                self.tmpsong=self.songtemplate.copy()
-                self.tmpsong['title']=data
+                self.tmpsong['title']+=data
             elif self.tdclass == 'Artist BottomBorder':
                 self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
+            elif self.tdclass == 'Album BottomBorder':
+                self.tmpsong['album']=data
                 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
@@ -159,11 +166,6 @@ class Abs_Lists:
     def __init__(self):
         self.songlist=[]
         self.loop_number=0  #信号量
-        self.songtemplate={
-            'title':'',
-            'artist':'',
-            'id':''}
-        self.tmplist=self.songtemplate.copy()
 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
@@ -172,21 +174,6 @@ class Abs_Lists:
     def listall(self):
         print '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
-        #return string.encode(system_charset)
-
-    def downone(self,i=0):
-        '''下载榜单中的一首歌曲 '''
-        filename = self.get_filename(i)
-        print filename,'will be download'
-        localuri = musicdir + filename
-        if os.path.exists(localuri):
-            print filename,u'已存在!'
-            return
-        url=self.find_final_uri(i)
-        if url:
-            Download(url,filename,1)
-        else:   #下载页有验证码时url为空
-            print "Error, maybe the page is protected..."
 
     def directly_down(self,uri,i):
         '''直接下载，用于试听中得到最终下载地址后调用'''
@@ -249,25 +236,10 @@ class Abs_Lists:
             #self.current_path = self.current_path + 1
         self.loop_number = self.loop_number - 1
 
-    def find_final_uri(self,i=0):
-        '''找到最终真实下载地址，以供下一步DownLoad类下载'''
-        song=self.songlist[i]
-        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-        #songurl="http://g.top100.cn/7872775/html/download.html?id="+song['id'] 
-        '''这是新的url,怀疑以后google会取消上面那个，只用这个。新的页面是经过“加密”的。。。url比较难找...'''
-        s=SongParser()
-        try:
-            text = urllib2.urlopen(songurl).read()
-        except:
-            print "Reading URL Error: %s" % local_uri
-            return
-        s.feed(text)
-        return s.url
-
     def get_filename(self,i=0):
         song=self.songlist[i]
         filename=song['title']+'-'+song['artist']+'.mp3'
-        return filename.encode(system_charset)
+        return filename
 
     def get_title(self,i=0):
         song=self.songlist[i]
@@ -292,15 +264,39 @@ class Abs_Lists:
         self.songlist=p.songlist
         print 'done!'
         
+    def find_final_uri(self,i=0):
+        '''找到最终真实下载地址，以供下一步DownLoad类下载'''
+        song=self.songlist[i]
+        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
+        try:
+            text = urllib2.urlopen(songurl).read()
+        except:
+            print "Reading URL Error: %s" % local_uri
+            return
+        s=SongParser()
+        s.feed(text)
+        return s.url
+
+    def downone(self,i=0):
+        '''下载榜单中的一首歌曲 '''
+        filename = self.get_filename(i)
+        localuri = musicdir + filename
+        if os.path.exists(localuri):
+            print filename,u'已存在!'
+            return
+        url=self.find_final_uri(i)
+        if url:
+            Download(url,filename,1)
+        else:   #下载页有验证码时url为空
+            print u'出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
+
     def downall(self):
         '''下载榜单中的所有歌曲'''
-        for i in range(len(self.songlist)):
-            self.downone(i)
+        [self.downone(i) for i in range(len(self.songlist))]
 
     def download(self,songids=[]):
         '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
-        for i in songids:
-            self.downone(i)
+        [self.downone(i) for i in songids if i in range(len(self.songlist))]
             
 class Lists(Abs_Lists):
     '''榜单类,可以自动处理分页的榜单页面'''
@@ -365,9 +361,8 @@ class SearchLists(Abs_Lists):
     def get_list(self,key):
         key = re.sub((r'\ '),'+',key)
         search_uri_template = 'http://www.google.cn/music/search?q=%s&aq=f'
-        p=SearchParser()
-        print u'正在获取"'+key+u'"的搜索结果列表',
-        print search_uri_template%key
+        p=ListParser()
+        print u'正在获取"'+key+u'"的搜索结果列表'
         html=urllib2.urlopen(search_uri_template%key).read()
         #print html
         p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
@@ -388,7 +383,7 @@ class DownloadLists(Abs_Lists):
     def get_list(self,key):
         key = re.sub((r'\ '),'+',key)
         search_uri_template = 'http://www.google.cn/music/search?q=%s&aq=f'
-        p=SearchParser()
+        p=ListParser()
         print u'正在获取"'+key+u'"的搜索结果列表',
         print search_uri_template%key
         html=urllib2.urlopen(search_uri_template%key).read()
@@ -493,60 +488,6 @@ class PlayList(Abs_Lists):
         items = self.xmldoc.getElementsByTagName('item')
         return items[index]
 
-class SearchParser(HTMLParser):
-    '''解析搜索结果页面 '''
-    def __init__(self):
-        HTMLParser.__init__(self)
-        self.songlist=[]
-        self.songtemplate={
-            'title':'',
-            'artist':'',
-            'album':'',
-            'id':''}
-        self.tmpsong=self.songtemplate.copy()
-        (self.isa,self.ispan,self.insongtable,self.tdclass)=(0,0,0,'')
-    
-    def handle_starttag(self, tag, attrs):
-        if tag == 'a':
-            self.isa=1
-            if self.insongtable and self.tdclass == 'Icon BottomBorder':
-                (n,v) =zip(*attrs)
-                if v[n.index('title')]==u'下载':
-                    self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',v[n.index('onclick')],re.S).group(1)
-                    self.songlist.append(self.tmpsong)
-                    self.tmpsong=self.songtemplate.copy()
-        if tag == 'table':
-            for (n,v) in attrs:
-                if n=='id' and v=='song_list':
-                    self.insongtable=1
-        if self.insongtable and tag == 'td':
-            for (n,v) in attrs:
-                if n=='class':
-                    self.tdclass=v
-        if tag == 'span':
-            self.ispan=1
-
-    def handle_endtag(self, tag):
-        if tag == 'a':
-            self.isa=0
-        if tag == 'table':
-            self.insongtable=0
-        if tag == 'span':
-            self.ispan=0
-
-    def handle_data(self, data):
-        if self.insongtable and (self.isa or self.ispan):
-            if self.tdclass == 'Title BottomBorder':
-                self.tmpsong['title']=data
-            elif self.tdclass == 'Artist BottomBorder':
-                self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
-            elif self.tdclass == 'Album BottomBorder':
-                self.tmpsong['album']+=(u'、' if self.tmpsong['album'] else '') + data
-                
-    def __str__(self):
-        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
-            (song['title'],song['artist'],song['id']) for song in self.songlist])
-
 class LyricsParser(HTMLParser):
     '''解析歌词页面 '''
     def __init__(self):
@@ -620,8 +561,6 @@ class ConfigFile:
         impl = minidom.getDOMImplementation()
         self.xmldoc = impl.createDocument(None, 'gmbox_config', None)
         root = self.xmldoc.documentElement
-        xml_str = '<music_dir id="e1">/home/lapta/Music/google_music/top100</music_dir>\
-	<playlist_path id="e2">/home/laputa/.gmbox/default.xml</playlist_path>'
         node = self.xmldoc.createElement("music_dir")
         node.setAttribute("id","e1")
         text = self.xmldoc.createTextNode(musicdir)
@@ -651,7 +590,7 @@ class ConfigFile:
         #node = root.firstChild
         #musicdir = node.data
         musicdir = self.getTagText(root,"music_dir")
-        print "The music directory is :",musicdir
+        print u'歌曲目录:',musicdir
 
     def set_playlist_path(self):
         global playlist_path
@@ -661,7 +600,7 @@ class ConfigFile:
         #node = root.firstChild
         #playlist_path = node.data
         playlist_path = self.getTagText(root,"playlist_path")
-        print "The playlist file is :",playlist_path
+        print u'播放列表:',playlist_path
 
     def getTagText(self,root,tag):
         '''得到文本节点的值'''

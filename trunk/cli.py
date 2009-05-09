@@ -84,6 +84,10 @@ class CLI:
             if len(command.split()) > 1:
                 if command.split()[1]=='all':
                     self.l.downall()
+                else:
+                    k=[]
+                    [k.append(int(t)-1) for t in command.split()[1:]]
+                    self.l.download(k)
             else:
                 print u'用法: down all 或者 down n1 n2 ...'
             
@@ -120,8 +124,8 @@ class CLI:
         print u" lists           查看支持的榜单名."
         print u" list  <榜单名>  列出榜单名的所有歌曲"
         print u" search  关键字  搜索关键字"
-        print u" down  all       下载上次list命令指定的榜单的所有歌曲,需要先执行list"
-        print u" down  0 2 ...   下载上次list命令指定的榜单的指定歌曲,需要先执行list"
+        print u" down  all       下载上次list或search得到的所有歌曲"
+        print u" down  1 3 ...   下载上次list或search得到的所有歌曲中的一部分,从1开始计数"
 
     def error(self):
         print sys.argv[0],": invalid option -- ",sys.argv[1]
