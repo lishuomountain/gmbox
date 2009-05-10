@@ -34,6 +34,7 @@ class MainWindow():
              "on_button_listen_selected_clicked":self.listen_selected,
 
              "on_search_button_clicked":self.doSearchMusic,
+             "on_filelist_button_clicked":self.dolistLocalFile,
 
              "on_mbutton_previous_clicked":self.tray_play_prev,
              "on_mbutton_play_clicked": self.listen,
@@ -50,16 +51,12 @@ class MainWindow():
         opt = self.xml.get_widget('combobox1')
         opt = gtk.combo_box_new_text()
 
+        opt.append_text("--请选择--")
         [opt.append_text(slist) for slist in self.list_view.songlists]
-        opt.connect("changed", self.doSearch, opt)  #自动获取列表
         opt.set_active(0)
+        opt.connect("changed", self.doSearch, opt)  #自动获取列表
         hbox.pack_start(opt, False)
 
-        #self.list_button = self.xml.get_widget('list_button')
-        #self.list_button.connect('clicked', self.doSearch, opt)
-        self.local_list_button = self.xml.get_widget('local_list_button')
-        self.local_list_button.connect('clicked', self.dolistLocalFile, opt)
-        
         #page 2: search page
         self.search_entry = self.xml.get_widget('search_entry')
         self.search_entry.connect('key_press_event', self.entry_key_checker)
@@ -71,6 +68,9 @@ class MainWindow():
 
         #page 3:  downlist page
         self.down_tree = downpage.DownTreeView(self.xml)
+        self.file_list_view = FileListView(self.xml,gmbox.musicdir)
+        #button = self.xml.get_widget('filelist_button')
+        #button.connect('clicked',self.dolistLocalFile,)
 
         #page 4: playlist page
         self.playlist_view= PlayListView(self.xml)
@@ -104,7 +104,6 @@ class MainWindow():
         self.window.add_accel_group(accel_group)
         #self.window.add_accelerator("hide()",accel_group,ord('w'),gtk.gdk.CONTROL_MASK,0)
         self.current_path=0
-        #self.doSearch(self.list_button,opt)
 
     def setupSystray(self):
         self.systray = gtk.StatusIcon()
@@ -182,8 +181,9 @@ class MainWindow():
     def doSearch(self,widget,opt):
         """Begin song list download thread"""
         text=opt.get_active_text().decode('utf8')
-        widget.set_sensitive(False)
-        thread.start_new_thread(self.downList,(text,widget,))
+        if text != "--请选择--":
+            widget.set_sensitive(False)
+            thread.start_new_thread(self.downList,(text,widget,))
 
     def doSearchMusic(self,widget):
         key = self.search_entry.get_text().decode('utf8')
@@ -196,18 +196,17 @@ class MainWindow():
         self.current_list=self.search_list_view
         self.search_button.set_sensitive(True)
 
-    def dolistLocalFile(self,widget,opt):
+    def dolistLocalFile(self,widget):
         print "while start thread"
-        thread.start_new_thread(self.listLocalFile,(gmbox.musicdir,))
+        thread.start_new_thread(self.listLocalFile,(widget,))
         print "OK"
-    def listLocalFile(self,path):
+
+    def listLocalFile(self,widget):
         print "in new thread"
-        self.local_list_button.set_sensitive(False)
-        self.file_list_view = FileListView(self.xml,path)
 
         self.current_list = self.file_list_view
         self.file_list_view.get_list()
-        self.local_list_button.set_sensitive(True)
+        widget.set_sensitive(True)
         print "exit thread"
 
     def playlist_click_checker(self, view, event):
@@ -556,6 +555,139 @@ class ListView(gmbox.Lists):
         # set new value
         self.model.set(iter, COL_STATUS, fixed)        
 
+class SearchListView(gmbox.SearchLists):
+    def __init__(self,xml):
+        gmbox.SearchLists.__init__(self)
+        """get hot song list treeview widget"""
+        #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
+        self.model = gtk.ListStore(str,str, str, str,str)
+        #self.list_model.connect("row-changed", self.SaveSongIndex)
+        
+        self.treeview = xml.get_widget('search_treeview')
+        self.treeview.set_model(self.model)
+        self.treeview.set_enable_search(0)
+        #treeview.bind('<Button-3>', self.click_checker)
+        #treeview.bind('<Double-Button-1>', self.listen)
+        self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+
+        checkbutton = gtk.CheckButton()
+        renderer = gtk.CellRendererToggle()
+        column = gtk.TreeViewColumn("选中", renderer)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_NUM)
+        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_TITLE)
+        #renderer.set_property('editable', True)
+        #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ARTIST)
+        #renderer.set_property('editable', True)
+        #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ALBUM)
+        renderer.set_property('editable', False)
+       #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+        self.treeview.set_rules_hint(True)
+
+    def get_list(self,key):
+        gmbox.SearchLists.get_list(self,key)
+        self.model.clear()
+        [self.model.append([False,self.songlist.index(song)+1,song['title'],song['artist'],song['album']]) for song in self.songlist]
+
+class FileListView(gmbox.FileList):
+    def __init__(self,xml,path):
+        """get hot song list treeview widget"""
+        gmbox.FileList.__init__(self,path)
+        #依次存入：status,歌曲编号，歌曲名，歌手
+        self.model = gtk.ListStore(str, str, str,str)
+        #self.model.connect("row-changed", self.SaveSongIndex)
+
+        self.treeview = xml.get_widget('download_treeview')
+        self.treeview.set_model(self.model)
+        self.treeview.set_enable_search(0)
+        #treeview.bind('<Button-3>', self.click_checker)
+        #treeview.bind('<Double-Button-1>', self.listen)
+        self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+
+        '''
+        checkbutton = gtk.CheckButton()
+        renderer = gtk.CellRendererToggle()
+        renderer.connect('toggled', self.fixed_toggled)
+        column = gtk.TreeViewColumn("选中", renderer,active=COL_STATUS)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_NUM)
+        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_TITLE)
+        #renderer.set_property('editable', True)
+        #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ARTIST)
+        #renderer.set_property('editable', True)
+        #renderer.connect("edited", self.on_cell_edited, None)
+        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
+        column.set_resizable(True)
+        self.treeview.append_column(column)
+        self.treeview.set_rules_hint(True)
+        '''
+    def get_list(self):
+        gmbox.FileList.get_list(self,gmbox.musicdir)
+        print "debug info 1"
+        raw_input("waiting")
+        self.model.clear()
+        print "debug info 2"
+        raw_input("waiting")
+        [self.model.append([False,str(self.songlist.index(song)+1),song['title'],song['artist']]) for song in self.songlist]
+        raw_input("waiting")
+        print "debug info"
+
+    def fixed_toggled(self, cell, path):
+        # get toggled iter
+        iter = self.model.get_iter((int(path),))
+        fixed = self.model.get_value(iter, COL_STATUS)
+        print "fixed is ",fixed
+
+        # do something with the value
+        fixed = not fixed
+
+        print "now fixed is ",fixed
+
+        if not fixed:
+            print 'Select[row]:',path
+        else:
+            print 'Invert Select[row]:',path
+
+        # set new value
+        self.model.set(iter, COL_STATUS, fixed)        
+
 class PlayListView(gmbox.PlayList):
     def __init__(self,xml):
         gmbox.PlayList.__init__(self)
@@ -619,134 +751,6 @@ class PlayListView(gmbox.PlayList):
             notification.set_timeout(1)
             notification.show()
 
-class SearchListView(gmbox.SearchLists):
-    def __init__(self,xml):
-        gmbox.SearchLists.__init__(self)
-        """get hot song list treeview widget"""
-        #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
-        self.model = gtk.ListStore(str,str, str, str,str)
-        #self.list_model.connect("row-changed", self.SaveSongIndex)
-        
-        self.treeview = xml.get_widget('search_treeview')
-        self.treeview.set_model(self.model)
-        self.treeview.set_enable_search(0)
-        #treeview.bind('<Button-3>', self.click_checker)
-        #treeview.bind('<Double-Button-1>', self.listen)
-        self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
-
-        checkbutton = gtk.CheckButton()
-        renderer = gtk.CellRendererToggle()
-        column = gtk.TreeViewColumn("选中", renderer)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-        
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_NUM)
-        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_TITLE)
-        #renderer.set_property('editable', True)
-        #renderer.connect("edited", self.on_cell_edited, None)
-        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_ARTIST)
-        #renderer.set_property('editable', True)
-        #renderer.connect("edited", self.on_cell_edited, None)
-        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_ALBUM)
-        renderer.set_property('editable', False)
-       #renderer.connect("edited", self.on_cell_edited, None)
-        column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-        self.treeview.set_rules_hint(True)
-
-    def get_list(self,key):
-        gmbox.SearchLists.get_list(self,key)
-        self.model.clear()
-        [self.model.append([False,self.songlist.index(song)+1,song['title'],song['artist'],song['album']]) for song in self.songlist]
-
-class FileListView(gmbox.FileList):
-    def __init__(self,xml,path):
-        """get hot song list treeview widget"""
-        gmbox.FileList.__init__(self,path)
-        #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
-        self.model = gtk.ListStore(str, str, str,str)
-        #self.model.connect("row-changed", self.SaveSongIndex)
-
-        self.treeview = xml.get_widget('list_treeview')
-        self.treeview.set_model(self.model)
-        self.treeview.set_enable_search(0)
-        #treeview.bind('<Button-3>', self.click_checker)
-        #treeview.bind('<Double-Button-1>', self.listen)
-        self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
-
-        checkbutton = gtk.CheckButton()
-        renderer = gtk.CellRendererToggle()
-        renderer.connect('toggled', self.fixed_toggled)
-        column = gtk.TreeViewColumn("选中", renderer,active=COL_STATUS)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_NUM)
-        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_TITLE)
-        #renderer.set_property('editable', True)
-        #renderer.connect("edited", self.on_cell_edited, None)
-        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_ARTIST)
-        #renderer.set_property('editable', True)
-        #renderer.connect("edited", self.on_cell_edited, None)
-        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
-        column.set_resizable(True)
-        self.treeview.append_column(column)
-        self.treeview.set_rules_hint(True)
-
-    def get_list(self):
-        gmbox.FileList.get_list(self,gmbox.musicdir)
-        print "debug info 1"
-        self.model.clear()
-        print "debug info 2"
-        [self.model.append([False,str(self.songlist.index(song)+1),song['title'],song['artist']]) for song in self.songlist]
-        print "debug info"
-
-    def fixed_toggled(self, cell, path):
-        # get toggled iter
-        iter = self.model.get_iter((int(path),))
-        fixed = self.model.get_value(iter, COL_STATUS)
-        print "fixed is ",fixed
-
-        # do something with the value
-        fixed = not fixed
-
-        print "now fixed is ",fixed
-
-        if not fixed:
-            print 'Select[row]:',path
-        else:
-            print 'Invert Select[row]:',path
-
-        # set new value
-        self.model.set(iter, COL_STATUS, fixed)        
 
 def test():
     print "testing for thread"
