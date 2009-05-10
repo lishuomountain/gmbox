@@ -16,7 +16,7 @@ class DownTreeView(gmbox.DownloadLists):
     def __init__(self,xml):
         gmbox.DownloadLists.__init__(self)
         #依次存入：歌曲编号，歌曲名，歌手，下载状态，下载进度
-        self.model=gtk.ListStore(str,str,str,str,str)
+        self.model=gtk.ListStore(bool,str,str,str,str)
         self.treeview = xml.get_widget("download_treeview")
         self.treeview.set_model(self.model)
         self.treeview.set_enable_search(0)
