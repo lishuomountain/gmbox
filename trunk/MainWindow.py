@@ -41,7 +41,7 @@ class MainWindow():
              "on_mbutton_next_clicked": self.tray_play_next}
         self.xml.signal_autoconnect(dic)
 
-        #page 1 from glade
+        #page 1: list page
         self.list_view= ListView(self.xml)
         self.list_view.treeview.connect('button-press-event', self.click_checker)
         self.list_view.treeview.connect('key_press_event', self.tree_view_key_checker)
@@ -51,7 +51,7 @@ class MainWindow():
         opt = gtk.combo_box_new_text()
 
         [opt.append_text(slist) for slist in self.list_view.songlists]
-        #opt.connect("changed", self.doSearch, opt)  #自动获取列表
+        opt.connect("changed", self.doSearch, opt)  #自动获取列表
         opt.set_active(0)
         hbox.pack_start(opt, False)
 
@@ -74,6 +74,8 @@ class MainWindow():
 
         #page 4: playlist page
         self.playlist_view= PlayListView(self.xml)
+        self.playlist_view.treeview.connect('button-press-event',self.playlist_click_checker)
+        self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
 
 
         #setup system tray icon
@@ -90,7 +92,6 @@ class MainWindow():
         self.window.set_title("GMBox")
         self.window.set_default_size(800, 600)
 
-        #ui_logo=gtk.gdk.Pixbuf.create_from_xpm("data/gmbox.xpm")
         ui_logo=gtk.gdk.pixbuf_new_from_file("data/gmbox.png")
         self.window.set_icon(ui_logo)
 
@@ -210,7 +211,7 @@ class MainWindow():
         print "exit thread"
 
     def playlist_click_checker(self, view, event):
-        self.get_current_locatioin(view,event)
+        self.get_current_location(view,event)
 
         if event.type == gtk.gdk._2BUTTON_PRESS:
             self.listen(view)
@@ -222,8 +223,7 @@ class MainWindow():
 
             # Here test whether we have songlist, if have, show popup menu
             try:
-                if self.playlist:
-                    self.SetupPopup2()
+                self.SetupPopup2()
             except:
                 pass
 
