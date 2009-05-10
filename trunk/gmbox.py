@@ -171,6 +171,14 @@ class Abs_Lists:
     def __init__(self):
         self.songlist=[]
         self.loop_number=0  #信号量
+        self.songtemplate={
+            'id':'',
+            'title':'',
+            'artist':'',
+            'album':'',
+            'status':''
+        }
+        self.tmplist=self.songtemplate.copy()
 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
@@ -355,13 +363,7 @@ class Lists(Abs_Lists):
 class SearchLists(Abs_Lists):
     '''google music 搜索'''
     def __init__(self):
-        self.songlist=[]
-        self.songtemplate={
-            'title':'',
-            'artist':'',
-            'album':'',
-            'id':''}
-        self.tmplist=self.songtemplate.copy()
+        Abs_Lists.__init__(self)
 
     def get_list(self,key):
         key = re.sub((r'\ '),'+',key)
@@ -377,13 +379,7 @@ class SearchLists(Abs_Lists):
 class DownloadLists(Abs_Lists):
     '''下载列表管理'''
     def __init__(self):
-        self.songlist=[]
-        self.songtemplate={
-            'title':'',
-            'artist':'',
-            'status':'',
-            'id':''}
-        self.tmplist=self.songtemplate.copy()
+        Abs_Lists.__init__(self)
 
     def get_list(self,key):
         key = re.sub((r'\ '),'+',key)
@@ -446,6 +442,7 @@ class FileList(Abs_Lists):
         self.tmplist['id']=len(self.songlist)
         self.songlist.append(self.tmplist.copy())
         self.tmplist=self.songtemplate.copy()
+        print 'adding '+os.path.basename(file)
 
     def delete_file(self,i):
         filename=self.get_filename()
@@ -458,11 +455,6 @@ class PlayList(Abs_Lists):
     #def __init__(self,config_file=gmbox_home+'default.xml'):
     def __init__(self,config_file=playlist_path):
         Abs_Lists.__init__(self)
-        self.songtemplate={
-            'title':'',
-            'artist':'',
-            'id':''}
-        self.tmplist=self.songtemplate.copy()
 
         if os.path.exists(config_file):
             self.xmldoc = minidom.parse(config_file)

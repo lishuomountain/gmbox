@@ -51,7 +51,7 @@ class MainWindow():
         opt = gtk.combo_box_new_text()
 
         [opt.append_text(slist) for slist in self.list_view.songlists]
-        opt.connect("changed", self.doSearch, opt)  #自动获取列表
+        #opt.connect("changed", self.doSearch, opt)  #自动获取列表
         opt.set_active(0)
         hbox.pack_start(opt, False)
 
@@ -202,9 +202,9 @@ class MainWindow():
     def listLocalFile(self,path):
         print "in new thread"
         self.local_list_button.set_sensitive(False)
-        self.file_list_view = FileListView(path)
+        self.file_list_view = FileListView(self.xml,path)
 
-        self.currentlist = self.file_list_view
+        self.current_list = self.file_list_view
         self.file_list_view.get_list()
         self.local_list_button.set_sensitive(True)
         print "exit thread"
@@ -624,7 +624,7 @@ class SearchListView(gmbox.SearchLists):
         gmbox.SearchLists.__init__(self)
         """get hot song list treeview widget"""
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
-        self.model = gtk.ListStore(str, str, str,str)
+        self.model = gtk.ListStore(str,str, str, str,str)
         #self.list_model.connect("row-changed", self.SaveSongIndex)
         
         self.treeview = xml.get_widget('search_treeview')
@@ -674,12 +674,12 @@ class SearchListView(gmbox.SearchLists):
     def get_list(self,key):
         gmbox.SearchLists.get_list(self,key)
         self.model.clear()
-        [self.model.append([self.songlist.index(song)+1,song['title'],song['artist'],song['album']]) for song in self.songlist]
+        [self.model.append([False,self.songlist.index(song)+1,song['title'],song['artist'],song['album']]) for song in self.songlist]
 
 class FileListView(gmbox.FileList):
-    def __init__(self,xml):
+    def __init__(self,xml,path):
         """get hot song list treeview widget"""
-        gmbox.FileList.__init__(self)
+        gmbox.FileList.__init__(self,path)
         #依次存入：歌曲编号，歌曲名，歌手，专辑，长度，url
         self.model = gtk.ListStore(str, str, str,str)
         #self.model.connect("row-changed", self.SaveSongIndex)
@@ -722,14 +722,11 @@ class FileListView(gmbox.FileList):
         self.treeview.set_rules_hint(True)
 
     def get_list(self):
+        gmbox.FileList.get_list(self,gmbox.musicdir)
         print "debug info 1"
         self.model.clear()
         print "debug info 2"
-        for song in self.songlist:
-            print "adding",song['title'],
-            self.list_model.append(
-                [str(self.songlist.index(song)+1),song['title'],song['artist']])
-            print "done!"
+        [self.model.append([False,str(self.songlist.index(song)+1),song['title'],song['artist']]) for song in self.songlist]
         print "debug info"
 
     def fixed_toggled(self, cell, path):
