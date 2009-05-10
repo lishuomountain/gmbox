@@ -381,29 +381,16 @@ class DownloadLists(Abs_Lists):
     def __init__(self):
         Abs_Lists.__init__(self)
 
-    def get_list(self,key):
-        key = re.sub((r'\ '),'+',key)
-        search_uri_template = 'http://www.google.cn/music/search?q=%s&aq=f'
-        p=ListParser()
-        print u'正在获取"'+key+u'"的搜索结果列表',
-        print search_uri_template%key
-        html=urllib2.urlopen(search_uri_template%key).read()
-        #print html
-        p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-        self.songlist=p.songlist
-        print 'done!'
+    def get_list(self):
+        pass
 
     def add(self,title,artist,id):
-        item = self.xmldoc.createElement('item')
-        item.setAttribute('title',title)
-        item.setAttribute('artist',artist)
-        item.setAttribute('id',id)
-
-        self.tmplist['artist']=os.path.basename(file).split('-')[1].split('.')[0]
-        self.tmplist['title']=os.path.basename(file).split('-')[0]
-        self.tmplist['id']=len(self.songlist)
+        self.tmplist['artist']=artist
+        self.tmplist['title']=title
+        self.tmplist['id']=id
         self.songlist.append(self.tmplist.copy())
         self.tmplist=self.songtemplate.copy()
+        self.downone(len(self.songlist)-1)
 
 class FileList(Abs_Lists):
     '''本地文件列表'''
