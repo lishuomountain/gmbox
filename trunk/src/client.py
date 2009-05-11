@@ -79,28 +79,16 @@ class MainWindow():
         #self.list_button.set_sensitive(True)
         widget.set_sensitive(True)
 
-    def doSearch(self,widget):
-        """Begin song list download thread"""
-        text=widget.get_active_text().decode('utf8')
-        if text != "--请选择--":
-            widget.set_sensitive(False)
-            thread.start_new_thread(self.downList,(text,widget,))
 
-    def doSearchMusic(self,widget):
-        key = self.search_entry.get_text().decode('utf8')
-        print key
-        self.search_button.set_sensitive(False)
-        thread.start_new_thread(self.SearchMusic,(key,))
+
+
 
     def SearchMusic(self,key):
         self.search_list_view.get_list(key)
         self.current_list=self.search_list_view
         self.search_button.set_sensitive(True)
 
-    def dolistLocalFile(self,widget):
-        print "while start thread"
-        thread.start_new_thread(self.listLocalFile,(widget,))
-        print "OK"
+
 
     def listLocalFile(self,widget):
         print "in new thread"
@@ -110,22 +98,6 @@ class MainWindow():
         widget.set_sensitive(True)
         print "exit thread"
 
-    def playlist_click_checker(self, view, event):
-        self.get_current_location(view,event)
-
-        if event.type == gtk.gdk._2BUTTON_PRESS:
-            self.listen(view)
-
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-            #selected,iter = view.get_selection().get_selected()
-            #index = selected.get_value(iter, 0)
-            #print index
-
-            # Here test whether we have songlist, if have, show popup menu
-            try:
-                self.SetupPopup2()
-            except:
-                pass
 
     def tree_view_key_checker(self,widget, event):
         if event.type == gtk.gdk.KEY_PRESS:
@@ -150,40 +122,6 @@ class MainWindow():
                     self.DelFromPlaylist(widget)
 
 
-    def SetupPopup2(self):
-        time = gtk.get_current_event_time()
-
-        popupmenu = gtk.Menu()
-
-        menuitem = gtk.MenuItem('试听')
-        menuitem.connect('activate', self.listen_init)
-        popupmenu.append(menuitem)
-        
-        menuitem = gtk.MenuItem('从列表删除')
-        menuitem.connect('activate', self.DelFromPlaylist)
-        popupmenu.append(menuitem)
-        
-        popupmenu.show_all()
-        popupmenu.popup(None, None, None, 0, time)
-
-    def downone(self, widget):
-        #selected = self.current_list.treeview.get_selection().get_selected()
-        #list_model,iter = selected
-        #artist = list_model.get_value(iter, COL_ARTIST)
-        #title = list_model.get_value(iter, COL_TITLE)
-        artist = self.current_list.get_artist(self.current_path)
-        title = self.current_list.get_title(self.current_path)
-        id = self.current_list.get_id(self.current_path)
-        self.down_tree.add(title,artist,id)
-
-    def addToPlaylist(self, widget):
-        selected = self.current_list.treeview.get_selection().get_selected()
-        list_model,iter = selected
-        artist = list_model.get_value(iter, COL_ARTIST)
-        title = list_model.get_value(iter, COL_TITLE)
-        id = self.current_list.get_id(self.current_path)
-        self.playlist_view.add(title,artist,str(id))
-
     def DelFromPlaylist(self, widget):
         selected = self.playlist_tree.get_selection().get_selected()
         list_model,iter = selected
@@ -199,11 +137,7 @@ class MainWindow():
             self.notification.set_timeout(1)
             self.notification.show()
 
-    def listen(self, widget):
-        try:
-            thread.start_new_thread(self.play,(self.current_path,))
-        except:
-            print "Error"
+
 
     def play(self,start):
         '''试听,播放'''
@@ -264,19 +198,6 @@ class MainWindow():
     def pause_music(self,widget):
         pass
 
-
-    def delete_file(self,event):
-        self._songlist.delete_file(self.current_path)
-
-        selected = self.list_tree.get_selection().get_selected()
-        list_model,iter = selected
-        #num = self.list_model.get_value(iter,COL_NUM)
-        num = len(self.playlist.songlist)+1
-        artist = list_model.get_value(iter, COL_ARTIST)
-        title = list_model.get_value(iter, COL_TITLE)
-        list_model.remove(self.current_path)
-        #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
-        self._songlist.delete_file(self.current_path)
 
     def get_current_location(self,view,event):
         x = int(event.x)

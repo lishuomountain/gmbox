@@ -18,6 +18,36 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import logging
+import os
+
+
+def find_image(image_name):
+    """Using the iamge_name, search in the common places. Return the path for
+    the image or None if the image couldn't be found."""
+
+    # just because I'm a logging nut
+
+    log = logging.getLogger('lib.find_image')
+
+    # the order is the priority, so keep global paths before local paths
+
+    current_dir = os.path.abspath(os.path.dirname(__file__))
+
+    common_paths = [
+            os.path.join(sys.prefix, 'share', 'pixbufs'),
+            os.path.join('.', 'pixbufs'),
+            os.path.join(current_dir, '..', 'pixbufs')]
+
+    for path in common_paths:
+        filename = os.path.join(path, image_name)
+        log.debug('Checking %s...' % (filename))
+        if os.access(filename, os.F_OK):
+            log.debug('Default image is %s' % (filename))
+            return filename
+
+    return None
+
 def unistr(m):
     '''给re.sub做第二个参数,返回&#nnnnn;对应的中文'''
     return unichr(int(m.group(1)))

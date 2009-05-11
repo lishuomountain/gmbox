@@ -35,6 +35,7 @@ class mainwin(gtk.Window):
         
         self.set_title("GMBox")
         self.set_default_size(800, 600)
+        # need work
         ui_logo=gtk.gdk.pixbuf_new_from_file("../pixbufs/gmbox.png")
         self.set_icon(ui_logo)
 

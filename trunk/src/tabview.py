@@ -20,25 +20,7 @@
 
 import gtk
 
-songlists={
-    u'华语新歌':('chinese_new_songs_cn',100),
-    u'欧美新歌':('ea_new_songs_cn',100),
-    u'华语热歌':('chinese_songs_cn',200),
-    u'欧美热歌':('ea_songs_cn',200),
-    u'日韩热歌':('jk_songs_cn',200),
-    u'流行热歌':('pop_songs_cn',100),
-    u'摇滚热歌':('rock_songs_cn',100),
-    u'嘻哈热歌':('hip-hop_songs_cn',100),
-    u'影视热歌':('soundtrack_songs_cn',100),
-    u'民族热歌':('ethnic_songs_cn',100),
-    u'拉丁热歌':('latin_songs_cn',100),
-    u'R&B热歌':('rnb_songs_cn',100),
-    u'乡村热歌':('country_songs_cn',100),
-    u'民谣热歌':('folk_songs_cn',100),
-    u'灵歌热歌':('soul_songs_cn',100),
-    u'轻音乐热歌':('easy-listening_songs_cn',100),
-    u'爵士蓝调热歌':('jnb_songs_cn',100)
-    }
+from utils import *
 
 
 class tabview(gtk.Notebook):
@@ -52,7 +34,8 @@ class tabview(gtk.Notebook):
 
         self.show_all()
 
-
+# =========================================
+# methods setup five tabs
         
     def setup_album_tab(self):
         
@@ -137,10 +120,39 @@ class tabview(gtk.Notebook):
     def setup_about_tab(self):
         
         pass
-    
 
+# ============================================
+# signal methods
+
+    def doSearch(self,widget):
+        '''Begin song(album) list download thread'''
+        
+        text=widget.get_active_text().decode('utf8')
+        if text != "--请选择--":
+            widget.set_sensitive(False)
+            thread.start_new_thread(self.downList,(text,widget,))
+
+    def doSearchMusic(self,widget):
+        '''music search button clicked callback'''
+        
+        key = self.search_entry.get_text().decode('utf8')
+        print key
+        self.search_button.set_sensitive(False)
+        thread.start_new_thread(self.SearchMusic,(key,))
+
+    def dolistLocalFile(self,widget):
+        '''callback for download manage tab'''
+        
+        print "while start thread"
+        thread.start_new_thread(self.listLocalFile,(widget,))
+        print "OK"
+
+    
+    
+# =============================================
+    
     def SetupPopup(self):
-        '''榜单页的弹出菜单'''
+        '''popup menu for album list tab'''
         
         time = gtk.get_current_event_time()
 
@@ -186,7 +198,87 @@ class tabview(gtk.Notebook):
                 print "button press error..."
                 pass
 
-    
+# ========================================
+# methods for popup menu above
+        
+    def downone(self, widget):
+        #selected = self.current_list.treeview.get_selection().get_selected()
+        #list_model,iter = selected
+        #artist = list_model.get_value(iter, COL_ARTIST)
+        #title = list_model.get_value(iter, COL_TITLE)
+        artist = self.current_list.get_artist(self.current_path)
+        title = self.current_list.get_title(self.current_path)
+        id = self.current_list.get_id(self.current_path)
+        self.down_tree.add(title,artist,id)
+
+    def listen(self, widget):
+        try:
+            thread.start_new_thread(self.play,(self.current_path,))
+        except:
+            print "Error"
+
+    def addToPlaylist(self, widget):
+        selected = self.current_list.treeview.get_selection().get_selected()
+        list_model,iter = selected
+        artist = list_model.get_value(iter, COL_ARTIST)
+        title = list_model.get_value(iter, COL_TITLE)
+        id = self.current_list.get_id(self.current_path)
+        self.playlist_view.add(title,artist,str(id))
+
+    def delete_file(self,event):
+        self._songlist.delete_file(self.current_path)
+
+        selected = self.list_tree.get_selection().get_selected()
+        list_model,iter = selected
+        #num = self.list_model.get_value(iter,COL_NUM)
+        num = len(self.playlist.songlist)+1
+        artist = list_model.get_value(iter, COL_ARTIST)
+        title = list_model.get_value(iter, COL_TITLE)
+        list_model.remove(self.current_path)
+        #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
+        self._songlist.delete_file(self.current_path)
+
+# ======================================
+
+    def SetupPopup2(self):
+        '''popup menu for playlist tab'''
+        
+        time = gtk.get_current_event_time()
+
+        popupmenu = gtk.Menu()
+
+        menuitem = gtk.MenuItem('试听')
+        menuitem.connect('activate', self.listen_init)
+        popupmenu.append(menuitem)
+        
+        menuitem = gtk.MenuItem('从列表删除')
+        menuitem.connect('activate', self.DelFromPlaylist)
+        popupmenu.append(menuitem)
+        
+        popupmenu.show_all()
+        popupmenu.popup(None, None, None, 0, time)
+
+
+    def playlist_click_checker(self, view, event):
+        self.get_current_location(view,event)
+
+        if event.type == gtk.gdk._2BUTTON_PRESS:
+            self.listen(view)
+
+        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
+            #selected,iter = view.get_selection().get_selected()
+            #index = selected.get_value(iter, 0)
+            #print index
+
+            # Here test whether we have songlist, if have, show popup menu
+            try:
+                self.SetupPopup2()
+            except:
+                pass
+
+
+            
+
 
         
 """
