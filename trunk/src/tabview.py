@@ -51,9 +51,9 @@ class tabview(gtk.Notebook):
         
         self.but_down_select = gtk.Button('下载选中的音乐')
         self.but_adition_select = gtk.Button('试听选中的音乐')
-        hb.pack_start(self.combox)
-        hb.pack_start(self.but_down_select)
-        hb.pack_start(self.but_adition_select)
+        hb.pack_start(self.combox, False, False)
+        hb.pack_start(self.but_down_select, False, False)
+        hb.pack_start(self.but_adition_select, False, False)
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -75,7 +75,7 @@ class tabview(gtk.Notebook):
         self.search_entry = gtk.Entry()
         self.search_ok = gtk.Button("搜索")
         hb.pack_start(self.search_entry)
-        hb.pack_start(self.search_ok)
+        hb.pack_start(self.search_ok, False)
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
