@@ -149,28 +149,6 @@ class MainWindow():
                 else:
                     self.DelFromPlaylist(widget)
 
-    def SetupPopup(self):
-        time = gtk.get_current_event_time()
-
-        popupmenu = gtk.Menu()
-        menuitem = gtk.MenuItem('下载')
-        menuitem.connect('activate', self.downone)
-        popupmenu.append(menuitem)
-        
-        menuitem = gtk.MenuItem('试听')
-        menuitem.connect('activate', self.listen)
-        popupmenu.append(menuitem)
-        
-        menuitem = gtk.MenuItem('添加到播放列表')
-        menuitem.connect('activate', self.addToPlaylist)
-        popupmenu.append(menuitem)
-        
-        menuitem = gtk.MenuItem('删除已有下载')
-        menuitem.connect('activate', self.delete_file)
-        popupmenu.append(menuitem)
-
-        popupmenu.show_all()
-        popupmenu.popup(None, None, None, 0, time)
 
     def SetupPopup2(self):
         time = gtk.get_current_event_time()
@@ -286,25 +264,6 @@ class MainWindow():
     def pause_music(self,widget):
         pass
 
-    def click_checker(self, view, event):
-        '''榜单页，下载页击键处理'''
-        #self.get_current_list(view,event)
-        self.get_current_location(view,event)
-        if event.type == gtk.gdk._2BUTTON_PRESS:
-            self.listen(view)
-
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-            #selected,iter = view.get_selection().get_selected()
-            #index = selected.get_value(iter, 0)
-            #print index
-
-            # Here test whether we have songlist, if have, show popup menu
-            try:
-                #if self.list_view:
-                    self.SetupPopup()
-            except:
-                print "button press error..."
-                pass
 
     def delete_file(self,event):
         self._songlist.delete_file(self.current_path)
