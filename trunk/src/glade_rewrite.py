@@ -23,6 +23,7 @@ pygtk.require('2.0')
 import gtk
 import os
 
+from lib.utils import find_image
 from tabview import *
 
 if os.name == 'posix':
@@ -36,7 +37,7 @@ class mainwin(gtk.Window):
         self.set_title("GMBox")
         self.set_default_size(800, 600)
         # need work
-        ui_logo=gtk.gdk.pixbuf_new_from_file("../pixbufs/gmbox.png")
+        ui_logo=gtk.gdk.pixbuf_new_from_file(find_image('gmbox.png'))
         self.set_icon(ui_logo)
 
         self.connect('destroy', gtk.main_quit)
@@ -61,7 +62,7 @@ class mainwin(gtk.Window):
         
         self.systray = gtk.StatusIcon()
         # need write a find picture method
-        self.systray.set_from_file("../pixbufs/gmbox.png")
+        self.systray.set_from_file(find_image('gmbox.png'))
         self.systray.connect("activate", self.systrayCb)
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip("Click to toggle window visibility")

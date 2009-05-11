@@ -20,6 +20,7 @@
 
 import logging
 import os
+import sys
 
 
 def find_image(image_name):
@@ -36,8 +37,8 @@ def find_image(image_name):
 
     common_paths = [
             os.path.join(sys.prefix, 'share', 'pixbufs'),
-            os.path.join('.', 'pixbufs'),
-            os.path.join(current_dir, '..', 'pixbufs')]
+            os.path.join('..', 'pixbufs'),
+            os.path.join(current_dir, '../..', 'pixbufs')]
 
     for path in common_paths:
         filename = os.path.join(path, image_name)

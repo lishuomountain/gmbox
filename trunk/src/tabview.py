@@ -20,7 +20,7 @@
 
 import gtk
 
-from utils import *
+from lib.const import *
 
 
 class tabview(gtk.Notebook):
