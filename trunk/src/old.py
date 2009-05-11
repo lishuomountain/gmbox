@@ -1,21 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# gmbox, Google music box.
-# Copyright (C) 2009, gmbox team
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
@@ -139,45 +121,6 @@ class MainWindow():
 
 
 
-    def play(self,start):
-        '''试听,播放'''
-        if os.name=='posix':
-            self.notification = pynotify.Notification("试听", self.current_list.get_title(start), "dialog-warning")
-            self.notification.set_timeout(1)
-            self.notification.show()
-        self.playbar.set_text("now playing " + self.current_list.get_title(start))
-        print "now playing ",self.current_list.get_title(start)
-        self.current_list.play(start)
-        #self.current_list.autoplay(start)
-
-    def listen_init(self, widget):
-        self.current_list=self.playlist
-        self.current_path=self.path[0]
-        self.listen(widget)
-
-    def focus_next(self,widget):
-        self.current_path= self.current_path + 1
-        widget.set_cursor(self.current_path)
-        if DEBUG:
-            print "now focus",self.current_path
-    def focus_prev(self,widget):
-        self.current_path= self.current_path - 1
-        widget.set_cursor(self.current_path)
-        if DEBUG:
-            print "now focus",self.current_path
-
-    def play_next(self,widget):
-        #widget.focus_next(widget)
-        self.focus_next(widget)
-        self.listen(widget)
-        if DEBUG:
-            print "now playing",self.current_path
-    def play_prev(self,widget):
-        #widget.focus_prev(widget)
-        self.focus_prev(widget)
-        self.listen(widget)
-        if DEBUG:
-            print "now playing",self.current_path
 
     def tray_play_next(self,widget):
         current_treeview = self.get_current_treeview()

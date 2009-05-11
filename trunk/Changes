@@ -17,3 +17,53 @@ TODO: dont use global any more, use get and set method insead!!!
 
 NND,气死啦~~~~~~~
 代码不一定要精简,但封装一定要做好!这代码满身都是洞洞......
+
+文件说明
+
+.
+|-- COPYING
+版权声明,必须,开源项目怎么能没有版权声明呢?
+|-- AUTHERS
+作者及其联系方式
+|-- Changes
+这个应该是每一次改版记录,我暂时用下
+|-- README
+|-- TODO
+|-- gmbox
+调用src文件夹中的client.py
+|-- gmbox.desktop
+|-- install
+|-- pixbufs
+|   |-- gmbox.png
+|   |-- media-audiofile.png
+|   |-- media-next.png
+|   |-- media-pause.png
+|   |-- media-play.png
+|   |-- media-previous.png
+|   `-- systray.png
+`-- src
+    |-- tabview.py
+	继承gtk.notebook
+    |-- cli.py
+    |-- client.py
+	gmbox起点,mainwin
+    |-- downpage.py
+    |-- glade_rewrite.py
+    |-- gmbox.glade
+    |-- lib
+	这里就是gmbox的库文件啦
+    |   |-- __init__.py
+    |   |-- config.py
+		配置文件读取与写入
+    |   |-- const.py
+		常量
+    |   |-- core.py
+    |   |-- gmbox.py
+    |   |-- manager.py
+    |   |-- network.py
+		
+    |   |-- parser.py
+    |   |-- search.py
+    |   |-- utils.py
+    |-- rc.xml
+
