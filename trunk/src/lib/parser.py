@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from HTMLParser import HTMLParser
 
 class ListParser(HTMLParser):
     '''解析榜单列表页面的类'''
+    
     def __init__(self):
         HTMLParser.__init__(self)
         self.songlist=[]
@@ -34,6 +35,7 @@ class ListParser(HTMLParser):
     
     def handle_starttag(self, tag, attrs):
         '''处理标签开始的函数'''
+        
         if tag == 'a':
             self.isa=1
             if self.insongtable and self.tdclass == 'Icon BottomBorder':
@@ -58,6 +60,7 @@ class ListParser(HTMLParser):
 
     def handle_endtag(self, tag):
         '''处理标签结束的函数'''
+        
         if tag == 'a':
             self.isa=0
         if tag == 'table':
@@ -69,6 +72,7 @@ class ListParser(HTMLParser):
 
     def handle_data(self, data):
         '''处理html节点数据的函数'''
+        
         if self.insongtable and (self.isa or self.ispan or self.isb):
             if self.tdclass == 'Title BottomBorder':
                 self.tmpsong['title']+=data
