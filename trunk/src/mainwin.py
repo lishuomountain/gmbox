@@ -128,11 +128,11 @@ class mainwin(gtk.Window):
         
         but_playlist = gtk.Button('播放列表')
         but_playlist.connect('clicked',
-                             lambda w:self.gm_notebook.set_current_page(1))
+                             lambda w:self.gm_notebook.set_current_page(3))
         
         but_about = gtk.Button('关于')
         but_about.connect('clicked',
-                          lambda w:self.gm_notebook.set_current_page(1))
+                          lambda w:self.gm_notebook.set_current_page(4))
 
         but_box.pack_start(but_album)
         but_box.pack_start(but_search)

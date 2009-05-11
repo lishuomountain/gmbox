@@ -19,12 +19,26 @@
 
 import gtk
 
-class player(gtk.HBox):
+class playbox(gtk.HBox):
     '''embedded to play list tab for audition songs'''
     
     def __init__(self):
         gtk.HBox.__init__(self)
 
+        # need more work: change interface label to china
+        self.but_prev = gtk.Button(label="前一首",
+                                   stock=gtk.STOCK_MEDIA_PREVIOUS)
+        self.but_next = gtk.Button(label="后一首",
+                                   stock=gtk.STOCK_MEDIA_NEXT)
+        self.but_play = gtk.Button(label="播放",
+                                   stock=gtk.STOCK_MEDIA_PLAY)
+        self.but_pause = gtk.Button(label="暂停",
+                                    stock=gtk.STOCK_MEDIA_PAUSE)
+
+        self.pack_start(self.but_prev, False)
+        self.pack_start(self.but_play, False)
+        self.pack_start(self.but_pause, False)
+        self.pack_start(self.but_next, False)
         
     def play(self,start):
         '''试听,播放'''

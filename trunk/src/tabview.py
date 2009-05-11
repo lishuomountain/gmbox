@@ -20,6 +20,7 @@
 
 import gtk
 
+from player import playbox
 from lib.const import *
 
 
@@ -31,6 +32,9 @@ class tabview(gtk.Notebook):
 
         self.setup_album_tab()
         self.setup_search_tab()
+        self.setup_down_tab()
+        self.setup_playlist_tab()
+        self.setup_about_tab()
 
         self.show_all()
 
@@ -98,6 +102,14 @@ class tabview(gtk.Notebook):
 
     def setup_down_tab(self):
 
+        scroll = gtk.ScrolledWindow()
+        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+
+        vb = gtk.VBox(False, 0)
+        vb.pack_start(scroll, True, True)
+
+        self.append_page(vb)
+
         #page 3:  downlist page
         #self.down_tree = downpage.DownTreeView(self.xml)
         #self.down_tree = DownTreeView(self.xml)
@@ -105,21 +117,29 @@ class tabview(gtk.Notebook):
         #button = self.xml.get_widget('filelist_button')
         #button.connect('clicked',self.dolistLocalFile,)
 
-
-        pass
-
+        
     def setup_playlist_tab(self):
+
+        self.player = playbox()
+
+        scroll = gtk.ScrolledWindow()
+        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+
+        vb = gtk.VBox(False, 0)
+        vb.pack_start(scroll, True, True)
+        vb.pack_start(self.player, False)
+
+        self.append_page(vb)
 
         #page 4: playlist page
         #self.playlist_view= PlayListView(self.xml)
         #self.playlist_view.treeview.connect('button-press-event',self.playlist_click_checker)
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
 
-        pass
-
     def setup_about_tab(self):
+
+        self.append_page(gtk.Label('gmbox V0.1.0'))
         
-        pass
 
 # ============================================
 # signal methods
