@@ -1,0 +1,15 @@
+Mon May 11
+
+1. png save to pixbufs, code save to src
+
+install.sh need rewrite
+
+
+2. Add copying(necessary)
+
+
+3. move configFile class to inifile.py
+
+TODO: Use logging module instead, dont only use print!
+
+TODO: dont use global any more, use get and set method insead!!!
