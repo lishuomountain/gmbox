@@ -21,7 +21,7 @@ import gtk
 import logging
 
 from lib.core import gmbox
-import lib.network as network
+
 
 log = logging.getLogger('gmbox.treeview')
 
@@ -110,10 +110,11 @@ class ListView(Abs_View):
     def get_list(self, text):
         '''request network for songs(ablums) list and load it'''
         
-        songlist = network.download.get_list(text)
+        songlist = gmbox.get_list(text)
 
         # feed songlist to core.gmbox, prepare download
         self.gmbox = gmbox(songlist)
+        
         self.model.clear()
         [self._model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
 

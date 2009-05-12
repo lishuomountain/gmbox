@@ -17,19 +17,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import os
-import urllib2
+import os, sys
+import urllib, urllib2
+import time
+import re
 import logging
 
 from parser import *
-from network import *
+from const import *
+from utils import unistr,sizeread
+
 
 log = logging.getLogger('lib.core')
 
 # this variable should read from preference
 userhome = os.path.expanduser('~')
 musicdir=userhome+'/Music/google_music/top100/'
+
+# should write to const
+urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
+searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
+lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
+
 
 class gmbox:
     '''core class
@@ -60,7 +69,7 @@ class gmbox:
         '''直接下载，用于试听中得到最终下载地址后调用'''
         filename = self.get_filename(i)
         local_uri=musicdir+filename
-        download(uri,filename,0)
+        self.download(uri,filename,0)
 
     def play(self,i=0):
         '''试听，播放'''
@@ -167,12 +176,12 @@ class gmbox:
         localuri = musicdir + filename
         
         if os.path.exists(localuri):
-            log.debug('%s Already download before' % filename)
+            log.debug('%s Already download before', filename)
             return
         
         url = self.find_final_uri(i)
         if url:
-            download(url,filename,1)
+            self.download(url,filename,1)
         else:   #下载页有验证码时url为空
             log.debug('出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...')
 
@@ -184,3 +193,68 @@ class gmbox:
         '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
         [self.downone(i) for i in songids if i in range(len(self.songlist))]
             
+    
+    def download(self, remote_uri, filename, mode=1):
+        '''下载模式 1 和 试听(缓存)模式 0'''
+        #这里不用检测是否文件已存在了,上边的downone或play已检测了
+        if mode:
+            print u'正在下载:',filename
+        else:
+            print u'正在缓冲:',filename
+        local_uri=musicdir+filename
+        cache_uri=local_uri+'.downloading'
+        self.T=self.startT=time.time()
+        (self.D,self.speed)=(0,0)
+        urllib.urlretrieve(remote_uri, cache_uri, self.update_progress)
+        speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
+        if mode:
+            '''下载模式'''
+            print '\r['+''.join(['=' for i in range(50)])+ \
+                '] 100.00%%  %s/s       '%sizeread(speed)
+            os.rename(cache_uri, local_uri)
+            if os.name=='posix':
+                '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
+                os.system('mid3iconv -e gbk "'+local_uri + '"')
+        else:
+            print '\r['+''.join(['=' for i in range(50)])+ \
+                '] 100.00%%  %s/s       '%sizeread(speed)
+            '''试听模式  由于此下载进程未设信号量，一旦运行，除了终止程序暂无终止办法，所以肯定会下载完全，所以保存'''
+            os.rename(cache_uri, local_uri)
+            if os.name=='posix':
+                '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
+                os.system('mid3iconv -e gbk "'+local_uri + '"')
+
+    def update_progress(self, blocks, block_size, total_size):
+        # used by download method
+        '''处理进度显示的回调函数'''
+        if total_size>0 :
+            percentage = float(blocks) / (total_size/block_size+1) * 100
+            if int(time.time()) != int(self.T):
+                self.speed=(blocks*block_size-self.D)/(time.time()-self.T)
+                (self.D,self.T)=(blocks*block_size,time.time())
+            print '\r['+''.join(['=' for i in range((int)(percentage/2))])+'>'+ \
+                ''.join([' ' for i in range((int)(50-percentage/2))])+ \
+                (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
+
+
+    @classmethod
+    def get_list(self,stype):
+        '''获取特定榜单'''
+        if stype in songlists:
+            p=ListParser()
+            log.debug('Begining retrieve list : ' + stype)
+            #sys.stdout.flush()
+            for i in range(0, songlists[stype][1], 25):
+                try:
+                    html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
+                    p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+                    #print '.',
+                    #sys.stdout.flush()
+                except:
+                    log.debug('Error! Maybe the internet is not well...')
+                    return
+            return p.songlist
+            #print 'done!'
+        else:
+            #raise Exception
+            log.debug('Unknow list:"'+str(stype))
