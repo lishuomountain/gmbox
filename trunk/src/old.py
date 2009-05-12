@@ -141,19 +141,6 @@ class MainWindow():
         pass
 
 
-    def get_current_location(self,view,event):
-        x = int(event.x)
-        y = int(event.y)
-        pth = view.get_path_at_pos(x, y)
-
-        if not pth:
-            pass
-        else:
-            self.path, col, cell_x, cell_y = pth
-            self.current_path=self.path[0]
-            title = self.current_list.get_title(self.current_path)
-            print "选中 ",title
-
     def get_current_list(self,view,event):
         pass
 

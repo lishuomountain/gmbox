@@ -73,7 +73,6 @@ class tabview(gtk.Notebook):
         self.append_page(vb)
 
 
-        #self.list_view.treeview.connect('button-press-event', self.click_checker)
         #self.list_view.treeview.connect('key_press_event', self.tree_view_key_checker)
 
 
@@ -155,6 +154,7 @@ class tabview(gtk.Notebook):
         if text != "--请选择--":
             widget.set_sensitive(False)
             self.list_view.get_list(text)
+            widget.set_sensitive(True)
             
 
     def doSearchMusic(self,widget):
@@ -175,54 +175,6 @@ class tabview(gtk.Notebook):
     
     
 # =============================================
-    
-    def SetupPopup(self):
-        '''popup menu for album list tab'''
-        
-        time = gtk.get_current_event_time()
-
-        popupmenu = gtk.Menu()
-        menuitem = gtk.MenuItem('下载')
-        menuitem.connect('activate', self.downone)
-        popupmenu.append(menuitem)
-        
-        menuitem = gtk.MenuItem('试听')
-        menuitem.connect('activate', self.listen)
-        popupmenu.append(menuitem)
-        
-        menuitem = gtk.MenuItem('添加到播放列表')
-        menuitem.connect('activate', self.addToPlaylist)
-        popupmenu.append(menuitem)
-        
-        menuitem = gtk.MenuItem('删除已有下载')
-        menuitem.connect('activate', self.delete_file)
-        popupmenu.append(menuitem)
-
-        popupmenu.show_all()
-        popupmenu.popup(None, None, None, 0, time)
-
-        
-    def click_checker(self, view, event):
-        '''榜单页，下载页击键处理'''
-        
-        #self.get_current_list(view,event)
-        self.get_current_location(view,event)
-        if event.type == gtk.gdk._2BUTTON_PRESS:
-            self.listen(view)
-            
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-            #selected,iter = view.get_selection().get_selected()
-            #index = selected.get_value(iter, 0)
-            #print index
-
-            # Here test whether we have songlist, if have, show popup menu
-            try:
-                #if self.list_view:
-                self.SetupPopup()
-            except:
-                print "button press error..."
-                pass
-
 # ========================================
 # methods for popup menu above
         

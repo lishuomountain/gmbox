@@ -18,7 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gtk
+import logging
+
+
 from lib.network import Lists
+
+log = logging.getLogger('gmbox.treeview')
 
 (COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST,COL_DOWN) = range(5)
 (COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST,COL_ALBUM) = range(5)
@@ -101,12 +106,75 @@ class ListView(Abs_View):
         
         self.set_model(self._model)
 
+        self.connect('button-press-event', self.click_checker)
+
     def get_list(self, text):
         '''request network for songs(ablums) list and load it'''
         
         songlist = Lists().get_list(text)
         self.model.clear()
         [self._model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
+
+    
+    def SetupPopup(self):
+        '''popup menu for album list tab'''
+        
+        time = gtk.get_current_event_time()
+
+        popupmenu = gtk.Menu()
+        menuitem = gtk.MenuItem('下载')
+        #menuitem.connect('activate', self.downone)
+        popupmenu.append(menuitem)
+        
+        menuitem = gtk.MenuItem('试听')
+        #menuitem.connect('activate', self.listen)
+        popupmenu.append(menuitem)
+        
+        menuitem = gtk.MenuItem('添加到播放列表')
+        #menuitem.connect('activate', self.addToPlaylist)
+        popupmenu.append(menuitem)
+        
+        menuitem = gtk.MenuItem('删除已有下载')
+        #menuitem.connect('activate', self.delete_file)
+        popupmenu.append(menuitem)
+
+        popupmenu.show_all()
+        popupmenu.popup(None, None, None, 0, time)
+
+        
+    def click_checker(self, view, event):
+        '''榜单页，下载页击键处理'''
+        
+        #self.get_current_list(view,event)
+        #self.get_current_location(view, event)
+        #if event.type == gtk.gdk._2BUTTON_PRESS:
+        #    self.listen(view)
+            
+        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
+            #selected,iter = view.get_selection().get_selected()
+            #index = selected.get_value(iter, 0)
+            #print index
+
+            # Here test whether we have songlist, if have, show popup menu
+            #try:
+                #if self.list_view:
+                self.SetupPopup()
+            #except:
+            #    log.debug('button press error...')
+
+    def get_current_location(self, view, event):
+        x = int(event.x)
+        y = int(event.y)
+        pth = view.get_path_at_pos(x, y)
+
+        if not pth:
+            pass
+        else:
+            self.path, col, cell_x, cell_y = pth
+            self.current_path=self.path[0]
+            #title = self.current_list.get_title(self.current_path)
+            log.debug('select : ' + title)
+    
 
 """        
         

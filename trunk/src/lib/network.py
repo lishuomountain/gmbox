@@ -98,7 +98,7 @@ class Lists(Abs_Lists):
         if stype in songlists:
             p=ListParser()
             log.debug('Begin retrieve list : ' + stype)
-            sys.stdout.flush()
+            #sys.stdout.flush()
             for i in range(0,songlists[stype][1],25):
                 #try:
                     #gtk.gdk.threads_enter()
@@ -106,8 +106,8 @@ class Lists(Abs_Lists):
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                     
                     #gtk.gdk.threads_leave()
-                    print '.',
-                    sys.stdout.flush()
+                    #print '.',
+                    #sys.stdout.flush()
                 #except:
                 #    print 'Error! Maybe the internet is not well...'
                 #    return
