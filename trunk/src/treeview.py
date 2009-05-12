@@ -96,16 +96,17 @@ class ListView(Abs_View):
         '''get hot song list treeview widget'''
         
         Abs_View.__init__(self, 'list_treeview')
+
+        self._model = gtk.ListStore(bool, str, str,str)
         
-        self.model = gtk.ListStore(bool, str, str,str)
+        self.set_model(self._model)
 
     def get_list(self, text):
         '''request network for songs(ablums) list and load it'''
         
         songlist = Lists().get_list(text)
-        print songlist
-        #self.model.clear()
-        [self.model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
+        self.model.clear()
+        [self._model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
 
 """        
         
