@@ -19,7 +19,7 @@
 
 
 import os
-import urllib
+import urllib2
 import re
 import logging
 
@@ -90,7 +90,6 @@ class Lists(Abs_Lists):
     def __init__(self):
         Abs_Lists.__init__(self)
 
-    @ classmethod
     def get_list(self,stype):
         '''获取特定榜单'''
 
@@ -100,18 +99,19 @@ class Lists(Abs_Lists):
             log.debug('Begin retrieve list : ' + stype)
             #sys.stdout.flush()
             for i in range(0,songlists[stype][1],25):
-                try:
-                    gtk.gdk.threads_enter()
+                #try:
+                    #gtk.gdk.threads_enter()
                     html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-                    gtk.gdk.threads_leave()
+                    
+                    #gtk.gdk.threads_leave()
                     #print '.',
                     #sys.stdout.flush()
-                except:
-                    print 'Error! Maybe the internet is not well...'
-                    return
-            self.songlist=p.songlist
-            print 'done!'
+                #except:
+                #    print 'Error! Maybe the internet is not well...'
+                #    return
+            self.songlist = p.songlist
+            #print 'done!'
         else:
             #raise Exception
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
