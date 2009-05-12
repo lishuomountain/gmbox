@@ -22,6 +22,10 @@ import logging
 
 log = logging.getLogger('lib.core')
 
+# this variable should read from preference
+userhome = os.path.expanduser('~')
+musicdir=userhome+'/Music/google_music/top100/'
+
 class Abs_Lists:
     '''Lists,FileList,PlayList 的基类'''
     
@@ -149,16 +153,19 @@ class Abs_Lists:
 
     def downone(self,i=0):
         '''下载榜单中的一首歌曲 '''
+        
         filename = self.get_filename(i)
         localuri = musicdir + filename
+        
         if os.path.exists(localuri):
-            print filename,u'已存在!'
+            log.debug('%s Already download before' % filename)
             return
-        url=self.find_final_uri(i)
+        
+        url = self.find_final_uri(i)
         if url:
             Download(url,filename,1)
         else:   #下载页有验证码时url为空
-            print u'出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
+            log.debug('出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...')
 
     def downall(self):
         '''下载榜单中的所有歌曲'''
