@@ -23,7 +23,7 @@ pygtk.require('2.0')
 import gtk
 import os
 from optparse import OptionParser
-
+import logging
 
 from lib.utils import find_image
 from tabview import *
@@ -31,10 +31,14 @@ from tabview import *
 if os.name == 'posix':
     import pynotify
 
+log = logging.getLogger('gmbox')
+
 class mainwin(gtk.Window):
     def __init__(self):
         
         gtk.Window.__init__(self, gtk.WINDOW_TOPLEVEL)
+
+        log = logging.getLogger('gmbox.mainwin')
         
         self.set_title("GMBox")
         self.set_default_size(800, 600)
@@ -42,19 +46,21 @@ class mainwin(gtk.Window):
         ui_logo=gtk.gdk.pixbuf_new_from_file(find_image('gmbox.png'))
         self.set_icon(ui_logo)
 
+        log.debug('Setup up system tray icon')
+        self.setupSystray()
+
+
         self.connect('destroy', gtk.main_quit)
         #self.window.connect('key_press_event', self.key_checker)
 
         vb = gtk.VBox(False, 0)
         self.but_box = self.setup_but_box()
+        log.debug('Begin to setup notebook')
         self.gm_notebook = tabview()
         self.status = gtk.Statusbar()
         vb.pack_start(self.but_box, False, False, 5)
         vb.pack_start(self.gm_notebook, True, True)
         vb.pack_start(self.status, False, False)
-
-        #setup system tray icon
-        self.setupSystray()
 
         self.add(vb)
         self.show_all()
@@ -151,8 +157,6 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     if options.debug:
-        import logging
-        log = logging.getLogger('gmbox')
         logging.basicConfig(level=logging.DEBUG)
 
     mainwin()

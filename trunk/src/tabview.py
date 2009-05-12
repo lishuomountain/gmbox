@@ -19,11 +19,14 @@
 
 
 import gtk
+import logging
 
 from player import playbox
 from treeview import ListView
 from lib.const import *
+from lib.network import Lists
 
+log = logging.getLogger('gmbox.tabview')
 
 class tabview(gtk.Notebook):
     def __init__(self):
@@ -44,15 +47,13 @@ class tabview(gtk.Notebook):
         
     def setup_album_tab(self):
         
-        #page 1: list page
-
         hb = gtk.HBox(False, 0)
         
         self.combox = gtk.combo_box_new_text()
         self.combox.append_text("--请选择--")
         [self.combox.append_text(slist) for slist in songlists]
         self.combox.set_active(0)
-        #self.combox.connect("changed", self.doSearch)
+        self.combox.connect("changed", self.doSearch)
         
         self.but_down_select = gtk.Button('下载选中的音乐')
         self.but_adition_select = gtk.Button('试听选中的音乐')
@@ -147,13 +148,14 @@ class tabview(gtk.Notebook):
 # ============================================
 # signal methods
 
-    def doSearch(self,widget):
+    def doSearch(self, widget):
         '''Begin song(album) list download thread'''
         
         text=widget.get_active_text().decode('utf8')
         if text != "--请选择--":
             widget.set_sensitive(False)
-            thread.start_new_thread(self.downList,(text,widget,))
+            Lists.get_list(text)
+            
 
     def doSearchMusic(self,widget):
         '''music search button clicked callback'''

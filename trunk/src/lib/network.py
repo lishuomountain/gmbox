@@ -18,13 +18,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib, os
+import os
+import urllib
+import re
+import logging
 
 from const import *
 from parser import ListParser
+from core import Abs_Lists
 
+log = logging.getLogger('lib.network')
 
 # this variable should read from preference
+userhome = os.path.expanduser('~')
 musicdir=userhome+'/Music/google_music/top100/'
 
 
@@ -84,21 +90,23 @@ class Lists(Abs_Lists):
     def __init__(self):
         Abs_Lists.__init__(self)
 
+    @ classmethod
     def get_list(self,stype):
         '''获取特定榜单'''
 
         # songlists in const.py
         if stype in songlists:
             p=ListParser()
-            print u'正在获取"'+stype+u'"的歌曲列表',
-            sys.stdout.flush()
+            log.debug('Begin retrieve list : ' + stype)
+            #sys.stdout.flush()
             for i in range(0,songlists[stype][1],25):
-            #for i in range(0,25,25):
                 try:
+                    gtk.gdk.threads_enter()
                     html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-                    print '.',
-                    sys.stdout.flush()
+                    gtk.gdk.threads_leave()
+                    #print '.',
+                    #sys.stdout.flush()
                 except:
                     print 'Error! Maybe the internet is not well...'
                     return
