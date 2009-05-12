@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from HTMLParser import HTMLParser
 import logging
 
@@ -90,7 +91,8 @@ class ListParser(HTMLParser):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist]) \
             +u'\n共 '+str(len(self.songlist))+u' 首歌.'
-        
+
+    
 class SongParser(HTMLParser):
     '''解析歌曲页面,得到真实的歌曲下载地址'''
     def __init__(self):

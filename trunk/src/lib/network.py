@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
+import os, sys
 import urllib2
 import re
 import logging
@@ -26,6 +26,7 @@ import logging
 from const import *
 from parser import ListParser
 from core import Abs_Lists
+from utils import unistr
 
 log = logging.getLogger('lib.network')
 
@@ -97,7 +98,7 @@ class Lists(Abs_Lists):
         if stype in songlists:
             p=ListParser()
             log.debug('Begin retrieve list : ' + stype)
-            #sys.stdout.flush()
+            sys.stdout.flush()
             for i in range(0,songlists[stype][1],25):
                 #try:
                     #gtk.gdk.threads_enter()
@@ -105,14 +106,14 @@ class Lists(Abs_Lists):
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                     
                     #gtk.gdk.threads_leave()
-                    #print '.',
-                    #sys.stdout.flush()
+                    print '.',
+                    sys.stdout.flush()
                 #except:
                 #    print 'Error! Maybe the internet is not well...'
                 #    return
             self.songlist = p.songlist
+            return self.songlist
             #print 'done!'
         else:
             #raise Exception
-            print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
-            ['"%s"'%key for key in songlists])
+            log.debug('Unknow list:"'+str(stype))

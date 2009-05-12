@@ -20,7 +20,8 @@
 
 
 class Abs_Lists:
-    '''Lists,FileList,PlayList 的抽象类'''
+    '''Lists,FileList,PlayList 的基类'''
+    
     def __init__(self):
         self.songlist=[]
         self.loop_number=0  #信号量

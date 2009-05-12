@@ -18,12 +18,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gtk
+from lib.network import Lists
 
 (COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST,COL_DOWN) = range(5)
 (COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST,COL_ALBUM) = range(5)
 
 class Abs_View(gtk.TreeView):
-    '''抽象类：构造各个页面的Treeview'''
+    '''基类：构造各个页面的Treeview'''
     
     def __init__(self, treeview_id):
         '''依次存入：status,歌曲编号，歌曲名，歌手          #专辑，长度，url'''
@@ -98,10 +99,13 @@ class ListView(Abs_View):
         
         self.model = gtk.ListStore(bool, str, str,str)
 
-    def get_list(self,text):
-        gmbox.Lists.get_list(self,text)
-        self.model.clear()
-        [self.model.append([False,self.songlist.index(song)+1,song['title'],song['artist']]) for song in self.songlist]
+    def get_list(self, text):
+        '''request network for songs(ablums) list and load it'''
+        
+        songlist = Lists().get_list(text)
+        print songlist
+        #self.model.clear()
+        [self.model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
 
 """        
         

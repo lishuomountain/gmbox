@@ -154,7 +154,7 @@ class tabview(gtk.Notebook):
         text=widget.get_active_text().decode('utf8')
         if text != "--请选择--":
             widget.set_sensitive(False)
-            Lists().get_list(text)
+            self.list_view.get_list(text)
             
 
     def doSearchMusic(self,widget):
