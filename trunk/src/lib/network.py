@@ -34,8 +34,13 @@ log = logging.getLogger('lib.network')
 userhome = os.path.expanduser('~')
 musicdir=userhome+'/Music/google_music/top100/'
 
+# should write to const
+urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
+searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
+lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
 
-class Download:
+
+class download:
     '''下载文件的类'''
     def __init__(self, remote_uri, filename, mode=1):
         '''下载模式 1 和 试听(缓存)模式 0'''
@@ -79,40 +84,25 @@ class Download:
                 (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
 
 
-            
-urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
-searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
-lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
-
-
-class Lists(Abs_Lists):
-    '''榜单类,可以自动处理分页的榜单页面'''
-    
-    def __init__(self):
-        Abs_Lists.__init__(self)
-
+    @classmethod
     def get_list(self,stype):
         '''获取特定榜单'''
 
-        # songlists in const.py
         if stype in songlists:
             p=ListParser()
-            log.debug('Begin retrieve list : ' + stype)
+            log.debug('Begining retrieve list : ' + stype)
             #sys.stdout.flush()
-            for i in range(0,songlists[stype][1],25):
+            for i in range(0, songlists[stype][1], 25):
                 #try:
-                    #gtk.gdk.threads_enter()
                     html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                     
-                    #gtk.gdk.threads_leave()
                     #print '.',
                     #sys.stdout.flush()
                 #except:
                 #    print 'Error! Maybe the internet is not well...'
                 #    return
-            self.songlist = p.songlist
-            return self.songlist
+            return p.songlist
             #print 'done!'
         else:
             #raise Exception

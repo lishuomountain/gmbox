@@ -24,7 +24,7 @@ import logging
 from player import playbox
 from treeview import ListView
 from lib.const import *
-from lib.network import Lists
+
 
 log = logging.getLogger('gmbox.tabview')
 

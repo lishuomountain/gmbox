@@ -21,7 +21,7 @@ import gtk
 import logging
 
 
-from lib.network import Lists
+import lib.network as network
 
 log = logging.getLogger('gmbox.treeview')
 
@@ -99,19 +99,18 @@ class ListView(Abs_View):
     
     def __init__(self):
         '''get hot song list treeview widget'''
-        
         Abs_View.__init__(self, 'list_treeview')
 
         self._model = gtk.ListStore(bool, str, str,str)
-        
         self.set_model(self._model)
 
         self.connect('button-press-event', self.click_checker)
 
+        
     def get_list(self, text):
         '''request network for songs(ablums) list and load it'''
         
-        songlist = Lists().get_list(text)
+        songlist = network.download.get_list(text)
         self.model.clear()
         [self._model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
 
@@ -168,7 +167,7 @@ class ListView(Abs_View):
         if pth:
             path, col, cell_x, cell_y = pth
             self.current_path = path[0]
-            log.debug('select : %s',  current_path)
+            log.debug('select index : %d' % self.current_path)
         else:
             self.current_path = None
     

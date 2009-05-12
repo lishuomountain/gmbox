@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
 import logging
 
 log = logging.getLogger('lib.core')
@@ -26,11 +27,10 @@ log = logging.getLogger('lib.core')
 userhome = os.path.expanduser('~')
 musicdir=userhome+'/Music/google_music/top100/'
 
-class Abs_Lists:
-    '''Lists,FileList,PlayList 的基类'''
+class gmbox:
     
-    def __init__(self):
-        self.songlist=[]
+    def __init__(self, songlist):
+        self.songlist = songlist
         self.loop_number=0  #信号量
         self.songtemplate={
             'id':'',
