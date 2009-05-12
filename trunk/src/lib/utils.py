@@ -27,10 +27,6 @@ def find_image(image_name):
     """Using the iamge_name, search in the common places. Return the path for
     the image or None if the image couldn't be found."""
 
-    # just because I'm a logging nut
-
-    log = logging.getLogger('lib.find_image')
-
     # the order is the priority, so keep global paths before local paths
 
     current_dir = os.path.abspath(os.path.dirname(__file__))
@@ -42,9 +38,7 @@ def find_image(image_name):
 
     for path in common_paths:
         filename = os.path.join(path, image_name)
-        log.debug('Checking %s...' % (filename))
         if os.access(filename, os.F_OK):
-            log.debug('Default image is %s' % (filename))
             return filename
 
     return None

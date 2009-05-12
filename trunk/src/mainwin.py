@@ -22,6 +22,8 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import os
+from optparse import OptionParser
+
 
 from lib.utils import find_image
 from tabview import *
@@ -143,5 +145,15 @@ class mainwin(gtk.Window):
         return but_box
 
 if __name__ == '__main__':
+    parser = OptionParser()
+    parser.add_option('-d', '--debug',  action='store_true', dest='debug')
+
+    (options, args) = parser.parse_args()
+
+    if options.debug:
+        import logging
+        log = logging.getLogger('gmbox')
+        logging.basicConfig(level=logging.DEBUG)
+
     mainwin()
     gtk.main()
