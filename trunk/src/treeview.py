@@ -20,7 +20,7 @@
 import gtk
 import logging
 
-
+from lib.core import gmbox
 import lib.network as network
 
 log = logging.getLogger('gmbox.treeview')
@@ -111,6 +111,9 @@ class ListView(Abs_View):
         '''request network for songs(ablums) list and load it'''
         
         songlist = network.download.get_list(text)
+
+        # feed songlist to core.gmbox, prepare download
+        self.gmbox = gmbox(songlist)
         self.model.clear()
         [self._model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
 
@@ -122,7 +125,8 @@ class ListView(Abs_View):
 
         popupmenu = gtk.Menu()
         menuitem = gtk.MenuItem('下载')
-        #menuitem.connect('activate', self.downone)
+        menuitem.connect('activate',
+                         lambda w:self.gmbox.downone(self.current_path))
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('试听')
@@ -170,8 +174,8 @@ class ListView(Abs_View):
             log.debug('select index : %d' % self.current_path)
         else:
             self.current_path = None
-    
 
+            
 """        
         
 class SearchListView(Abs_View,gmbox.SearchLists):

@@ -19,7 +19,11 @@
 
 
 import os
+import urllib2
 import logging
+
+from parser import *
+from network import *
 
 log = logging.getLogger('lib.core')
 
@@ -28,6 +32,9 @@ userhome = os.path.expanduser('~')
 musicdir=userhome+'/Music/google_music/top100/'
 
 class gmbox:
+    '''core class
+    1. hold songlist and and check to see which and where to download
+    '''
     
     def __init__(self, songlist):
         self.songlist = songlist
@@ -53,7 +60,7 @@ class gmbox:
         '''直接下载，用于试听中得到最终下载地址后调用'''
         filename = self.get_filename(i)
         local_uri=musicdir+filename
-        Download(uri,filename,0)
+        download(uri,filename,0)
 
     def play(self,i=0):
         '''试听，播放'''
@@ -140,13 +147,15 @@ class gmbox:
         
     def find_final_uri(self,i=0):
         '''找到最终真实下载地址，以供下一步DownLoad类下载'''
+        
         song=self.songlist[i]
         songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-        try:
-            text = urllib2.urlopen(songurl).read()
-        except:
-            print "Reading URL Error: %s" % local_uri
-            return
+        
+        #try:
+        text = urllib2.urlopen(songurl).read()
+        #except:
+        #    log.debug('Reading URL Error')#: %s" % local_uri
+        #    return
         s=SongParser()
         s.feed(text)
         return s.url
@@ -163,7 +172,7 @@ class gmbox:
         
         url = self.find_final_uri(i)
         if url:
-            Download(url,filename,1)
+            download(url,filename,1)
         else:   #下载页有验证码时url为空
             log.debug('出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...')
 
@@ -171,7 +180,7 @@ class gmbox:
         '''下载榜单中的所有歌曲'''
         [self.downone(i) for i in range(len(self.songlist))]
 
-    def download(self,songids=[]):
+    def down_listed(self,songids=[]):
         '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
         [self.downone(i) for i in songids if i in range(len(self.songlist))]
             

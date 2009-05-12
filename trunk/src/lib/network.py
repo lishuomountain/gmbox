@@ -19,14 +19,14 @@
 
 
 import os, sys
-import urllib2
+import urllib, urllib2
+import time
 import re
 import logging
 
 from const import *
 from parser import ListParser
-from core import Abs_Lists
-from utils import unistr
+from utils import unistr,sizeread
 
 log = logging.getLogger('lib.network')
 
@@ -93,15 +93,14 @@ class download:
             log.debug('Begining retrieve list : ' + stype)
             #sys.stdout.flush()
             for i in range(0, songlists[stype][1], 25):
-                #try:
+                try:
                     html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-                    
                     #print '.',
                     #sys.stdout.flush()
-                #except:
-                #    print 'Error! Maybe the internet is not well...'
-                #    return
+                except:
+                    log.debug('Error! Maybe the internet is not well...')
+                    return
             return p.songlist
             #print 'done!'
         else:
