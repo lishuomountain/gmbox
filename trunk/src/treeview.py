@@ -19,21 +19,25 @@
 
 import gtk
 
-class Abs_View:
+(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST,COL_DOWN) = range(5)
+(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST,COL_ALBUM) = range(5)
+
+class Abs_View(gtk.TreeView):
     '''抽象类：构造各个页面的Treeview'''
-    def __init__(self,xml):
+    
+    def __init__(self, treeview_id):
         '''依次存入：status,歌曲编号，歌曲名，歌手          #专辑，长度，url'''
+
+        gtk.TreeView.__init__(self)
+        
         self.model = gtk.ListStore(bool, str, str,str)
         #self.model.connect("row-changed", self.SaveSongIndex)
 
-    def set_treeview(self,xml,treeview_id):
-        '''set title'''
-        self.treeview = xml.get_widget(treeview_id)
-        self.treeview.set_model(self.model)
-        self.treeview.set_enable_search(0)
+        self.set_model(self.model)
+        self.set_enable_search(0)
         #treeview.bind('<Button-3>', self.click_checker)
         #treeview.bind('<Double-Button-1>', self.listen)
-        self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+        self.get_selection().set_mode(gtk.SELECTION_SINGLE)
 
         checkbutton = gtk.CheckButton()
 
@@ -42,13 +46,13 @@ class Abs_View:
         column = gtk.TreeViewColumn("选中", renderer,active=COL_STATUS)
         #column = gtk.TreeViewColumn("选中", renderer)
         #column.set_resizable(True)
-        self.treeview.append_column(column)
+        self.append_column(column)
 
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_NUM)
         column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
         column.set_resizable(True)
-        self.treeview.append_column(column)
+        self.append_column(column)
 
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_TITLE)
@@ -56,7 +60,7 @@ class Abs_View:
         #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
         column.set_resizable(True)
-        self.treeview.append_column(column)
+        self.append_column(column)
 
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_ARTIST)
@@ -64,8 +68,8 @@ class Abs_View:
         #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
         column.set_resizable(True)
-        self.treeview.append_column(column)
-        self.treeview.set_rules_hint(True)
+        self.append_column(column)
+        self.set_rules_hint(True)
 
     def fixed_toggled(self, cell, path):
         # get toggled iter
@@ -83,19 +87,24 @@ class Abs_View:
         # set new value
         self.model.set(iter, COL_STATUS, fixed)
 
-class ListView(Abs_View,gmbox.Lists):
+        
+class ListView(Abs_View):
     '''榜单下载页面'''
-    def __init__(self,xml):
+    
+    def __init__(self):
         '''get hot song list treeview widget'''
-        gmbox.Lists.__init__(self)
+        
+        Abs_View.__init__(self, 'list_treeview')
+        
         self.model = gtk.ListStore(bool, str, str,str)
-        Abs_View.set_treeview(self,xml,'list_treeview')
 
     def get_list(self,text):
         gmbox.Lists.get_list(self,text)
         self.model.clear()
         [self.model.append([False,self.songlist.index(song)+1,song['title'],song['artist']]) for song in self.songlist]
 
+"""        
+        
 class SearchListView(Abs_View,gmbox.SearchLists):
     '''音乐搜索页面'''
     def __init__(self,xml):
@@ -109,7 +118,7 @@ class SearchListView(Abs_View,gmbox.SearchLists):
         #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("专辑", renderer, text=COL_ALBUM)
         column.set_resizable(True)
-        self.treeview.append_column(column)
+        self.append_column(column)
 
     def get_list(self,key):
         gmbox.SearchLists.get_list(self,key)
@@ -128,8 +137,8 @@ class DownTreeView(Abs_View,gmbox.DownloadLists):
         renderer.set_data("column", COL_DOWN)
         column = gtk.TreeViewColumn("状态", renderer, text=COL_DOWN)
         column.set_resizable(True)
-        self.treeview.append_column(column)
-        self.treeview.set_rules_hint(True)
+        self.append_column(column)
+        self.set_rules_hint(True)
 
     def add(self,title,artist,id):
         thread.start_new_thread(gmbox.DownloadLists.add, (self,title,artist,id,))
@@ -182,3 +191,4 @@ class PlayListView(Abs_View,gmbox.PlayList):
             notification.set_timeout(1)
             notification.show()
 
+"""

@@ -13,8 +13,7 @@ DEBUG=0
 
 
 
-(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST,COL_DOWN) = range(5)
-(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST,COL_ALBUM) = range(5)
+
 
 class MainWindow():
     def __init__(self):

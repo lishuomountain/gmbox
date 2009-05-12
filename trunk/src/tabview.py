@@ -21,6 +21,7 @@
 import gtk
 
 from player import playbox
+from treeview import ListView
 from lib.const import *
 
 
@@ -61,6 +62,8 @@ class tabview(gtk.Notebook):
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.list_view = ListView()
+        scroll.add(self.list_view)
 
         vb = gtk.VBox(False, 0)
         vb.pack_start(hb, False, False)
@@ -68,7 +71,7 @@ class tabview(gtk.Notebook):
 
         self.append_page(vb)
 
-        #self.list_view= ListView(self.xml)
+
         #self.list_view.treeview.connect('button-press-event', self.click_checker)
         #self.list_view.treeview.connect('key_press_event', self.tree_view_key_checker)
 
