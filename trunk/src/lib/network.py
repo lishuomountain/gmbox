@@ -21,6 +21,8 @@
 import urllib, os
 
 from const import *
+from parser import ListParser
+
 
 # this variable should read from preference
 musicdir=userhome+'/Music/google_music/top100/'
@@ -70,13 +72,22 @@ class Download:
                 (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
 
 
+            
+urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
+searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
+lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
+
+
 class Lists(Abs_Lists):
     '''榜单类,可以自动处理分页的榜单页面'''
+    
     def __init__(self):
         Abs_Lists.__init__(self)
 
     def get_list(self,stype):
         '''获取特定榜单'''
+
+        # songlists in const.py
         if stype in songlists:
             p=ListParser()
             print u'正在获取"'+stype+u'"的歌曲列表',

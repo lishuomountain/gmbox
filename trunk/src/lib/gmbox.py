@@ -47,9 +47,7 @@ if os.path.exists(gmbox_home)==0:
     
 playlist_path=gmbox_home+'default.xml'
 
-urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
-searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
-lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
+
 
 play_over=1  #标志信号量：自动播放完毕还是被打断，默认自动播放完
 
