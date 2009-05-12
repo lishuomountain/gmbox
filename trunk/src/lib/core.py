@@ -247,6 +247,7 @@ class gmbox:
             for i in range(0, songlists[stype][1], 25):
                 try:
                     html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
+                    log.debug('Retrieve success, page %d', i/25+1)
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                     #print '.',
                     #sys.stdout.flush()

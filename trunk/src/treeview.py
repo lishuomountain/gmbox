@@ -176,6 +176,45 @@ class ListView(Abs_View):
         else:
             self.current_path = None
 
+# methods for popup menu above
+        
+    def downone(self, widget):
+        #selected = self.current_list.treeview.get_selection().get_selected()
+        #list_model,iter = selected
+        #artist = list_model.get_value(iter, COL_ARTIST)
+        #title = list_model.get_value(iter, COL_TITLE)
+        artist = self.current_list.get_artist(self.current_path)
+        title = self.current_list.get_title(self.current_path)
+        id = self.current_list.get_id(self.current_path)
+        self.down_tree.add(title,artist,id)
+
+    def listen(self, widget):
+        try:
+            thread.start_new_thread(self.play,(self.current_path,))
+        except:
+            print "Error"
+
+    def addToPlaylist(self, widget):
+        selected = self.current_list.treeview.get_selection().get_selected()
+        list_model,iter = selected
+        artist = list_model.get_value(iter, COL_ARTIST)
+        title = list_model.get_value(iter, COL_TITLE)
+        id = self.current_list.get_id(self.current_path)
+        self.playlist_view.add(title,artist,str(id))
+
+    def delete_file(self,event):
+        self._songlist.delete_file(self.current_path)
+
+        selected = self.list_tree.get_selection().get_selected()
+        list_model,iter = selected
+        #num = self.list_model.get_value(iter,COL_NUM)
+        num = len(self.playlist.songlist)+1
+        artist = list_model.get_value(iter, COL_ARTIST)
+        title = list_model.get_value(iter, COL_TITLE)
+        list_model.remove(self.current_path)
+        #self.playlist.add(self._songlist.get_title(self.path[0]),self._songlist.get_artist(self.path[0]),str(self.path[0]))
+        self._songlist.delete_file(self.current_path)            
+
             
 """        
         
