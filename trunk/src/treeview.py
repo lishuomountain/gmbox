@@ -146,7 +146,7 @@ class ListView(Abs_View):
         '''榜单页，下载页击键处理'''
         
         #self.get_current_list(view,event)
-        #self.get_current_location(view, event)
+        self.get_current_location(event.x, event.y)
         #if event.type == gtk.gdk._2BUTTON_PRESS:
         #    self.listen(view)
             
@@ -155,25 +155,22 @@ class ListView(Abs_View):
             #index = selected.get_value(iter, 0)
             #print index
 
+            # Don't use exception, It's good for debug
             # Here test whether we have songlist, if have, show popup menu
-            #try:
-                #if self.list_view:
+            if self.current_path:
                 self.SetupPopup()
-            #except:
-            #    log.debug('button press error...')
 
-    def get_current_location(self, view, event):
-        x = int(event.x)
-        y = int(event.y)
-        pth = view.get_path_at_pos(x, y)
+    def get_current_location(self, x, y):
+        '''Used for save path of mouse click position'''
 
-        if not pth:
-            pass
+        pth = self.get_path_at_pos(int(x), int(y))
+
+        if pth:
+            path, col, cell_x, cell_y = pth
+            self.current_path = path[0]
+            log.debug('select : %s',  current_path)
         else:
-            self.path, col, cell_x, cell_y = pth
-            self.current_path=self.path[0]
-            #title = self.current_list.get_title(self.current_path)
-            log.debug('select : ' + title)
+            self.current_path = None
     
 
 """        

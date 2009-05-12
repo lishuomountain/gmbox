@@ -18,6 +18,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import logging
+
+log = logging.getLogger('lib.core')
 
 class Abs_Lists:
     '''Lists,FileList,PlayList 的基类'''
