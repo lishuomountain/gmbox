@@ -37,8 +37,8 @@ if os.name=='nt':
     player="mpxplay.exe"
     
 userhome = os.path.expanduser('~')
-musicdir=userhome+'/Music/google_music/top100/'
-gmbox_home=userhome+'/.gmbox/'
+#musicdir=userhome+'/Music/google_music/top100/'
+#gmbox_home=userhome+'/.gmbox/'
 
 if os.path.exists(musicdir)==0:
     os.makedirs(musicdir)   #递归创建目录  mkdir是创建最后一层目录！amoblin

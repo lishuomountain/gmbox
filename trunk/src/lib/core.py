@@ -32,13 +32,7 @@ log = logging.getLogger('lib.core')
 
 # this variable should read from preference
 userhome = os.path.expanduser('~')
-musicdir=userhome+'/Music/google_music/top100/'
-
-# should write to const
-urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
-searchtemplate="http://www.google.cn/music/search?q=%E5%A4%A9%E4%BD%BF%E7%9A%84%E7%BF%85%E8%86%80&aq=f"
-lyricstemplate='http://g.top100.cn/7872775/html/lyrics.html?id=S8ec32cf7af2bc1ce'
-
+musicdir=os.path.join(userhome,'Music','google_music','top100')
 
 class gmbox:
     '''core class
@@ -48,14 +42,6 @@ class gmbox:
     def __init__(self, songlist):
         self.songlist = songlist
         self.loop_number=0  #信号量
-        self.songtemplate={
-            'id':'',
-            'title':'',
-            'artist':'',
-            'album':'',
-            'status':''
-        }
-        self.tmplist=self.songtemplate.copy()
 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
@@ -68,7 +54,7 @@ class gmbox:
     def directly_down(self,uri,i):
         '''直接下载，用于试听中得到最终下载地址后调用'''
         filename = self.get_filename(i)
-        local_uri=musicdir+filename
+        local_uri=os.path.join(musicdir,filename)
         self.download(uri,filename,0)
 
     def play(self,i=0):
@@ -77,7 +63,7 @@ class gmbox:
         global play_over
         filename=self.get_filename(i)
         print "preparing ",filename
-        local_uri=musicdir+filename
+        local_uri=os.path.join(musicdir,filename)
         if os.path.exists(local_uri):
             print filename,u'已存在!'
             print "directly play..."
@@ -173,7 +159,7 @@ class gmbox:
         '''下载榜单中的一首歌曲 '''
         
         filename = self.get_filename(i)
-        localuri = musicdir + filename
+        localuri = os.path.join(musicdir,filename)
         
         if os.path.exists(localuri):
             log.debug('%s Already download before', filename)
@@ -201,28 +187,20 @@ class gmbox:
             print u'正在下载:',filename
         else:
             print u'正在缓冲:',filename
-        local_uri=musicdir+filename
+        local_uri=os.path.join(musicdir,filename)
         cache_uri=local_uri+'.downloading'
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
         urllib.urlretrieve(remote_uri, cache_uri, self.update_progress)
         speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
-        if mode:
-            '''下载模式'''
-            print '\r['+''.join(['=' for i in range(50)])+ \
-                '] 100.00%%  %s/s       '%sizeread(speed)
-            os.rename(cache_uri, local_uri)
-            if os.name=='posix':
-                '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
-                os.system('mid3iconv -e gbk "'+local_uri + '"')
-        else:
-            print '\r['+''.join(['=' for i in range(50)])+ \
-                '] 100.00%%  %s/s       '%sizeread(speed)
-            '''试听模式  由于此下载进程未设信号量，一旦运行，除了终止程序暂无终止办法，所以肯定会下载完全，所以保存'''
-            os.rename(cache_uri, local_uri)
-            if os.name=='posix':
-                '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
-                os.system('mid3iconv -e gbk "'+local_uri + '"')
+        #下载和试听模式都一样
+        print '\r['+''.join(['=' for i in range(50)])+ \
+            '] 100.00%%  %s/s       '%sizeread(speed)
+        os.rename(cache_uri, local_uri)
+        if os.name=='posix':
+            '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
+            os.system('mid3iconv -e gbk "'+local_uri + '"')
+
 
     def update_progress(self, blocks, block_size, total_size):
         # used by download method
@@ -242,20 +220,22 @@ class gmbox:
         '''获取特定榜单'''
         if stype in songlists:
             p=ListParser()
-            log.debug('Begining retrieve list : ' + stype)
-            #sys.stdout.flush()
+            print u'正在获取"'+stype+u'"的歌曲列表',
+            sys.stdout.flush()
             for i in range(0, songlists[stype][1], 25):
                 try:
                     html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
-                    log.debug('Retrieve success, page %d', i/25+1)
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-                    #print '.',
-                    #sys.stdout.flush()
+                    print '.',
+                    sys.stdout.flush()
                 except:
                     log.debug('Error! Maybe the internet is not well...')
                     return
+            print 'done!'
             return p.songlist
             #print 'done!'
         else:
             #raise Exception
+            print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
+            ['"%s"'%key for key in self.songlists])
             log.debug('Unknow list:"'+str(stype))

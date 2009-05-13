@@ -36,3 +36,5 @@ songlists={
     u'轻音乐热歌':('easy-listening_songs_cn',100),
     u'爵士蓝调热歌':('jnb_songs_cn',100)
     }
+    
+urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"

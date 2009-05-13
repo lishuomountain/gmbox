@@ -79,8 +79,8 @@ class Abs_View(gtk.TreeView):
 
     def fixed_toggled(self, cell, path):
         # get toggled iter
-        iter = self.model.get_iter((int(path),))
-        fixed = self.model.get_value(iter, COL_STATUS)
+        iter = self._model.get_iter((int(path),))
+        fixed = self._model.get_value(iter, COL_STATUS)
 
         # do something with the value
         fixed = not fixed
@@ -91,7 +91,7 @@ class Abs_View(gtk.TreeView):
             print 'Invert Select[row]:',path
 
         # set new value
-        self.model.set(iter, COL_STATUS, fixed)
+        self._model.set(iter, COL_STATUS, fixed)
 
         
 class ListView(Abs_View):
@@ -131,14 +131,20 @@ class ListView(Abs_View):
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('试听')
+        #TODO 此功能待完善
+        menuitem.set_sensitive(False)
         #menuitem.connect('activate', self.listen)
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('添加到播放列表')
+        #TODO 此功能待完善
+        menuitem.set_sensitive(False)
         #menuitem.connect('activate', self.addToPlaylist)
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('删除已有下载')
+        #TODO 此功能待完善
+        menuitem.set_sensitive(False)
         #menuitem.connect('activate', self.delete_file)
         popupmenu.append(menuitem)
 

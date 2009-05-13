@@ -34,7 +34,7 @@ class tabview(gtk.Notebook):
         
         self.set_show_tabs(False)
 
-        self.setup_album_tab()
+        self.setup_lists_tab()
         self.setup_search_tab()
         self.setup_down_tab()
         self.setup_playlist_tab()
@@ -45,7 +45,7 @@ class tabview(gtk.Notebook):
 # =========================================
 # methods setup five tabs
         
-    def setup_album_tab(self):
+    def setup_lists_tab(self):
         
         hb = gtk.HBox(False, 0)
         

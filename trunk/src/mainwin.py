@@ -117,37 +117,18 @@ class mainwin(gtk.Window):
         time = gtk.get_current_event_time()
         popup_menu.popup(None, None, None, 0, time)
 
-
+    def setup_but_box_one(self,but_box,but_index,but_name):
+        but_x = gtk.Button(but_name)
+        but_x.connect('clicked',lambda w:self.gm_notebook.set_current_page(but_index))
+        but_box.pack_start(but_x)
+        
     def setup_but_box(self):
-
         but_box = gtk.HButtonBox()
-
-        but_album = gtk.Button('榜单下载')
-        but_album.connect('clicked',
-                          lambda w:self.gm_notebook.set_current_page(0))
-        
-        but_search = gtk.Button('音乐搜索')
-        but_search.connect('clicked',
-                           lambda w:self.gm_notebook.set_current_page(1))
-        
-        but_down = gtk.Button('下载管理')
-        but_down.connect('clicked',
-                         lambda w:self.gm_notebook.set_current_page(2))
-        
-        but_playlist = gtk.Button('播放列表')
-        but_playlist.connect('clicked',
-                             lambda w:self.gm_notebook.set_current_page(3))
-        
-        but_about = gtk.Button('关于')
-        but_about.connect('clicked',
-                          lambda w:self.gm_notebook.set_current_page(4))
-
-        but_box.pack_start(but_album)
-        but_box.pack_start(but_search)
-        but_box.pack_start(but_down)
-        but_box.pack_start(but_playlist)
-        but_box.pack_start(but_about)
-
+        self.setup_but_box_one(but_box,0,'榜单下载')
+        self.setup_but_box_one(but_box,1,'音乐搜索')
+        self.setup_but_box_one(but_box,2,'下载管理')
+        self.setup_but_box_one(but_box,3,'播放列表')
+        self.setup_but_box_one(but_box,4,'关于')
         return but_box
 
 if __name__ == '__main__':
