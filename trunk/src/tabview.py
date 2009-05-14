@@ -57,6 +57,7 @@ class tabview(gtk.Notebook):
         
         self.but_down_select = gtk.Button('下载选中的音乐')
         self.but_adition_select = gtk.Button('试听选中的音乐')
+        self.but_adition_select.set_sensitive(False)
         hb.pack_start(self.combox, False, False)
         hb.pack_start(self.but_down_select, False, False)
         hb.pack_start(self.but_adition_select, False, False)
@@ -140,8 +141,10 @@ class tabview(gtk.Notebook):
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
 
     def setup_about_tab(self):
-
-        self.append_page(gtk.Label('gmbox V0.1.0'))
+        about_label=gtk.Label('<span size="xx-large" weight="ultrabold">'
+            +'gmbox V'+VERSION+'</span>')
+        about_label.set_use_markup(True)
+        self.append_page(about_label)
         
 
 # ============================================

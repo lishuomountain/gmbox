@@ -38,3 +38,4 @@ songlists={
     }
     
 urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
+VERSION = '0.0.1'

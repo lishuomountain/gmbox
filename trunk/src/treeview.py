@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gtk
+import copy
 import logging
 
 from lib.core import gmbox
@@ -100,6 +101,7 @@ class ListView(Abs_View):
     def __init__(self):
         '''get hot song list treeview widget'''
         Abs_View.__init__(self, 'list_treeview')
+        self.cached_list={}
 
         self._model = gtk.ListStore(bool, str, str,str)
         self.set_model(self._model)
@@ -109,13 +111,16 @@ class ListView(Abs_View):
         
     def get_list(self, text):
         '''request network for songs(ablums) list and load it'''
-        
-        songlist = gmbox.get_list(text)
+        if text in self.cached_list:
+            songlist=copy.copy(self.cached_list[text])
+        else:
+            songlist = gmbox.get_list(text)
+            self.cached_list[text]=copy.copy(songlist)
 
         # feed songlist to core.gmbox, prepare download
         self.gmbox = gmbox(songlist)
         
-        self.model.clear()
+        self._model.clear()
         [self._model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
 
     
