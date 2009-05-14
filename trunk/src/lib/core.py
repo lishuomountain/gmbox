@@ -224,18 +224,22 @@ class gmbox:
             sys.stdout.flush()
             for i in range(0, songlists[stype][1], 25):
                 try:
+#                    r=urllib2.Request(urltemplate%(songlists[stype][0],i))
+#                    r.add_header('User-Agent','Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11')
                     html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
                     p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                     print '.',
                     sys.stdout.flush()
+                except urllib2.URLError:
+                    print 'Error! Maybe the internet is not well...'
+                    return
                 except:
-                    log.debug('Error! Maybe the internet is not well...')
+                    print 'Unknow Error! Please report to ...'
                     return
             print 'done!'
             return p.songlist
-            #print 'done!'
         else:
             #raise Exception
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
-            ['"%s"'%key for key in self.songlists])
+            ['"%s"'%key for key in songlists])
             log.debug('Unknow list:"'+str(stype))

@@ -22,6 +22,8 @@ from xml.dom import minidom
 import codecs
 import os
 
+from gmbox import *
+
 # more work:
 # 1.ConfigFile inherit from minidom
 # 2.Use logging modudle instead of print sentence

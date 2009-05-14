@@ -18,8 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 '''gmbox的命令行界面'''
-import sys
-from gmbox import *
+import sys,copy
+from lib.core import *
+from lib.const import *
+#from lib.config import *
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 # need more work:
 # write a interface transparent layer to import gtk and cli module
@@ -34,11 +38,12 @@ class CLI:
     '''解析命令行参数'''
     def __init__(self):
         self.currentlist=u'华语新歌'
-        self.l=None
+        self.gmbox=None
+        self.cached_list={}
         if len(sys.argv)==1:
             '''交互模式'''
             self.welcome()
-            ConfigFile()
+#            ConfigFile()
             while 1:
                 command=raw_input('gmbox>')
                 if command =='exit':
@@ -98,16 +103,16 @@ class CLI:
             else:
                 print u'用法: search 关键字'
         elif command.split()[0]=='down':
-            if not self.l:
+            if not self.gmbox:
                 print u'执行down命令前需先执行list或者search命令'
                 return
             if len(command.split()) > 1:
                 if command.split()[1]=='all':
-                    self.l.downall()
+                    self.gmbox.downall()
                 else:
                     k=[]
                     [k.append(int(t)-1) for t in command.split()[1:]]
-                    self.l.download(k)
+                    self.gmbox.down_listed(k)
             else:
                 print u'用法: down all 或者 down n1 n2 ...'
             
@@ -117,12 +122,18 @@ class CLI:
             print u'未知命令:',command,u'需要帮助请输入 help'
         
     def _lists(self):
-        print u'目前gmbox支持以下列表: '+u'、'.join(['"%s"'%key for key in Lists().songlists])
+        print u'目前gmbox支持以下列表: '+u'、'.join(['"%s"'%key for key in songlists])
     def _list(self):
-        self.l=Lists()
-        self.l.get_list(self.currentlist)
-        self.l.listall()
-        print self.currentlist,u'包含以上',len(self.l.songlist),u'首歌.'
+        if self.currentlist in self.cached_list:
+            songlist=copy.copy(self.cached_list[self.currentlist])
+        else:
+            songlist = gmbox.get_list(self.currentlist)
+            self.cached_list[self.currentlist]=copy.copy(songlist)        
+        
+        self.gmbox = gmbox(songlist)
+        self.gmbox.listall()
+
+        print self.currentlist,u'包含以上',len(self.gmbox.songlist),u'首歌.'
     def _search(self,key):
         self.l=SearchLists()
         self.l.get_list(key)
