@@ -56,6 +56,7 @@ class tabview(gtk.Notebook):
         self.combox.connect("changed", self.doSearch)
         
         self.but_down_select = gtk.Button('下载选中的音乐')
+        self.but_down_select.connect('clicked',lambda w:self.list_view.down_select())
         self.but_adition_select = gtk.Button('试听选中的音乐')
         self.but_adition_select.set_sensitive(False)
         hb.pack_start(self.combox, False, False)

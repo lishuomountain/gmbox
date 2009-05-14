@@ -189,6 +189,14 @@ class ListView(Abs_View):
 
 # methods for popup menu above
         
+    def down_select(self):
+        selected=[]
+        for i in range(len(self._model)):
+            iter = self._model.get_iter((i,))
+            if self._model.get_value(iter, COL_STATUS):
+                selected.append(i)
+        self.gmbox.down_listed(selected)
+
     def downone(self, widget):
         #selected = self.current_list.treeview.get_selection().get_selected()
         #list_model,iter = selected
