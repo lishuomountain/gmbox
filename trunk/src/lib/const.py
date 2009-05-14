@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+VERSION = '0.0.1'
 songlists={
     u'华语新歌':('chinese_new_songs_cn',100),
     u'欧美新歌':('ea_new_songs_cn',100),
@@ -38,4 +39,5 @@ songlists={
     }
     
 urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
-VERSION = '0.0.1'
+search_uri_template = 'http://www.google.cn/music/search?q=%s&aq=f'
+

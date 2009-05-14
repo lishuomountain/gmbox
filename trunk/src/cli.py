@@ -20,6 +20,7 @@
 '''gmbox的命令行界面'''
 import sys,copy
 from lib.core import *
+from lib.search import *
 from lib.const import *
 #from lib.config import *
 reload(sys)
@@ -45,10 +46,14 @@ class CLI:
             self.welcome()
 #            ConfigFile()
             while 1:
-                command=raw_input('gmbox>')
+                try:
+                    command=raw_input('gmbox>')
+                except EOFError:
+                    print
+                    return
                 if command =='exit':
                     return
-                else:
+                elif command!='':
                     self.deal_command(command)
         else:
             '''命令行模式'''
@@ -135,9 +140,9 @@ class CLI:
 
         print self.currentlist,u'包含以上',len(self.gmbox.songlist),u'首歌.'
     def _search(self,key):
-        self.l=SearchLists()
-        self.l.get_list(key)
-        self.l.listall()
+        songlist=SearchLists().get_list(key)
+        self.gmbox = gmbox(songlist)
+        self.gmbox.listall()
         
     def welcome(self):
         print u"欢迎使用 gmbox!"

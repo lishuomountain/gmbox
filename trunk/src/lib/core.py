@@ -48,8 +48,9 @@ class gmbox:
             (song['title'],song['artist'],song['id']) for song in self.songlist])
 
     def listall(self):
-        print '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
-            (song['title'],song['artist'],song['id']) for song in self.songlist])
+        print '\n'.join(['Num=%d Title="%s" Artist="%s" ID="%s"'%
+            (self.songlist.index(song)+1,song['title'],song['artist'],song['id']) 
+            for song in self.songlist])
 
     def directly_down(self,uri,i):
         '''直接下载，用于试听中得到最终下载地址后调用'''
@@ -162,14 +163,14 @@ class gmbox:
         localuri = os.path.join(musicdir,filename)
         
         if os.path.exists(localuri):
-            log.debug('%s Already download before', filename)
+            print filename,u'已存在!'
             return
         
         url = self.find_final_uri(i)
         if url:
             self.download(url,filename,1)
         else:   #下载页有验证码时url为空
-            log.debug('出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...')
+            print '出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
 
     def downall(self):
         '''下载榜单中的所有歌曲'''
