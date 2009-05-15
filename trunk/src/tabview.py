@@ -156,9 +156,9 @@ class tabview(gtk.Notebook):
         
         text=widget.get_active_text().decode('utf8')
         if text != "--请选择--":
+            # get_list thread will set_sensitive true if download done
             widget.set_sensitive(False)
-            self.list_view.get_list(text)
-            widget.set_sensitive(True)
+            self.list_view.get_list(text, widget)
             
 
     def doSearchMusic(self,widget):

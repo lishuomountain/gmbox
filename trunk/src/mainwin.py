@@ -24,6 +24,7 @@ import gtk
 import os
 from optparse import OptionParser
 import logging
+import gobject
 
 from lib.utils import find_image
 from tabview import *
@@ -139,6 +140,8 @@ if __name__ == '__main__':
 
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)
+
+    gobject.threads_init()
 
     mainwin()
     gtk.main()

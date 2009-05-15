@@ -20,6 +20,7 @@
 import gtk
 import copy
 import logging
+import threading
 
 from lib.core import gmbox
 
@@ -99,26 +100,45 @@ class ListView(Abs_View):
     def __init__(self):
         '''get hot song list treeview widget'''
         Abs_View.__init__(self, 'list_treeview')
-        self.cached_list={}
+        #self.cached_list={}
 
         self._model = gtk.ListStore(bool, str, str,str)
         self.set_model(self._model)
 
         self.connect('button-press-event', self.click_checker)
 
-    def get_list(self, text):
+    def get_list(self, text, combo):
         '''request network for songs(ablums) list and load it'''
-        if text in self.cached_list:
-            songlist=copy.copy(self.cached_list[text])
-        else:
-            songlist = gmbox.get_list(text)
-            self.cached_list[text]=copy.copy(songlist)
-
-        # feed songlist to core.gmbox, prepare download
-        self.gmbox = gmbox(songlist)
         
-        self._model.clear()
-        [self._model.append([False, songlist.index(song)+1 , song['title'] , song['artist']]) for song in songlist]
+        #if text in self.cached_list:
+        #    songlist=copy.copy(self.cached_list[text])
+        #else:
+
+        # two thread, one for download list, another for update treeview
+        # I know it's ugly, but this is the only method I could thought out
+        list_thread = threading.Thread(target=gmbox.get_list, args=(text,))
+        list_thread.start()
+        update_thread = threading.Thread(target=self.update_listview, args=(list_thread, combo,))
+        update_thread.start()
+
+        return update_thread
+        #    self.cached_list[text]=copy.copy(songlist)
+
+
+    def update_listview(self, thread, combo):
+
+        # loop inquiry until download thread is not alive
+        while thread.is_alive():
+            pass
+        else:
+            # songlist already feed to core.gmbox by gmbox.get_list, prepare download
+            self.gmbox = gmbox()
+
+            gtk.gdk.threads_enter()
+            self._model.clear()
+            [self._model.append([False, self.gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in self.gmbox.songlist]
+            combo.set_sensitive(True)
+            gtk.gdk.threads_leave()
 
     
     def SetupPopup(self):

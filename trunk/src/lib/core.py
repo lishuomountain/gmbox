@@ -39,8 +39,8 @@ class gmbox:
     1. hold songlist and and check to see which and where to download
     '''
     
-    def __init__(self, songlist):
-        self.songlist = songlist
+    def __init__(self):
+        #self.songlist = songlist
         self.loop_number=0  #信号量
 
     def __str__(self):
@@ -238,7 +238,9 @@ class gmbox:
                     print 'Unknow Error! Please report to ...'
                     return
             print 'done!'
-            return p.songlist
+            self.songlist = p.songlist
+            return
+            #return p.songlist
         else:
             #raise Exception
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
