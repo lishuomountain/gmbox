@@ -37,16 +37,14 @@ class Abs_View(gtk.TreeView):
 
         gtk.TreeView.__init__(self)
         
-        self.model = gtk.ListStore(bool, str, str,str)
+        #self.model = gtk.ListStore(bool, str, str,str)
         #self.model.connect("row-changed", self.SaveSongIndex)
 
-        self.set_model(self.model)
+        #self.set_model(self.model)
         self.set_enable_search(0)
         #treeview.bind('<Button-3>', self.click_checker)
         #treeview.bind('<Double-Button-1>', self.listen)
         self.get_selection().set_mode(gtk.SELECTION_SINGLE)
-
-        checkbutton = gtk.CheckButton()
 
         renderer = gtk.CellRendererToggle()
         renderer.connect('toggled', self.fixed_toggled)
@@ -58,7 +56,7 @@ class Abs_View(gtk.TreeView):
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_NUM)
         column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
-        column.set_resizable(True)
+        #column.set_resizable(True)
         self.append_column(column)
 
         renderer = gtk.CellRendererText()
@@ -66,7 +64,7 @@ class Abs_View(gtk.TreeView):
         #renderer.set_property('editable', True)
         #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
-        column.set_resizable(True)
+        #column.set_resizable(True)
         self.append_column(column)
 
         renderer = gtk.CellRendererText()
@@ -74,7 +72,7 @@ class Abs_View(gtk.TreeView):
         #renderer.set_property('editable', True)
         #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
-        column.set_resizable(True)
+        #column.set_resizable(True)
         self.append_column(column)
         self.set_rules_hint(True)
 
@@ -108,7 +106,6 @@ class ListView(Abs_View):
 
         self.connect('button-press-event', self.click_checker)
 
-        
     def get_list(self, text):
         '''request network for songs(ablums) list and load it'''
         if text in self.cached_list:
