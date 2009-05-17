@@ -38,6 +38,7 @@ class tabview(gtk.Notebook):
         self.setup_search_tab()
         self.setup_down_tab()
         self.setup_playlist_tab()
+        self.setup_options_tab()
         self.setup_about_tab()
 
         self.show_all()
@@ -140,7 +141,15 @@ class tabview(gtk.Notebook):
         #self.playlist_view= PlayListView(self.xml)
         #self.playlist_view.treeview.connect('button-press-event',self.playlist_click_checker)
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
-
+    def xxx(self,obj):
+        print mw
+    def setup_options_tab(self):
+        but_xxx = gtk.Button(u'测试')
+        but_xxx.connect('clicked',self.xxx)
+        tmp_label=gtk.Label('coming soon ...')
+        tmp_label.set_use_markup(True)
+        self.append_page(but_xxx)
+        
     def setup_about_tab(self):
         about_label=gtk.Label('<span size="xx-large" weight="ultrabold">'
             +'gmbox V'+VERSION+'</span>')

@@ -156,7 +156,7 @@ class gmbox:
         s.feed(text)
         return s.url
 
-    def downone(self,i=0):
+    def downone(self,i=0,callback=None):
         '''下载榜单中的一首歌曲 '''
         
         filename = self.get_filename(i)
@@ -168,7 +168,7 @@ class gmbox:
         
         url = self.find_final_uri(i)
         if url:
-            self.download(url,filename,1)
+            self.download(url,filename,1,callback=callback)
         else:   #下载页有验证码时url为空
             print '出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
 
@@ -176,12 +176,12 @@ class gmbox:
         '''下载榜单中的所有歌曲'''
         [self.downone(i) for i in range(len(self.songlist))]
 
-    def down_listed(self,songids=[]):
+    def down_listed(self,songids=[],callback=None):
         '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
-        [self.downone(i) for i in songids if i in range(len(self.songlist))]
+        [self.downone(i,callback) for i in songids if i in range(len(self.songlist))]
             
     
-    def download(self, remote_uri, filename, mode=1):
+    def download(self, remote_uri, filename, mode=1, callback=None):
         '''下载模式 1 和 试听(缓存)模式 0'''
         #这里不用检测是否文件已存在了,上边的downone或play已检测了
         if mode:
@@ -192,7 +192,8 @@ class gmbox:
         cache_uri=local_uri+'.downloading'
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
-        urllib.urlretrieve(remote_uri, cache_uri, self.update_progress)
+        c=callback if callback else self.update_progress
+        urllib.urlretrieve(remote_uri, cache_uri, c)
         speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
         #下载和试听模式都一样
         print '\r['+''.join(['=' for i in range(50)])+ \

@@ -129,7 +129,8 @@ class mainwin(gtk.Window):
         self.setup_but_box_one(but_box,1,'音乐搜索')
         self.setup_but_box_one(but_box,2,'下载管理')
         self.setup_but_box_one(but_box,3,'播放列表')
-        self.setup_but_box_one(but_box,4,'关于')
+        self.setup_but_box_one(but_box,4,'设置')
+        self.setup_but_box_one(but_box,5,'关于')
         return but_box
 
 if __name__ == '__main__':

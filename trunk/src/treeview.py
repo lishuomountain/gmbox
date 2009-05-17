@@ -45,7 +45,7 @@ class Abs_View(gtk.TreeView):
         self.set_enable_search(0)
         #treeview.bind('<Button-3>', self.click_checker)
         #treeview.bind('<Double-Button-1>', self.listen)
-        self.get_selection().set_mode(gtk.SELECTION_SINGLE)
+        self.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
 
         renderer = gtk.CellRendererToggle()
         renderer.connect('toggled', self.fixed_toggled)
@@ -140,7 +140,9 @@ class ListView(Abs_View):
             combo.set_sensitive(True)
             gtk.gdk.threads_leave()
 
-    
+    def up_prs(self, blocks, block_size, total_size):
+        #TODO:这里怎么调用到 mainwin.status 并显示一个进度条?
+        print blocks,block_size,total_size
     def SetupPopup(self):
         '''popup menu for album list tab'''
         
@@ -149,7 +151,7 @@ class ListView(Abs_View):
         popupmenu = gtk.Menu()
         menuitem = gtk.MenuItem('下载')
         menuitem.connect('activate',
-                         lambda w:self.gmbox.downone(self.current_path))
+                         lambda w:self.gmbox.downone(self.current_path,callback=self.up_prs))
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('试听')
@@ -212,7 +214,7 @@ class ListView(Abs_View):
             iter = self._model.get_iter((i,))
             if self._model.get_value(iter, COL_STATUS):
                 selected.append(i)
-        self.gmbox.down_listed(selected)
+        self.gmbox.down_listed(selected,callback=self.up_prs)
 
     def downone(self, widget):
         #selected = self.current_list.treeview.get_selection().get_selected()
