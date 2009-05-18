@@ -20,7 +20,7 @@
 '''gmbox的命令行界面'''
 import sys,copy
 from lib.core import *
-from lib.search import *
+#from lib.search import *
 from lib.const import *
 #from lib.config import *
 reload(sys)
@@ -38,9 +38,9 @@ def deal_input(str):
 class CLI:
     '''解析命令行参数'''
     def __init__(self):
+        global gm
         self.currentlist=u'华语新歌'
-        self.gmbox=None
-        self.cached_list={}
+        self.gmbox=gmbox()
         if len(sys.argv)==1:
             '''交互模式'''
             self.welcome()
@@ -129,19 +129,11 @@ class CLI:
     def _lists(self):
         print u'目前gmbox支持以下列表: '+u'、'.join(['"%s"'%key for key in songlists])
     def _list(self):
-        if self.currentlist in self.cached_list:
-            songlist=copy.copy(self.cached_list[self.currentlist])
-        else:
-            songlist = gmbox.get_list(self.currentlist)
-            self.cached_list[self.currentlist]=copy.copy(songlist)        
-        
-        self.gmbox = gmbox(songlist)
+        self.gmbox.get_list(self.currentlist)
         self.gmbox.listall()
-
         print self.currentlist,u'包含以上',len(self.gmbox.songlist),u'首歌.'
     def _search(self,key):
-        songlist=SearchLists().get_list(key)
-        self.gmbox = gmbox(songlist)
+        self.gmbox.search(key)
         self.gmbox.listall()
         
     def welcome(self):
