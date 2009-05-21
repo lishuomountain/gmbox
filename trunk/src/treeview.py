@@ -17,13 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import gtk
-import copy
-import logging
-import threading
-
+import gtk, copy, logging, threading
+from time import sleep
 from lib.core import gmbox
-
 
 log = logging.getLogger('gmbox.treeview')
 
@@ -100,19 +96,13 @@ class ListView(Abs_View):
     def __init__(self):
         '''get hot song list treeview widget'''
         Abs_View.__init__(self, 'list_treeview')
-        #self.cached_list={}
 
         self._model = gtk.ListStore(bool, str, str,str)
         self.set_model(self._model)
-
         self.connect('button-press-event', self.click_checker)
 
     def get_list(self, text, combo):
         '''request network for songs(ablums) list and load it'''
-        
-        #if text in self.cached_list:
-        #    songlist=copy.copy(self.cached_list[text])
-        #else:
 
         # two thread, one for download list, another for update treeview
         # I know it's ugly, but this is the only method I could thought out
@@ -122,21 +112,16 @@ class ListView(Abs_View):
         update_thread.start()
 
         return update_thread
-        #    self.cached_list[text]=copy.copy(songlist)
-
 
     def update_listview(self, thread, combo):
 
         # loop inquiry until download thread is not alive
         while thread.is_alive():
-            pass
+            sleep(0.1)
         else:
-            # songlist already feed to core.gmbox by gmbox.get_list, prepare download
-            self.gmbox = gmbox()
-
             gtk.gdk.threads_enter()
             self._model.clear()
-            [self._model.append([False, self.gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in self.gmbox.songlist]
+            [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
             combo.set_sensitive(True)
             gtk.gdk.threads_leave()
 
@@ -151,7 +136,7 @@ class ListView(Abs_View):
         popupmenu = gtk.Menu()
         menuitem = gtk.MenuItem('下载')
         menuitem.connect('activate',
-                         lambda w:self.gmbox.downone(self.current_path,callback=self.up_prs))
+                         lambda w:gmbox.downone(self.current_path,callback=self.up_prs))
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('试听')
@@ -214,7 +199,7 @@ class ListView(Abs_View):
             iter = self._model.get_iter((i,))
             if self._model.get_value(iter, COL_STATUS):
                 selected.append(i)
-        self.gmbox.down_listed(selected,callback=self.up_prs)
+        gmbox.down_listed(selected,callback=self.up_prs)
 
     def downone(self, widget):
         #selected = self.current_list.treeview.get_selection().get_selected()

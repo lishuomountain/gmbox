@@ -34,7 +34,7 @@ if os.name == 'posix':
 
 log = logging.getLogger('gmbox')
 
-class mainwin(gtk.Window):
+class Mainwin(gtk.Window):
     def __init__(self):
         
         gtk.Window.__init__(self, gtk.WINDOW_TOPLEVEL)
@@ -57,7 +57,7 @@ class mainwin(gtk.Window):
         vb = gtk.VBox(False, 0)
         self.but_box = self.setup_but_box()
         log.debug('Begin to setup notebook')
-        self.gm_notebook = tabview()
+        self.gm_notebook = Tabview()
         self.status = gtk.Statusbar()
         vb.pack_start(self.but_box, False, False, 5)
         vb.pack_start(self.gm_notebook, True, True)
@@ -143,6 +143,6 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.DEBUG)
 
     gobject.threads_init()
-
-    mainwin()
+    g_mw=Mainwin()
     gtk.main()
+    

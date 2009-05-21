@@ -30,7 +30,7 @@ log = logging.getLogger('lib.core')
 userhome = os.path.expanduser('~')
 musicdir=os.path.join(userhome,'Music','google_music','top100')
 
-class gmbox:
+class Gmbox:
     '''core class
     1. hold songlist and and check to see which and where to download
     '''
@@ -269,3 +269,6 @@ class gmbox:
             start = start + 1
             #self.current_path = self.current_path + 1
         self.loop_number = self.loop_number - 1'''
+        
+#全局实例化
+gmbox=Gmbox()

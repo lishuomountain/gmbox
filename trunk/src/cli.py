@@ -20,8 +20,8 @@
 '''gmbox的命令行界面'''
 import sys,copy
 from lib.core import *
-#from lib.search import *
 from lib.const import *
+from lib.utils import *
 #from lib.config import *
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -29,18 +29,11 @@ sys.setdefaultencoding('utf8')
 # need more work:
 # write a interface transparent layer to import gtk and cli module
 
-def deal_input(str):
-    if os.name=='nt':
-        return str.decode('GBK')
-    else:
-        return str.decode('UTF-8')
 #既然只有国内可以使用google music,就不考虑国际化了,提示都用中文.
 class CLI:
     '''解析命令行参数'''
     def __init__(self):
-        global gm
         self.currentlist=u'华语新歌'
-        self.gmbox=gmbox()
         if len(sys.argv)==1:
             '''交互模式'''
             self.welcome()
@@ -108,16 +101,16 @@ class CLI:
             else:
                 print u'用法: search 关键字'
         elif command.split()[0]=='down':
-            if not self.gmbox:
+            if not gmbox:
                 print u'执行down命令前需先执行list或者search命令'
                 return
             if len(command.split()) > 1:
                 if command.split()[1]=='all':
-                    self.gmbox.downall()
+                    gmbox.downall()
                 else:
                     k=[]
                     [k.append(int(t)-1) for t in command.split()[1:]]
-                    self.gmbox.down_listed(k)
+                    gmbox.down_listed(k)
             else:
                 print u'用法: down all 或者 down n1 n2 ...'
             
@@ -129,12 +122,12 @@ class CLI:
     def _lists(self):
         print u'目前gmbox支持以下列表: '+u'、'.join(['"%s"'%key for key in songlists])
     def _list(self):
-        self.gmbox.get_list(self.currentlist)
-        self.gmbox.listall()
-        print self.currentlist,u'包含以上',len(self.gmbox.songlist),u'首歌.'
+        gmbox.get_list(self.currentlist)
+        gmbox.listall()
+        print self.currentlist,u'包含以上',len(gmbox.songlist),u'首歌.'
     def _search(self,key):
-        self.gmbox.search(key)
-        self.gmbox.listall()
+        gmbox.search(key)
+        gmbox.listall()
         
     def welcome(self):
         print u"欢迎使用 gmbox!"

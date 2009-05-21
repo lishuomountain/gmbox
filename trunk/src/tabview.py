@@ -28,7 +28,7 @@ from lib.const import *
 
 log = logging.getLogger('gmbox.tabview')
 
-class tabview(gtk.Notebook):
+class Tabview(gtk.Notebook):
     def __init__(self):
         gtk.Notebook.__init__(self)
         
