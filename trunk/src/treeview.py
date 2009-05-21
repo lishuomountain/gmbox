@@ -20,6 +20,7 @@
 import gtk, copy, logging, threading
 from time import sleep
 from lib.core import gmbox
+from statusbar import *
 
 log = logging.getLogger('gmbox.treeview')
 
@@ -106,6 +107,7 @@ class ListView(Abs_View):
 
         # two thread, one for download list, another for update treeview
         # I know it's ugly, but this is the only method I could thought out
+        statusbar.push(0,u'正在获取"'+text+u'"的歌曲列表,请稍候...')
         list_thread = threading.Thread(target=gmbox.get_list, args=(text,))
         list_thread.start()
         update_thread = threading.Thread(target=self.update_listview, args=(list_thread, combo,))
@@ -123,11 +125,18 @@ class ListView(Abs_View):
             self._model.clear()
             [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
             combo.set_sensitive(True)
+            statusbar.push(0,u'已完成.')
             gtk.gdk.threads_leave()
 
     def up_prs(self, blocks, block_size, total_size):
-        #TODO:这里怎么调用到 mainwin.status 并显示一个进度条?
-        print blocks,block_size,total_size
+        if blocks == -1:
+            statusbar.push(0,u'正在下载...')
+            statusbar.textbox.set_text(block_size)
+        elif blocks == -2:
+            statusbar.push(0,u'已完成.')
+        else:
+            percentage = float(blocks) / (total_size/block_size+1)
+            statusbar.progress.set_fraction(percentage)
     def SetupPopup(self):
         '''popup menu for album list tab'''
         

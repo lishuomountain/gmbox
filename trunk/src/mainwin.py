@@ -28,6 +28,7 @@ import gobject
 
 from lib.utils import find_image
 from tabview import *
+from statusbar import *
 
 if os.name == 'posix':
     import pynotify
@@ -58,7 +59,7 @@ class Mainwin(gtk.Window):
         self.but_box = self.setup_but_box()
         log.debug('Begin to setup notebook')
         self.gm_notebook = Tabview()
-        self.status = gtk.Statusbar()
+        self.status = statusbar
         vb.pack_start(self.but_box, False, False, 5)
         vb.pack_start(self.gm_notebook, True, True)
         vb.pack_start(self.status, False, False)
@@ -143,6 +144,6 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.DEBUG)
 
     gobject.threads_init()
-    g_mw=Mainwin()
+    Mainwin()
     gtk.main()
     
