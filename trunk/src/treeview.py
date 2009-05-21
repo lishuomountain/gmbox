@@ -135,8 +135,7 @@ class ListView(Abs_View):
 
         popupmenu = gtk.Menu()
         menuitem = gtk.MenuItem('下载')
-        menuitem.connect('activate',
-                         lambda w:gmbox.downone(self.current_path,callback=self.up_prs))
+        menuitem.connect('activate',lambda w:self.download(self.current_path))
         popupmenu.append(menuitem)
         
         menuitem = gtk.MenuItem('试听')
@@ -193,23 +192,20 @@ class ListView(Abs_View):
 
 # methods for popup menu above
         
+    def download(self,which):
+        if type(which)==int:
+            down_thread=threading.Thread(target=gmbox.downone,args=(which,self.up_prs))
+        else:
+            down_thread=threading.Thread(target=gmbox.down_listed,args=(which,self.up_prs))
+        down_thread.start()
+        
     def down_select(self):
         selected=[]
         for i in range(len(self._model)):
             iter = self._model.get_iter((i,))
             if self._model.get_value(iter, COL_STATUS):
                 selected.append(i)
-        gmbox.down_listed(selected,callback=self.up_prs)
-
-    def downone(self, widget):
-        #selected = self.current_list.treeview.get_selection().get_selected()
-        #list_model,iter = selected
-        #artist = list_model.get_value(iter, COL_ARTIST)
-        #title = list_model.get_value(iter, COL_TITLE)
-        artist = self.current_list.get_artist(self.current_path)
-        title = self.current_list.get_title(self.current_path)
-        id = self.current_list.get_id(self.current_path)
-        self.down_tree.add(title,artist,id)
+        self.download(selected)
 
     def listen(self, widget):
         try:
@@ -217,7 +213,7 @@ class ListView(Abs_View):
         except:
             print "Error"
 
-    def addToPlaylist(self, widget):
+"""    def addToPlaylist(self, widget):
         selected = self.current_list.treeview.get_selection().get_selected()
         list_model,iter = selected
         artist = list_model.get_value(iter, COL_ARTIST)
@@ -239,7 +235,7 @@ class ListView(Abs_View):
         self._songlist.delete_file(self.current_path)            
 
             
-"""        
+        
         
 class SearchListView(Abs_View,gmbox.SearchLists):
     '''音乐搜索页面'''

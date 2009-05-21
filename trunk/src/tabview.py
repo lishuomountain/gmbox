@@ -110,9 +110,11 @@ class Tabview(gtk.Notebook):
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        tmp_label=gtk.Label('coming soon ...')
+        tmp_label.set_use_markup(True)
 
         vb = gtk.VBox(False, 0)
-        vb.pack_start(scroll, True, True)
+        vb.pack_start(tmp_label, True, True)
 
         self.append_page(vb)
 
@@ -141,14 +143,11 @@ class Tabview(gtk.Notebook):
         #self.playlist_view= PlayListView(self.xml)
         #self.playlist_view.treeview.connect('button-press-event',self.playlist_click_checker)
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
-    def xxx(self,obj):
-        print mw
+
     def setup_options_tab(self):
-        but_xxx = gtk.Button(u'测试')
-        but_xxx.connect('clicked',self.xxx)
         tmp_label=gtk.Label('coming soon ...')
         tmp_label.set_use_markup(True)
-        self.append_page(but_xxx)
+        self.append_page(tmp_label)
         
     def setup_about_tab(self):
         about_label=gtk.Label('<span size="xx-large" weight="ultrabold">'

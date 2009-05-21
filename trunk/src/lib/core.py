@@ -135,9 +135,9 @@ class Gmbox:
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
         c=callback if callback else self.update_progress
-        c(-1,0,0) #-1做为开始信号
+        c(-1,filename,0) #-1做为开始信号
         urllib.urlretrieve(remote_uri, cache_uri, c)
-        c(-2,0,0) #-2做为结束信号
+        c(-2,filename,0) #-2做为结束信号
         speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
         #下载和试听模式都一样
         if callback==None:
