@@ -104,9 +104,6 @@ class ListView(Abs_View):
 
     def get_list(self, text, combo):
         '''request network for songs(ablums) list and load it'''
-
-        # two thread, one for download list, another for update treeview
-        # I know it's ugly, but this is the only method I could thought out
         statusbar.push(0,u'正在获取"'+text+u'"的歌曲列表,请稍候...')
         list_thread = threading.Thread(target=gmbox.get_list, args=(text,))
         list_thread.start()
@@ -118,14 +115,17 @@ class ListView(Abs_View):
     def update_listview(self, thread, combo):
 
         # loop inquiry until download thread is not alive
-        while thread.is_alive():
+        while thread.isAlive():
             sleep(0.1)
         else:
             gtk.gdk.threads_enter()
             self._model.clear()
-            [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
-            combo.set_sensitive(True)
-            statusbar.push(0,u'已完成.')
+            if gmbox.songlist:
+                [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
+                combo.set_sensitive(True)
+                statusbar.push(0,u'获取列表成功.')
+            else:
+                statusbar.push(0,u'错误:获取列表失败.')
             gtk.gdk.threads_leave()
 
     def up_prs(self, blocks, block_size, total_size):
