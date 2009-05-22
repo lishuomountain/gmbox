@@ -46,6 +46,7 @@ class ListParser(HTMLParser):
             self.isa=1
             if self.insongtable and self.tdclass == 'Icon BottomBorder':
                 (n,v)=zip(*attrs)
+                n,v=list(n),list(v)
                 if v[n.index('title')]==u'下载':
                     self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',v[n.index('onclick')],re.S).group(1)
                     self.songlist.append(self.tmpsong)
