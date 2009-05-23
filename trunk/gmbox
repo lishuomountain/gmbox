@@ -1,22 +1,4 @@
 #!/bin/bash
-#===============================================================================
-#
-#          FILE:  gmbox.sh
-# 
-#         USAGE:  ./gmbox.sh 
-# 
-#   DESCRIPTION:  google music box
-# 
-#       OPTIONS:  ---
-#  REQUIREMENTS:  ---
-#          BUGS:  ---
-#         NOTES:  ---
-#        AUTHOR:  amoblin 崔 (), amoblin@gmail.com
-#       COMPANY:  bistu
-#       VERSION:  1.0
-#       CREATED:  2009年04月22日 22时47分15秒 CST
-#      REVISION:  ---
-#===============================================================================
 
 cd /usr/share/gmbox
-python MainWindow.py
+python cli.py

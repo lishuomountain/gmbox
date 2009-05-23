@@ -30,11 +30,10 @@ def find_image(image_name):
     # the order is the priority, so keep global paths before local paths
 
     current_dir = os.path.abspath(os.path.dirname(__file__))
-
     common_paths = [
             os.path.join(sys.prefix, 'share', 'pixbufs'),
             os.path.join('..', 'pixbufs'),
-            os.path.join(current_dir, '../..', 'pixbufs')]
+            os.path.join(current_dir, '..', 'pixbufs')]
 
     for path in common_paths:
         filename = os.path.join(path, image_name)
