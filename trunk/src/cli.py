@@ -19,15 +19,13 @@
 
 '''gmbox的命令行界面'''
 import sys,copy,cmd
+from optparse import OptionParser
 from lib.core import *
 from lib.const import *
 from lib.utils import *
 #from lib.config import *
 reload(sys)
 sys.setdefaultencoding('utf8')
-
-# need more work:
-# write a interface transparent layer to import gtk and cli module
 
 #既然只有国内可以使用google music,就不考虑国际化了,提示都用中文.
 class CLI(cmd.Cmd):
@@ -44,7 +42,7 @@ class CLI(cmd.Cmd):
 
     def help_lists(self):
         print u'用法: lists\n查看支持的榜单名.'
-    def do_lists(self,arg):
+    def do_lists(self,arg=None):
         print u'目前gmbox支持以下列表: '+u'、'.join(['"%s"'%key for key in songlists])
     def help_list(self):
         print u'用法: list  <榜单名>\n列出榜单名的所有歌曲,默认列出上次list的榜单或话语新歌.'
@@ -70,7 +68,7 @@ class CLI(cmd.Cmd):
             self.help_search()
     def help_downall(self):
         print u'用法: downall\n下载上次list或search的所有歌曲'
-    def do_downall(self,arg):
+    def do_downall(self,arg=None):
         if self._candown():
             gmbox.downall()
     def help_down(self):
@@ -82,6 +80,7 @@ class CLI(cmd.Cmd):
                 [k.append(int(t)-1) for t in arg.split()]
             except ValueError:
                 print u'down 后面要加数字序号.'
+                return
             k=list(set(k))
             if len(k) > 0:
                 gmbox.down_listed(k)
@@ -103,23 +102,33 @@ class CLI(cmd.Cmd):
         else:
             return True
 
-    def _help(self):
-        print u"gmbox命令行模式:"
-        print u"用法: ",sys.argv[0],u"[选项]..."
-        print u" -s                  查看支持的榜单名."
-        print u" -l  榜单名          列出榜单名的所有歌曲"
-        print u" -d  榜单名 all      下载榜单名的所有歌曲"
-        print u" -d  榜单名 0 2 ...  下载榜单名的所有歌曲"
-        print u"gmbox交互模式(直接执行gmbox将进入交互模式):"
-        print u" lists           查看支持的榜单名."
-        print u" list  <榜单名>  列出榜单名的所有歌曲"
-        print u" search  关键字  搜索关键字"
-        print u" down  all       下载上次list或search得到的所有歌曲"
-        print u" down  1 3 ...   下载上次list或search得到的所有歌曲中的一部分,从1开始计数"
-
-    def error(self):
-        print sys.argv[0],": invalid option -- ",sys.argv[1]
-        print "Try '",sys.argv[0]," --help' for more information"
+def BatchMode():
+    parser = OptionParser(version='%prog '+VERSION, prog='gmbox', 
+        description=u'不加参数运行可以进入交互模式.否则进入批处理模式,执行参数指定的相应动作后退出.')
+    parser.add_option('-b', '--bang', action="store_true", dest='bang', help=u'列出所有支持的榜单名,并退出')
+    parser.add_option('-l', '--list', dest='list', metavar=u'榜单名', help=u'列出榜单歌曲')
+    parser.add_option('-s', '--search', dest='search', metavar=u'关键词', help=u'搜索关键词')
+    parser.add_option('-p', '--print', action="store_true", dest='print', default=True, help=u'search(-s)或list(-l)后的动作,仅打印,默认.')
+    parser.add_option('-a', '--downall', action="store_true", dest='downall', help=u'search(-s)或list(-l)后下载全部歌曲.')
+    parser.add_option('-d', '--down', action="store", dest='down', metavar=u'"1 3 6"', help=u'search(-s)或list(-l)后下载部分歌曲.后面跟歌曲序号(注意需要引号)')
+    (options, args) = parser.parse_args()
+    
+    cli=CLI()
+    if options.bang:
+        cli.do_lists()
+    else:
+        if options.search:
+            cli.do_search(options.search)
+        elif options.list:
+            cli.do_list(options.list)
+        if not(options.search or options.list) and (options.downall or options.down):
+            print u'downall(-a)或down(-d)需要配合search(-s)或list(-l)使用.'
+            return
+        if options.downall:
+            cli.do_downall()
+        elif options.down:
+            cli.do_down(options.down)
+            
 
 if __name__ == '__main__':
     if len(sys.argv)==1:
@@ -127,42 +136,4 @@ if __name__ == '__main__':
         cli=CLI()
         cli.cmdloop(u"欢迎使用 gmbox!\n更多信息请访问 http://code.google.com/p/gmbox/\n可以输入 'help' 查看支持的命令")
     else:
-        pass
-        """'''命令行模式''
-            if sys.argv[1]=='-s':
-                self._lists()
-            elif sys.argv[1]=='-l':
-                if len(sys.argv)==3:
-                    if os.name=='nt':
-                        self.currentlist=sys.argv[2].encode('GBK')
-                    else:
-                        self.currentlist=sys.argv[2].decode('UTF-8')
-                self._list()
-            elif sys.argv[1]=='-d':
-                list_name = u'华语新歌'
-                index=0
-                if len(sys.argv)==3:
-                    index = sys.argv[2]
-                l=Lists()
-                l.get_list(list_name)
-                #l.downone(int(index))
-                #l.download([0,2,6])
-                l.downall()
-            elif sys.argv[1] == '-s':
-                key = '周杰伦'
-                l=SearchLists()
-                l.get_list(key)
-                l.listall()
-            elif sys.argv[1]=='-t':
-                '''input your function to test here'''
-                playlist = PlayList()
-                playlist.play(0)
-                #playlist.get_information(0)
-                #ele = playlist.getElementByIndex(0).getAttribute("id")
-                #print ele
-                #playlist.delete(ele)
-            elif sys.argv[1]=='-h' or sys.argv[1] == '--help':
-                self.help()
-            else:
-                self.error()"""
-    
+        BatchMode()
