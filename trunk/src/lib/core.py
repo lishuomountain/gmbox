@@ -45,9 +45,10 @@ class Gmbox:
             (song['title'],song['artist'],song['id']) for song in self.songlist])
 
     def listall(self):
-        print '\n'.join(['Num=%d Title="%s" Artist="%s" ID="%s"'%
-            (self.songlist.index(song)+1,song['title'],song['artist'],song['id']) 
-            for song in self.songlist])
+        if self.songlist:
+            print '\n'.join(['Num=%d Title="%s" Artist="%s" ID="%s"'%
+                (self.songlist.index(song)+1,song['title'],song['artist'],song['id']) 
+                for song in self.songlist])
 
     def directly_down(self,uri,i):
         '''直接下载，用于试听中得到最终下载地址后调用'''
