@@ -145,26 +145,24 @@ class Tabview(gtk.Notebook):
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
 
     def setup_options_tab(self):
-        tmp_label=gtk.Label(u'注: 以下内容还未生效 ...(怎么对齐啊?汗..)')
+        t=gtk.Table(4,2)
+        tmp_label=gtk.Label(u'\n注: 以下内容还未生效 ...\n')
         tmp_label.set_use_markup(True)
-        vb = gtk.VBox(False, 0)
-        vb.pack_start(tmp_label)
-        hb1 = gtk.HBox(False, 0)
-        hb1.pack_start(gtk.Label(u'歌曲下载目录:'))
+        t.attach(tmp_label,0,2,0,1,gtk.SHRINK,gtk.SHRINK)
+    
         options_savedir = gtk.Entry()
-        hb1.pack_start(options_savedir)
-        vb.pack_start(hb1)
-        hb2 = gtk.HBox(False, 0)
-        hb2.pack_start(gtk.Label(u'是否将ID3信息转换为UTF8:'))
+        t.attach(gtk.Label(u'歌曲下载目录:'),0,1,1,2,gtk.SHRINK,gtk.SHRINK)
+        t.attach(options_savedir,1,2,1,2,yoptions=gtk.SHRINK)
+
         options_id3utf8 = gtk.CheckButton(u'转换')
-        hb2.pack_start(options_id3utf8 )
-        vb.pack_start(hb2)
-        hb3 = gtk.HBox(False, 0)
-        hb3.pack_start(gtk.Label(u'本地歌曲目录:'))
+        t.attach(gtk.Label(u'是否将ID3信息转换为UTF8:'),0,1,2,3,gtk.SHRINK,gtk.SHRINK)
+        t.attach(options_id3utf8,1,2,2,3,yoptions=gtk.SHRINK)
+
         options_localdir = gtk.Entry()
-        hb3.pack_start(options_localdir)
-        vb.pack_start(hb3)
-        self.append_page(vb)
+        t.attach(gtk.Label(u'本地歌曲目录:'),0,1,3,4,gtk.SHRINK,gtk.SHRINK)
+        t.attach(options_localdir,1,2,3,4,yoptions=gtk.SHRINK)
+
+        self.append_page(t)
         
     def setup_about_tab(self):
         about_label=gtk.Label('<span size="xx-large" weight="ultrabold">'
