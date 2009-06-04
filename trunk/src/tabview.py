@@ -38,7 +38,7 @@ class Tabview(gtk.Notebook):
         self.setup_search_tab()
         self.setup_down_tab()
         self.setup_playlist_tab()
-        self.setup_options_tab()
+        self.setup_config_tab()
         self.setup_about_tab()
 
         self.show_all()
@@ -144,7 +144,7 @@ class Tabview(gtk.Notebook):
         #self.playlist_view.treeview.connect('button-press-event',self.playlist_click_checker)
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
 
-    def setup_options_tab(self):
+    def setup_config_tab(self):
         t=gtk.Table(4,2)
         tmp_label=gtk.Label(u'\n注: 以下内容还未生效 ...\n')
         tmp_label.set_use_markup(True)
