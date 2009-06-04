@@ -22,7 +22,7 @@ import os, sys, copy, time, re, logging, urllib, urllib2
 from parser import *
 from const import *
 from utils import unistr,sizeread
-
+#import config
 
 log = logging.getLogger('lib.core')
 
@@ -31,36 +31,33 @@ userhome = os.path.expanduser('~')
 musicdir=os.path.join(userhome,'Music','google_music','top100')
 
 class Gmbox:
-    '''core class
-    1. hold songlist and and check to see which and where to download
-    '''
+    '''核心模块,初始化完成以后,成为一个全局变量.
+    功能包括:获取榜单,搜索歌曲,并维护一个当前列表,
+    并且可以下载当前列表中的部分或全部歌曲,并集成缓存.'''
     
     def __init__(self):
-        self.songlist = None
-        self.loop_number=0  #信号量
+        '''初始化一个空的gmbox对象'''
+        self.songlist = {}
         self.cached_list={}
 
     def __str__(self):
+        '''print对象的时候调用,由于win下可能会中文乱码,建议使用 listall 方法代替'''
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
 
     def listall(self):
-        if self.songlist:
-            print '\n'.join(['Num=%d Title="%s" Artist="%s" ID="%s"'%
-                (self.songlist.index(song)+1,song['title'],song['artist'],song['id']) 
-                for song in self.songlist])
-
-    def directly_down(self,uri,i):
-        '''直接下载，用于试听中得到最终下载地址后调用'''
-        filename = self.get_filename(i)
-        local_uri=os.path.join(musicdir,filename)
-        self.download(uri,filename,0)
+        '''打印当前列表信息'''
+        print '\n'.join(['Num=%d Title="%s" Artist="%s" ID="%s"'%
+            (self.songlist.index(song)+1,song['title'],song['artist'],song['id']) 
+            for song in self.songlist])
 
     def get_filename(self,i=0):
+        '''生成当前列表的第i首歌曲的文件名'''
         song=self.songlist[i]
         filename=song['title']+'-'+song['artist']+'.mp3'
         return filename
 
+    """以下函数未支持
     def get_title(self,i=0):
         song=self.songlist[i]
         return song['title']
@@ -82,26 +79,32 @@ class Gmbox:
         #print html
         p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
         self.songlist=p.songlist
-        print 'done!'
+        print 'done!'"""
+        
+    def get_url_html(self,url):
+        '''获取指定url的html'''
+        try:
+            html = urllib2.urlopen(url).read()
+        except urllib2.URLError:
+            print '网络错误,请检查网络...'
+            return
+        except:
+            print '未知错误!请到这里报告bug: http://code.google.com/p/gmbox/issues/entry'
+            return
+        return html
         
     def find_final_uri(self,i=0):
         '''找到最终真实下载地址，以供下一步DownLoad类下载'''
-        
         song=self.songlist[i]
-        songurl="http://www.google.cn/music/top100/musicdownload?id="+song['id']
-        
-        #try:
-        text = urllib2.urlopen(songurl).read()
-        #except:
-        #    log.debug('Reading URL Error')#: %s" % local_uri
-        #    return
+        songurl=song_url_template % (song['id'],)
+        html=self.get_url_html(songurl)
+
         s=SongParser()
-        s.feed(text)
+        s.feed(html)
         return s.url
 
     def downone(self,i=0,callback=None):
         '''下载榜单中的一首歌曲 '''
-        
         filename = self.get_filename(i)
         localuri = os.path.join(musicdir,filename)
         
@@ -150,8 +153,7 @@ class Gmbox:
             os.system('mid3iconv -e gbk "'+local_uri + '"')
 
     def update_progress(self, blocks, block_size, total_size):
-        # used by download method
-        '''处理进度显示的回调函数'''
+        '''默认的进度显示的回调函数'''
         if total_size > 0 and blocks >= 0:
             percentage = float(blocks) / (total_size/block_size+1) * 100
             if int(time.time()) != int(self.T):
@@ -172,19 +174,10 @@ class Gmbox:
             print u'正在获取"'+stype+u'"的歌曲列表',
             sys.stdout.flush()
             for i in range(0, songlists[stype][1], 25):
-                try:
-#                    r=urllib2.Request(urltemplate%(songlists[stype][0],i))
-#                    r.add_header('User-Agent','Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11')
-                    html=urllib2.urlopen(urltemplate%(songlists[stype][0],i)).read()
-                    p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-                    print '.',
-                    sys.stdout.flush()
-                except urllib2.URLError:
-                    print 'Error! Maybe the internet is not well...'
-                    return
-                except:
-                    print 'Unknow Error! Please report to ...'
-                    return
+                html=self.get_url_html(list_url_template%(songlists[stype][0],i))
+                p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+                print '.',
+                sys.stdout.flush()
             print 'done!'
             self.songlist = p.songlist
             self.cached_list[stype]=copy.copy(p.songlist)
@@ -195,6 +188,7 @@ class Gmbox:
             log.debug('Unknow list:"'+str(stype))
 
     def search(self,key):
+        '''搜索关键字'''
         if 's_'+key in self.cached_list:
             self.songlist=copy.copy(self.cached_list['s_'+key])
             return
@@ -203,73 +197,11 @@ class Gmbox:
         p=ListParser()
         print u'正在获取"'+key+u'"的搜索结果列表...',
         sys.stdout.flush()
-        try:
-            html=urllib2.urlopen(search_uri_template%key).read()
-            p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-        except urllib2.URLError:
-            print 'Error! Maybe the internet is not well...'
-            return
-        except:
-            print 'Unknow Error! Please report to ...'
-            return
+        html=self.get_url_html(search_uri_template%key)
+        p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
         print 'done!'
         self.songlist=p.songlist
         self.cached_list['s_'+key]=copy.copy(p.songlist)
-                    
-        '''def play(self,i=0):
-        #试听，播放
-        uri=''
-        global play_over
-        filename=self.get_filename(i)
-        print "preparing ",filename
-        local_uri=os.path.join(musicdir,filename)
-        if os.path.exists(local_uri):
-            print filename,u'已存在!'
-            print "directly play..."
-            play_over=0 #通知原来播放线程，你已被打断，退出吧，别保存！
-            if os.name=='posix':
-                os.system("pkill "+player)
-            os.system(player+' "'+local_uri+'"')
-            return
-        uri = self.find_final_uri(i)
-        if uri:
-            thread.start_new_thread(self.directly_down,(uri,i,))
-            cache_uri=local_uri+'.downloading'
-            if os.name=='posix':
-                os.system("pkill "+player)
-            play_over=0 #通知原来播放线程，你已被打断，退出吧，别保存！
-            time.sleep(2)   #应该选一个恰当的值...
-            play_over=1
-            print "here play_over is ",play_over
-            if os.name=='posix':
-                os.system('mid3iconv -e gbk "'+cache_uri +'"')
-            os.system(player+' "'+cache_uri+'"')
-
-            #自动播放完成后保存，播到一半切换歌曲则不保存
-            if play_over:   
-                #可能意外自动终止，比如上面sleep时间不够长等，然后就保存，
-                #os.rename(cache_uri, local_uri)
-                print "it seems like you love this song, so save file ",filename
-            else:
-                print "the song was interrupted..."
-                play_over=1 #恢复默认自动播放完毕状态
-        else:
-            print "Error, maybe the page is protected..."
-
-    def autoplay(self,start=0):
-        #从当前首开始依次播放
-        flag=1
-        print "begin to play",self.get_title(start)
-        while start < len(self.songlist) and self.loop_number < 2:   #loop_number为信号量
-            if flag==1:
-                print "set loop number"
-                self.loop_number = self.loop_number + 1
-                flag=0
-            self.play(start)
-            print "begin next"
-            start = start + 1
-            #self.current_path = self.current_path + 1
-        self.loop_number = self.loop_number - 1'''
         
 #全局实例化
 gmbox=Gmbox()

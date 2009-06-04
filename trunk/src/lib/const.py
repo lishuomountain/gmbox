@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 VERSION = '0.0.1'
-songlists={
+songlists = {
     u'华语新歌':('chinese_new_songs_cn',100),
     u'欧美新歌':('ea_new_songs_cn',100),
     u'华语热歌':('chinese_songs_cn',200),
@@ -38,6 +38,6 @@ songlists={
     u'爵士蓝调热歌':('jnb_songs_cn',100)
     }
     
-urltemplate="http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d"
+list_url_template = 'http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d'
 search_uri_template = 'http://www.google.cn/music/search?q=%s&aq=f'
-
+song_url_template = 'http://www.google.cn/music/top100/musicdownload?id=%s'
