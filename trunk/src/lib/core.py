@@ -110,7 +110,8 @@ class Gmbox:
         
         url = self.find_final_uri(i)
         if url:
-            self.download(url,filename,1,callback=callback)
+            print u'正在下载:',filename
+            self.download(url,localuri,callback=callback)
         else:   #下载页有验证码时url为空
             print '出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
 
@@ -123,14 +124,8 @@ class Gmbox:
         [self.downone(i,callback) for i in songids if i in range(len(self.songlist))]
             
     
-    def download(self, remote_uri, filename, mode=1, callback=None):
-        '''下载模式 1 和 试听(缓存)模式 0'''
-        #这里不用检测是否文件已存在了,上边的downone或play已检测了
-        if mode:
-            print u'正在下载:',filename
-        else:
-            print u'正在缓冲:',filename
-        local_uri=os.path.join(config.item['savedir'],filename)
+    def download(self, remote_uri, local_uri, callback=None):
+        '''下载remote_uri到local_uri'''
         cache_uri=local_uri+'.downloading'
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
@@ -144,6 +139,7 @@ class Gmbox:
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
         os.rename(cache_uri, local_uri)
+        #TODO:以后转码函数需要移到download外面成为独立的函数.
         if config.item['id3utf8']:
             '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
             os.system('mid3iconv -e gbk "'+local_uri + '"')
