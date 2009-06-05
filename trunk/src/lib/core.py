@@ -21,14 +21,10 @@ import os, sys, copy, time, re, logging, urllib, urllib2
 
 from parser import *
 from const import *
-from utils import unistr,sizeread
-#import config
+from utils import *
+from config import *
 
 log = logging.getLogger('lib.core')
-
-# this variable should read from preference
-userhome = os.path.expanduser('~')
-musicdir=os.path.join(userhome,'Music','google_music','top100')
 
 class Gmbox:
     '''核心模块,初始化完成以后,成为一个全局变量.
@@ -106,7 +102,7 @@ class Gmbox:
     def downone(self,i=0,callback=None):
         '''下载榜单中的一首歌曲 '''
         filename = self.get_filename(i)
-        localuri = os.path.join(musicdir,filename)
+        localuri = os.path.join(config.item['savedir'],filename)
         
         if os.path.exists(localuri):
             print filename,u'已存在!'
@@ -134,7 +130,7 @@ class Gmbox:
             print u'正在下载:',filename
         else:
             print u'正在缓冲:',filename
-        local_uri=os.path.join(musicdir,filename)
+        local_uri=os.path.join(config.item['savedir'],filename)
         cache_uri=local_uri+'.downloading'
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
@@ -148,7 +144,7 @@ class Gmbox:
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
         os.rename(cache_uri, local_uri)
-        if os.name=='posix':
+        if config.item['id3utf8']:
             '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
             os.system('mid3iconv -e gbk "'+local_uri + '"')
 

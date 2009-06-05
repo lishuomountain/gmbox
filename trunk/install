@@ -14,7 +14,7 @@ INSTALL(){
 	install -m 0644 src/{downpage,player,statusbar,tabview,treeview}.py /usr/share/gmbox/
 	install -m 0644 src/lib/*.py /usr/share/gmbox/lib
 	install -m 0644 gmbox.desktop /usr/share/applications
-	ln -sf /usr/share/gmbox/gmbox /usr/bin/gmbox
+	ln -sf /usr/share/gmbox/cli.py /usr/bin/gmbox
 	echo "install successful."
 }
 UNINSTALL(){

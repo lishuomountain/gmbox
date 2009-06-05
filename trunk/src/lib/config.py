@@ -22,6 +22,7 @@ import os,shutil,codecs
 
 class Config():
     def __init__(self):
+        '''初始化'''
         self.item={}
         userhome = os.path.expanduser('~')
         self.config_file = os.path.join(userhome,'.gmbox','config.xml')
@@ -34,29 +35,55 @@ class Config():
                 print u'创建配置文件成功!',self.config_file
                 self.read_config()
                 
-                self.item['savedir']=os.path.expanduser(self.item['savedir'])
-                self.replace_dom_text('savedir',self.item['savedir'])
-                
+                self.savedir_changed(self.item['savedir'])
                 if os.name!='posix':
-                    self.item['id3utf8']=False
-                    self.replace_dom_text('id3utf8',str(self.item['id3utf8']))
+                    self.id3utf8_changed('False')
         else:
             self.read_config()
     
     def read_config(self):
+        '''读配置文件'''
         self.dom=xml.dom.minidom.parse(self.config_file)
         self.item['savedir']=self.read_dom_text('savedir')
         self.item['id3utf8']=self.read_dom_text('id3utf8')=='True'
         
     def read_dom_text(self,key):
+        '''读dom中的节点值'''
         return self.dom.getElementsByTagName(key)[0].childNodes[0].data
+    def set_dom_text(self,key,value):
+        '''写dom中的节点值,同步到文件'''
+        self.dom.getElementsByTagName(key)[0].childNodes[0].data=value
+        self.write_to_file()
         
-    def replace_dom_text(self,key,new_value):
-        self.dom.getElementsByTagName(key)[0].childNodes[0].data=new_value
+    def savedir_changed(self,newvalue):
+        '''更改歌曲保存目录'''
+        v=os.path.abspath(os.path.expanduser(newvalue))
+        if os.path.exists(v):
+            if not os.path.isdir(v):
+                print u'错误:',v,u'已存在!'
+                return
+        else:
+            try:
+                os.mkdir(v)
+            except OSError:
+                print u'错误:',v,u'创建目录失败!'
+                return
+        print u'配置: savedir =>',v
+        self.item['savedir'] = v
+        self.set_dom_text('savedir',v)
+    def id3utf8_changed(self,newvalue):
+        '''更改是否更新ID3信息'''
+        v=True if newvalue in ['True','true','1','on'] else False
+        print u'配置: id3utf8 =>',v
+        self.item['id3utf8'] = v
+        self.set_dom_text('id3utf8',str(v))
+        
+    def write_to_file(self):
+        '''把dom写到配置文件'''
         f = file(self.config_file, 'wb')
         writer = codecs.lookup('utf-8')[3](f)
         self.dom.writexml(writer, encoding = 'utf-8')
-
+config=Config()
 """
 from xml.dom import minidom
 import codecs

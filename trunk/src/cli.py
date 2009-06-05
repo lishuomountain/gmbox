@@ -21,9 +21,7 @@
 import sys,copy,cmd
 from optparse import OptionParser
 from lib.core import *
-from lib.const import *
-from lib.utils import *
-#from lib.config import *
+ 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -33,9 +31,7 @@ class CLI(cmd.Cmd):
     def __init__(self):
         cmd.Cmd.__init__(self)
         self.currentlist=u'华语新歌'
-#        self._welcome()
         self.prompt = "gmbox> "
-#            ConfigFile()
 
     def default(self,line):
         print line,u' 不支持的命令!'
@@ -86,6 +82,22 @@ class CLI(cmd.Cmd):
                 gmbox.down_listed(k)
             else:
                 print u'down 后面要加数字序号.'
+    def help_config(self):
+        print u'用法: config 选项 参数:\nconfig savedir 目录        设置歌曲保存路径\n\
+config id3utf8 True|False  设置是否转换ID3信息到UTF-8编码'
+    def do_config(self,arg):
+        if arg == '':
+            print config.item
+        else:
+            if len(arg.split()) != 2:
+                self.help_config()
+            else:
+                if arg.split()[0]=='savedir':
+                    config.savedir_changed(arg.split()[1])
+                elif arg.split()[0]=='id3utf8':
+                    config.id3utf8_changed(arg.split()[1])
+                else:
+                    self.help_config()
         
     def help_exit(self):
         print u'用法: exit\n退出gmbox.'
@@ -94,7 +106,8 @@ class CLI(cmd.Cmd):
     def do_EOF(self,arg):
         print
         sys.exit(0)
-        
+    def do_printconfig(self,arg):
+        print config.item
     def _candown(self):
         if not gmbox.songlist:
             print u'执行down或downall命令前,需先执行list或search命令'
