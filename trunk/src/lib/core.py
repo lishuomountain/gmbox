@@ -123,16 +123,15 @@ class Gmbox:
         '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
         [self.downone(i,callback) for i in songids if i in range(len(self.songlist))]
             
-    
     def download(self, remote_uri, local_uri, callback=None):
         '''下载remote_uri到local_uri'''
         cache_uri=local_uri+'.downloading'
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
         c=callback if callback else self.update_progress
-        c(-1,filename,0) #-1做为开始信号
+        c(-1,os.path.basename(local_uri),0) #-1做为开始信号
         urllib.urlretrieve(remote_uri, cache_uri, c)
-        c(-2,filename,0) #-2做为结束信号
+        c(-2,os.path.basename(local_uri),0) #-2做为结束信号
         speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
         #下载和试听模式都一样
         if callback==None:
