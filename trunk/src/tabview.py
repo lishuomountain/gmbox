@@ -24,6 +24,7 @@ import logging
 from player import playbox
 from treeview import ListView
 from lib.const import *
+from lib.config import *
 
 
 log = logging.getLogger('gmbox.tabview')
@@ -150,11 +151,21 @@ class Tabview(gtk.Notebook):
         tmp_label.set_use_markup(True)
         t.attach(tmp_label,0,2,0,1,gtk.SHRINK,gtk.SHRINK)
     
+        hb_savedir = gtk.HBox(False, 0)
         options_savedir = gtk.Entry()
+        options_savedir.set_text(config.item['savedir'])
+        bt_savedir = gtk.Button('浏览...')
+        bt_savedir.connect('clicked',self.config_savedir,options_savedir)
+
+        hb_savedir.pack_start(options_savedir, True, True)
+        hb_savedir.pack_start(bt_savedir, False, False)
+        
         t.attach(gtk.Label(u'歌曲下载目录:'),0,1,1,2,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_savedir,1,2,1,2,yoptions=gtk.SHRINK)
+        t.attach(hb_savedir,1,2,1,2,yoptions=gtk.SHRINK)
 
         options_id3utf8 = gtk.CheckButton(u'转换')
+        options_id3utf8.set_mode(config.item['id3utf8'])
+        options_id3utf8.connect('toggled', self.config_id3utf8)
         t.attach(gtk.Label(u'是否将ID3信息转换为UTF8:'),0,1,2,3,gtk.SHRINK,gtk.SHRINK)
         t.attach(options_id3utf8,1,2,2,3,yoptions=gtk.SHRINK)
 
@@ -170,6 +181,24 @@ class Tabview(gtk.Notebook):
         about_label.set_use_markup(True)
         self.append_page(about_label)
         
+    def config_savedir(self,widget,entry):
+        dialog = gtk.FileChooserDialog("Open..",
+               None,
+               gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
+               (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+        dialog.set_default_response(gtk.RESPONSE_OK) 
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            config.savedir_changed(dialog.get_filename())
+            entry.set_text(dialog.get_filename())
+        elif response == gtk.RESPONSE_CANCEL:
+            print '取消'
+        dialog.destroy()
+        
+    def config_id3utf8(self,widget):
+        config.id3utf8_changed(widget.get_mode())
+
 
 # ============================================
 # signal methods
