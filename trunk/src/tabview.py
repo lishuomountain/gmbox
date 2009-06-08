@@ -164,7 +164,7 @@ class Tabview(gtk.Notebook):
         t.attach(hb_savedir,1,2,1,2,yoptions=gtk.SHRINK)
 
         options_id3utf8 = gtk.CheckButton(u'转换')
-        options_id3utf8.set_mode(config.item['id3utf8'])
+        options_id3utf8.set_active(config.item['id3utf8'])
         options_id3utf8.connect('toggled', self.config_id3utf8)
         t.attach(gtk.Label(u'是否将ID3信息转换为UTF8:'),0,1,2,3,gtk.SHRINK,gtk.SHRINK)
         t.attach(options_id3utf8,1,2,2,3,yoptions=gtk.SHRINK)
@@ -197,7 +197,7 @@ class Tabview(gtk.Notebook):
         dialog.destroy()
         
     def config_id3utf8(self,widget):
-        config.id3utf8_changed(widget.get_mode())
+        config.id3utf8_changed(widget.get_active())
 
 
 # ============================================

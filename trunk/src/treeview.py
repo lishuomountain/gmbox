@@ -75,19 +75,12 @@ class Abs_View(gtk.TreeView):
         self.set_rules_hint(True)
 
     def fixed_toggled(self, cell, path):
-        # get toggled iter
         iter = self._model.get_iter((int(path),))
         fixed = self._model.get_value(iter, COL_STATUS)
 
         # do something with the value
         fixed = not fixed
 
-        if fixed:
-            print 'Select[row]:',path
-        else:
-            print 'Invert Select[row]:',path
-
-        # set new value
         self._model.set(iter, COL_STATUS, fixed)
 
         

@@ -73,7 +73,7 @@ class Config():
         self.set_dom_text('savedir',v)
     def id3utf8_changed(self,newvalue):
         '''更改是否更新ID3信息'''
-        v=True if newvalue in ['True','true','1','on'] else False
+        v=True if newvalue in [True,'True','true','1','on'] else False
         print u'配置: id3utf8 =>',v
         self.item['id3utf8'] = v
         self.set_dom_text('id3utf8',str(v))
