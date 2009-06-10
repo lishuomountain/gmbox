@@ -154,6 +154,7 @@ class Tabview(gtk.Notebook):
         hb_savedir = gtk.HBox(False, 0)
         options_savedir = gtk.Entry()
         options_savedir.set_text(config.item['savedir'])
+        options_savedir.set_sensitive(False)
         bt_savedir = gtk.Button('浏览...')
         bt_savedir.connect('clicked',self.config_savedir,options_savedir)
 
