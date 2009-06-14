@@ -34,7 +34,7 @@ class Abs_View(gtk.TreeView):
         '''依次存入：status,歌曲编号，歌曲名，歌手          #专辑，长度，url'''
 
         gtk.TreeView.__init__(self)
-        
+        self.connect('button-press-event', self.click_checker)        
         #self.model = gtk.ListStore(bool, str, str,str)
         #self.model.connect("row-changed", self.SaveSongIndex)
 
@@ -82,44 +82,6 @@ class Abs_View(gtk.TreeView):
         fixed = not fixed
 
         self._model.set(iter, COL_STATUS, fixed)
-
-        
-class ListView(Abs_View):
-    '''榜单下载页面'''
-    
-    def __init__(self):
-        '''get hot song list treeview widget'''
-        Abs_View.__init__(self, 'list_treeview')
-
-        self._model = gtk.ListStore(bool, str, str,str)
-        self.set_model(self._model)
-        self.connect('button-press-event', self.click_checker)
-
-    def get_list(self, text, combo):
-        '''request network for songs(ablums) list and load it'''
-        statusbar.push(0,u'正在获取"'+text+u'"的歌曲列表,请稍候...')
-        list_thread = threading.Thread(target=gmbox.get_list, args=(text,))
-        list_thread.start()
-        update_thread = threading.Thread(target=self.update_listview, args=(list_thread, combo,))
-        update_thread.start()
-
-        return update_thread
-
-    def update_listview(self, thread, combo):
-
-        # loop inquiry until download thread is not alive
-        while thread.isAlive():
-            sleep(0.1)
-        else:
-            gtk.gdk.threads_enter()
-            self._model.clear()
-            if gmbox.songlist:
-                [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
-                combo.set_sensitive(True)
-                statusbar.push(0,u'获取列表成功.')
-            else:
-                statusbar.push(0,u'错误:获取列表失败.')
-            gtk.gdk.threads_leave()
 
     def up_prs(self, blocks, block_size, total_size):
         if blocks == -1:
@@ -191,7 +153,7 @@ class ListView(Abs_View):
             log.debug('select index : %d' % self.current_path)
         else:
             self.current_path = None
-
+                            
 # methods for popup menu above
         
     def download(self,which):
@@ -208,13 +170,83 @@ class ListView(Abs_View):
             if self._model.get_value(iter, COL_STATUS):
                 selected.append(i)
         self.download(selected)
-
-    def listen(self, widget):
+        
+'''    def listen(self, widget):
         try:
             thread.start_new_thread(self.play,(self.current_path,))
         except:
-            print "Error"
+            print "Error"'''
+                    
+class ListView(Abs_View):
+    '''榜单下载页面'''
+    
+    def __init__(self):
+        '''get hot song list treeview widget'''
+        Abs_View.__init__(self, 'list_treeview')
+        self._model = gtk.ListStore(bool, str, str,str)
+        self.set_model(self._model)
 
+
+    def get_list(self, text, combo):
+        '''request network for songs(ablums) list and load it'''
+        statusbar.push(0,u'正在获取"'+text+u'"的歌曲列表,请稍候...')
+        list_thread = threading.Thread(target=gmbox.get_list, args=(text,))
+        list_thread.start()
+        update_thread = threading.Thread(target=self.update_listview, args=(list_thread, combo,))
+        update_thread.start()
+
+        return update_thread
+
+    def update_listview(self, thread, combo):
+
+        # loop inquiry until download thread is not alive
+        while thread.isAlive():
+            sleep(0.1)
+        else:
+            gtk.gdk.threads_enter()
+            self._model.clear()
+            if gmbox.songlist:
+                [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
+                combo.set_sensitive(True)
+                statusbar.push(0,u'获取列表成功.')
+            else:
+                statusbar.push(0,u'错误:获取列表失败.')
+            gtk.gdk.threads_leave()
+
+class SearchView(Abs_View):
+    '''关键词搜索页面'''
+    
+    def __init__(self):
+        Abs_View.__init__(self, 'list_searchview')
+        self._model = gtk.ListStore(bool, str, str,str)
+        self.set_model(self._model)
+        self.connect('button-press-event', self.click_checker)
+
+    def search(self, text, combo):
+        '''request network for songs(ablums) list and load it'''
+        statusbar.push(0,u'正在搜索"'+text+u'",请稍候...')
+        search_thread = threading.Thread(target=gmbox.search, args=(text,))
+        search_thread.start()
+        update_thread = threading.Thread(target=self.update_searchview, args=(search_thread, combo,))
+        update_thread.start()
+
+        return update_thread
+
+    def update_searchview(self, thread, combo):
+
+        # loop inquiry until download thread is not alive
+        while thread.isAlive():
+            sleep(0.1)
+        else:
+            gtk.gdk.threads_enter()
+            self._model.clear()
+            if gmbox.songlist:
+                [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
+                combo.set_sensitive(True)
+                statusbar.push(0,u'搜索成功.')
+            else:
+                statusbar.push(0,u'错误:搜索失败.')
+            gtk.gdk.threads_leave()
 """    def addToPlaylist(self, widget):
         selected = self.current_list.treeview.get_selection().get_selected()
         list_model,iter = selected

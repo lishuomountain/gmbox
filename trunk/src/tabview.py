@@ -22,7 +22,7 @@ import gtk
 import logging
 
 from player import playbox
-from treeview import ListView
+from treeview import ListView,SearchView
 from lib.const import *
 from lib.config import *
 
@@ -55,7 +55,7 @@ class Tabview(gtk.Notebook):
         self.combox.append_text("--请选择--")
         [self.combox.append_text(slist) for slist in songlists]
         self.combox.set_active(0)
-        self.combox.connect("changed", self.doSearch)
+        self.combox.connect("changed", self.do_getlist)
         
         self.but_down_select = gtk.Button('下载选中的音乐')
         self.but_down_select.connect('clicked',lambda w:self.list_view.down_select())
@@ -76,21 +76,20 @@ class Tabview(gtk.Notebook):
 
         self.append_page(vb)
 
-
-        #self.list_view.treeview.connect('key_press_event', self.tree_view_key_checker)
-
-
     def setup_search_tab(self):
         
         hb = gtk.HBox(False, 0)
         self.search_entry = gtk.Entry()
         self.search_ok = gtk.Button("搜索")
+        self.search_ok.connect('clicked', self.do_search)
         hb.pack_start(self.search_entry)
         hb.pack_start(self.search_ok, False)
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-
+        self.search_view = SearchView()
+        scroll.add(self.search_view)
+        
         vb = gtk.VBox(False, 0)
         vb.pack_start(hb, False, False)
         vb.pack_start(scroll, True, True)
@@ -147,7 +146,8 @@ class Tabview(gtk.Notebook):
 
     def setup_config_tab(self):
         t=gtk.Table(4,2)
-        tmp_label=gtk.Label(u'\n注: 以下内容还未生效 ...\n')
+        #tmp_label=gtk.Label(u'\n注: 以下内容还未生效 ...\n')
+        tmp_label=gtk.Label('\n设置\n')
         tmp_label.set_use_markup(True)
         t.attach(tmp_label,0,2,0,1,gtk.SHRINK,gtk.SHRINK)
     
@@ -171,6 +171,8 @@ class Tabview(gtk.Notebook):
         t.attach(options_id3utf8,1,2,2,3,yoptions=gtk.SHRINK)
 
         options_localdir = gtk.Entry()
+        options_localdir.set_text('此功能尚未实现.')
+        options_localdir.set_sensitive(False)
         t.attach(gtk.Label(u'本地歌曲目录:'),0,1,3,4,gtk.SHRINK,gtk.SHRINK)
         t.attach(options_localdir,1,2,3,4,yoptions=gtk.SHRINK)
 
@@ -204,7 +206,7 @@ class Tabview(gtk.Notebook):
 # ============================================
 # signal methods
 
-    def doSearch(self, widget):
+    def do_getlist(self, widget):
         '''Begin song(album) list download thread'''
         
         text=widget.get_active_text().decode('utf8')
@@ -213,6 +215,10 @@ class Tabview(gtk.Notebook):
             widget.set_sensitive(False)
             self.list_view.get_list(text, widget)
             
+    def do_search(self, widget):
+        text=self.search_entry.get_text()
+        widget.set_sensitive(False)
+        self.search_view.search(text, widget)
 
     def doSearchMusic(self,widget):
         '''music search button clicked callback'''
@@ -228,14 +234,6 @@ class Tabview(gtk.Notebook):
         print "while start thread"
         thread.start_new_thread(self.listLocalFile,(widget,))
         print "OK"
-
-    
-    
-# =============================================
-# ========================================
-
-
-# ======================================
 
     def SetupPopup2(self):
         '''popup menu for playlist tab'''
