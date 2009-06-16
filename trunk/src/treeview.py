@@ -176,7 +176,7 @@ class Abs_View(gtk.TreeView):
             thread.start_new_thread(self.play,(self.current_path,))
         except:
             print "Error"'''
-                    
+    
 class ListView(Abs_View):
     '''榜单下载页面'''
     
