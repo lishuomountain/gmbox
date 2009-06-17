@@ -190,7 +190,7 @@ class ListView(Abs_View):
     def get_list(self, text, combo):
         '''request network for songs(ablums) list and load it'''
         statusbar.push(0,u'正在获取"'+text+u'"的歌曲列表,请稍候...')
-        list_thread = threading.Thread(target=gmbox.get_list, args=(text,))
+        list_thread = threading.Thread(target=gmbox.get_list, args=(text,self.list_up_prs))
         list_thread.start()
         update_thread = threading.Thread(target=self.update_listview, args=(list_thread, combo,))
         update_thread.start()
@@ -212,6 +212,9 @@ class ListView(Abs_View):
             else:
                 statusbar.push(0,u'错误:获取列表失败.')
             gtk.gdk.threads_leave()
+    
+    def list_up_prs(self, current_page, total_pages):
+        statusbar.progress.set_fraction(float(current_page)/total_pages)
 
 class SearchView(Abs_View):
     '''关键词搜索页面'''

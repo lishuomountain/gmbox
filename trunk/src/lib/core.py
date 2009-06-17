@@ -154,7 +154,7 @@ class Gmbox:
                 ''.join([' ' for i in range((int)(50-percentage/2))])+ \
                 (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
 
-    def get_list(self,stype):
+    def get_list(self,stype,callback=None):
         '''获取特定榜单'''
         if stype in self.cached_list:
             self.songlist=copy.copy(self.cached_list[stype])
@@ -169,6 +169,8 @@ class Gmbox:
                 p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
                 print '.',
                 sys.stdout.flush()
+                if callback:
+                    callback(int(i/25)+1,(songlists[stype][1]/25))
             print 'done!'
             self.songlist = p.songlist
             self.cached_list[stype]=copy.copy(p.songlist)
