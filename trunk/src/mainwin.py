@@ -17,15 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pygtk
-pygtk.require('2.0')
+import pygtk,sys
+if not sys.platform == 'win32':
+    pygtk.require('2.0')
 import gtk
 import os
 from optparse import OptionParser
 import logging
 import gobject
 
-from lib.utils import find_image
+from lib.utils import find_image,module_path
 from tabview import *
 from statusbar import *
 
@@ -44,7 +45,7 @@ class Mainwin(gtk.Window):
         self.set_title("GMBox")
         self.set_default_size(800, 600)
         # need work
-        ui_logo=gtk.gdk.pixbuf_new_from_file(find_image('gmbox.png'))
+        ui_logo=gtk.gdk.pixbuf_new_from_file(find_image('gmbox.png',module_path()))
         self.set_icon(ui_logo)
 
         log.debug('Setup up system tray icon')
@@ -71,7 +72,7 @@ class Mainwin(gtk.Window):
         
         self.systray = gtk.StatusIcon()
         # need write a find picture method
-        self.systray.set_from_file(find_image('gmbox.png'))
+        self.systray.set_from_file(find_image('gmbox.png',module_path()))
         self.systray.connect("activate", self.systrayCb)
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip("Click to toggle window visibility")

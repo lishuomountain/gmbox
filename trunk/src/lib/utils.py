@@ -22,24 +22,30 @@ import logging
 import os
 import sys
 
-
-def find_image(image_name):
+def module_path():
+    """ This will get us the program's directory,
+    even if we are frozen using py2exe"""
+    if hasattr(sys, "frozen"):
+        return os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
+    return os.path.dirname(unicode(__file__, sys.getfilesystemencoding( )))
+    
+def find_image(image_name,basefile=None):
     """Using the iamge_name, search in the common places. Return the path for
     the image or None if the image couldn't be found."""
 
     # the order is the priority, so keep global paths before local paths
-
-    current_dir = os.path.abspath(os.path.dirname(__file__))
+    if not basefile:
+        basefile = __file__
+    current_dir = os.path.abspath(os.path.dirname(basefile))
     common_paths = [
-            os.path.join(sys.prefix, 'share', 'pixbufs'),
-            os.path.join('..', 'pixbufs'),
-            os.path.join(current_dir, '..', 'pixbufs')]
+            os.path.join(current_dir, '..', 'pixbufs'),
+            os.path.join(current_dir, '..', '..', 'pixbufs'),
+            os.path.join(sys.prefix, 'share', 'gmbox', 'pixbufs')]
 
     for path in common_paths:
         filename = os.path.join(path, image_name)
         if os.access(filename, os.F_OK):
             return filename
-
     return None
 
 def unistr(m):
