@@ -19,6 +19,7 @@ setup(
         'py2exe': {
             'packages' : 'encodings',
             'includes' : 'cairo, pango, pangocairo, atk, gobject',
+            'dist_dir' : 'gmbox',
         }
     },
     data_files=[
