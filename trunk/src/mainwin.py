@@ -26,7 +26,7 @@ from optparse import OptionParser
 import logging
 import gobject
 
-from lib.utils import find_image,module_path
+from lib.utils import find_image_or_data,module_path
 from tabview import *
 from statusbar import *
 
@@ -45,7 +45,7 @@ class Mainwin(gtk.Window):
         self.set_title("GMBox")
         self.set_default_size(800, 600)
         # need work
-        ui_logo=gtk.gdk.pixbuf_new_from_file(find_image('gmbox.png',module_path()))
+        ui_logo=gtk.gdk.pixbuf_new_from_file(find_image_or_data('gmbox.png',module_path()))
         self.set_icon(ui_logo)
 
         log.debug('Setup up system tray icon')
@@ -72,7 +72,7 @@ class Mainwin(gtk.Window):
         
         self.systray = gtk.StatusIcon()
         # need write a find picture method
-        self.systray.set_from_file(find_image('gmbox.png',module_path()))
+        self.systray.set_from_file(find_image_or_data('gmbox.png',module_path()))
         self.systray.connect("activate", self.systrayCb)
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip("Click to toggle window visibility")

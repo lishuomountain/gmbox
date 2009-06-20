@@ -29,23 +29,26 @@ def module_path():
         return os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
     return os.path.dirname(unicode(__file__, sys.getfilesystemencoding( )))
     
-def find_image(image_name,basefile=None):
+def find_image_or_data(file_name,basedir=None,dirname='pixbufs'):
     """Using the iamge_name, search in the common places. Return the path for
     the image or None if the image couldn't be found."""
 
     # the order is the priority, so keep global paths before local paths
-    if not basefile:
-        basefile = __file__
-    current_dir = os.path.abspath(os.path.dirname(basefile))
+    if not basedir:
+        current_dir = os.path.abspath(os.path.dirname(__file__))
+    else:
+        current_dir = basedir
     common_paths = [
-            os.path.join(current_dir, '..', 'pixbufs'),
-            os.path.join(current_dir, '..', '..', 'pixbufs'),
-            os.path.join(sys.prefix, 'share', 'gmbox', 'pixbufs')]
+            os.path.join(current_dir, '..', dirname),
+            os.path.join(current_dir, '..', '..', dirname),
+            os.path.join(current_dir, dirname),
+            os.path.join(sys.prefix, 'share', 'gmbox', dirname)]
 
     for path in common_paths:
-        filename = os.path.join(path, image_name)
+        filename = os.path.join(path, file_name)
         if os.access(filename, os.F_OK):
             return filename
+    print 'not found:',file_name
     return None
 
 def unistr(m):

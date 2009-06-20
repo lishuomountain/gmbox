@@ -19,17 +19,21 @@
 
 import xml.dom.minidom
 import os,shutil,codecs
+from utils import find_image_or_data,module_path
 
 class Config():
     def __init__(self):
         '''初始化'''
         self.item={}
         userhome = os.path.expanduser('~')
-        self.config_file = os.path.join(userhome,'.gmbox','config.xml')
+        self.config_folder = os.path.join(userhome,'.gmbox')
+        self.config_file = os.path.join(self.config_folder,'config.xml')
+        if not os.path.isdir(self.config_folder):
+            os.mkdir(self.config_folder)
         if not os.path.exists(self.config_file):
-            config_sample_file=os.path.join(os.path.dirname(__file__),'..','data','config.xml.sample')
-            if not os.path.exists(config_sample_file):
-                config_sample_file=os.path.join(os.path.dirname(__file__),'..','..','data','config.xml.sample')
+            config_sample_file=find_image_or_data('config.xml.sample',module_path(),'data')
+            print module_path()
+            print config_sample_file
             shutil.copy(config_sample_file,self.config_file)
             if not os.path.exists(self.config_file):
                 print u'创建配置文件失败!',self.config_file
