@@ -20,6 +20,7 @@
 
 import gtk
 import logging
+import webbrowser
 
 from player import playbox
 from treeview import ListView,SearchView
@@ -180,10 +181,20 @@ class Tabview(gtk.Notebook):
         self.append_page(t)
         
     def setup_about_tab(self):
+        vb = gtk.VBox()
         about_label=gtk.Label('<span size="xx-large" weight="ultrabold">'
             +'gmbox V'+VERSION+'</span>')
         about_label.set_use_markup(True)
-        self.append_page(about_label)
+        bt_home = gtk.Button(u'项目主页')
+        bt_home.connect('clicked',lambda w: webbrowser.open('http://code.google.com/p/gmbox/'))
+        bt_blog = gtk.Button(u' 博客 ')
+        bt_blog.connect('clicked',lambda w: webbrowser.open('http://li2z.cn/category/gmbox/'))
+        hb = gtk.HBox()
+        hb.pack_start(bt_home)
+        hb.pack_start(bt_blog)
+        vb.pack_start(about_label)
+        vb.pack_start(hb,False,False)
+        self.append_page(vb)
         
     def config_savedir(self,widget,entry):
         dialog = gtk.FileChooserDialog("Open..",
