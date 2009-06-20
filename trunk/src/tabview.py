@@ -80,7 +80,7 @@ class Tabview(gtk.Notebook):
         
         hb = gtk.HBox(False, 0)
         self.search_entry = gtk.Entry()
-        self.search_entry.connect('key-press-event',self.do_entry_key)
+        self.search_entry.connect('activate',self.do_entry_key)
         self.search_ok = gtk.Button("搜索")
         self.search_ok.connect('clicked', self.do_search)
         hb.pack_start(self.search_entry)
@@ -221,9 +221,8 @@ class Tabview(gtk.Notebook):
         widget.set_sensitive(False)
         self.search_view.search(text, widget)
 
-    def do_entry_key(self, widget, event):
-        if event.keyval == 65293: #TODO:检测回车,肯定有更好的办法,现在开着输入法(fcitx)的时候会收到两次事件.
-            self.do_search(self.search_ok)
+    def do_entry_key(self, widget):
+        self.do_search(self.search_ok)
         
     def doSearchMusic(self,widget):
         '''music search button clicked callback'''

@@ -139,7 +139,7 @@ class Abs_View(gtk.TreeView):
 
             # Don't use exception, It's good for debug
             # Here test whether we have songlist, if have, show popup menu
-            if self.current_path:
+            if None != self.current_path:
                 self.SetupPopup()
 
     def get_current_location(self, x, y):
@@ -223,7 +223,6 @@ class SearchView(Abs_View):
         Abs_View.__init__(self, 'list_searchview')
         self._model = gtk.ListStore(bool, str, str,str)
         self.set_model(self._model)
-        self.connect('button-press-event', self.click_checker)
 
     def search(self, text, combo):
         '''request network for songs(ablums) list and load it'''
