@@ -44,7 +44,7 @@ class ListParser(HTMLParser):
         
         if tag == 'a':
             self.isa=1
-            if self.insongtable and self.tdclass == 'Icon BottomBorder':
+            if self.insongtable and self.tdclass[:4] == 'Icon':
                 (n,v)=zip(*attrs)
                 n,v=list(n),list(v)
                 if v[n.index('title')]==u'下载':
@@ -58,7 +58,7 @@ class ListParser(HTMLParser):
             for (n,v) in attrs:
                 if n=='class':
                     self.tdclass=v
-                    if v=='Title BottomBorder':
+                    if v[:5]=='Title':
                         self.tmpsong=self.songtemplate.copy()
         if tag == 'span':
             self.ispan=1
@@ -81,11 +81,11 @@ class ListParser(HTMLParser):
         '''处理html节点数据的函数'''
         
         if self.insongtable and (self.isa or self.ispan or self.isb):
-            if self.tdclass == 'Title BottomBorder':
+            if self.tdclass[:5] == 'Title':
                 self.tmpsong['title']+=data
-            elif self.tdclass == 'Artist BottomBorder':
+            elif self.tdclass[:6] == 'Artist':
                 self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
-            elif self.tdclass == 'Album BottomBorder':
+            elif self.tdclass[:5] == 'Album':
                 self.tmpsong['album']=data
                 
     def __str__(self):
