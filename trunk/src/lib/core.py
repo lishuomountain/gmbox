@@ -35,6 +35,7 @@ class Gmbox:
         '''初始化一个空的gmbox对象'''
         self.songlist = {}
         self.cached_list={}
+        self.albuminfo = {}
 
     def __str__(self):
         '''print对象的时候调用,由于win下可能会中文乱码,建议使用 listall 方法代替'''
@@ -180,6 +181,31 @@ class Gmbox:
             ['"%s"'%key for key in songlists])
             log.debug('Unknow list:"'+str(stype))
 
+    def get_albumlist(self, albumurl):
+        '''获取专辑的信息，包括专辑名、歌手名和歌曲列表'''
+        p = ListParser()
+        print u'正在获取该专辑的信息',
+        sys.stdout.flush()
+        html = self.get_url_html(albumurl)
+        p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+        print '.'
+        sys.stdout.flush()
+        print 'done!'
+        self.songlist = p.songlist
+        self.albuminfo = p.albuminfo
+
+    def downalbum(self, albumurl):
+        '''下载整个专辑'''
+        self.get_albumlist(albumurl)
+
+        print u'专辑名:' + self.albuminfo['title']
+        print u'歌手名:' + self.albuminfo['artist']
+        print '\n'.join(['Num=%02d Title="%s"'%
+            (self.songlist.index(song)+1,song['title']) 
+            for song in self.songlist])
+        [self.downone(i) for i in range(len(self.songlist))]
+        
+        
     def search(self,key):
         '''搜索关键字'''
         if 's_'+key in self.cached_list:

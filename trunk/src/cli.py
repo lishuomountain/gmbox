@@ -67,6 +67,18 @@ class CLI(cmd.Cmd):
     def do_downall(self,arg=None):
         if self._candown():
             gmbox.downall()
+            
+    def help_downalbum(self):
+        print u'用法: downalbum 专辑所在页面URL'
+        print u'例子: downalbum http://www.google.cn/music/album?id=Bc21fbc4302aa9dd4'
+        
+    def do_downalbum(self,arg):
+        if len(arg.split()) != 1:
+            self.help_downalbum()
+        else:
+            self.albumurl = arg.split()[0]
+            gmbox.downalbum(self.albumurl)
+        
     def help_down(self):
         print u'用法: down num1 [num2 [num3 ...]]\n下载上次list或search的所有歌曲中的一部分,从1开始计数'
     def do_down(self,arg):
@@ -124,6 +136,7 @@ def BatchMode():
     parser.add_option('-p', '--print', action="store_true", dest='print', default=True, help=u'search(-s)或list(-l)后的动作,仅打印,默认.')
     parser.add_option('-a', '--downall', action="store_true", dest='downall', help=u'search(-s)或list(-l)后下载全部歌曲.')
     parser.add_option('-d', '--down', action="store", dest='down', metavar=u'"1 3 6"', help=u'search(-s)或list(-l)后下载部分歌曲.后面跟歌曲序号(注意需要引号)')
+    parser.add_option('-m', '--downalbum', dest='downalbum', metavar=u'专辑页面URL', help=u'下载专辑')
     (options, args) = parser.parse_args()
     
     cli=CLI()
@@ -134,6 +147,8 @@ def BatchMode():
             cli.do_search(options.search)
         elif options.list:
             cli.do_list(options.list)
+        elif options.downalbum:
+            cli.do_downalbum(options.downalbum)
         if not(options.search or options.list) and (options.downall or options.down):
             print u'downall(-a)或down(-d)需要配合search(-s)或list(-l)使用.'
             return

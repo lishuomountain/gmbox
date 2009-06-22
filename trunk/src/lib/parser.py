@@ -38,6 +38,14 @@ class ListParser(HTMLParser):
             'id':''}
         self.tmpsong=self.songtemplate.copy()
         (self.isa,self.ispan,self.isb,self.insongtable,self.tdclass)=(0,0,0,0,'')
+        self.albuminfo={
+            'title':'',
+            'artist':'',
+            'time':'',
+            'company':''}
+        self.inalbumtable=0
+        self.albumisfirsttitle=True
+        self.albumdescriptiontimes=0    
     
     def handle_starttag(self, tag, attrs):
         '''处理标签开始的函数'''
@@ -54,12 +62,18 @@ class ListParser(HTMLParser):
             for (n,v) in attrs:
                 if n=='id' and v=='song_list':
                     self.insongtable=1
+                if n=='id' and v=='album_item':
+                    self.inalbumtable=1
         if self.insongtable and tag == 'td':
             for (n,v) in attrs:
                 if n=='class':
                     self.tdclass=v
                     if v[:5]=='Title':
                         self.tmpsong=self.songtemplate.copy()
+        if self.inalbumtable and tag == 'td':
+            for (n,v) in attrs:
+                if n == 'class':
+                    self.tdclass = v
         if tag == 'span':
             self.ispan=1
         if tag == 'b':
@@ -72,6 +86,7 @@ class ListParser(HTMLParser):
             self.isa=0
         if tag == 'table':
             self.insongtable=0
+            self.inalbumtable = 0            
         if tag == 'span':
             self.ispan=0
         if tag == 'b':
@@ -87,6 +102,22 @@ class ListParser(HTMLParser):
                 self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
             elif self.tdclass[:5] == 'Album':
                 self.tmpsong['album']=data
+
+        if self.inalbumtable:
+            if self.tdclass == 'Title' and self.albumisfirsttitle:
+                self.albuminfo['title'] = data
+                if self.albuminfo['title'].startswith(u'《'):
+                    self.albuminfo['title'] = self.albuminfo['title'].replace(u'《','')
+                    self.albuminfo['title'] = self.albuminfo['title'].replace(u'》','')                
+                self.albumisfirsttitle=False
+            if self.tdclass == 'Description':
+                if self.albumdescriptiontimes == 1:
+                    self.albuminfo['artist'] = data
+                elif self.albumdescriptiontimes == 3:
+                    self.albuminfo['time'] = data
+                elif self.albumdescriptiontimes == 4:
+                    self.albuminfo['company'] = data
+                self.albumdescriptiontimes += 1
                 
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
