@@ -80,6 +80,15 @@ class CLI(cmd.Cmd):
             gmbox.listall()
         else:
             self.help_search()
+    def help_searchalbum(self):
+        print u'用法: searchalbum  关键字\n以关键字搜索专辑'
+    def do_searchalbum(self,arg):
+        arg=deal_input(arg)
+        if arg != '':
+            gmbox.searchalbum(arg)
+            gmbox.listallalbum()
+        else:
+            self.help_searchalbum()
     def help_downall(self):
         print u'用法: downall\n下载上次list或search的所有歌曲'
     def do_downall(self,arg=None):

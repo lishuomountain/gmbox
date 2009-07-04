@@ -94,6 +94,10 @@ class Gmbox:
         except:
             print '未知错误!请到这里报告bug: http://code.google.com/p/gmbox/issues/entry'
             return
+        #简单的预处理也放在这
+        html=re.sub(r'&#([0-9]{2,5});',unistr,html)
+        html=re.sub(r'&nbsp;',' ',html)
+        html=re.sub(r'</?b>','',html)
         return html
         
     def find_final_uri(self,i=0):
@@ -101,7 +105,6 @@ class Gmbox:
         song=self.songlist[i]
         songurl=song_url_template % (song['id'],)
         html=self.get_url_html(songurl)
-
         s=SongParser()
         s.feed(html)
         return s.url
@@ -173,7 +176,7 @@ class Gmbox:
             sys.stdout.flush()
             for i in range(0, songlists[stype][1], 25):
                 html=self.get_url_html(list_url_template%(songlists[stype][0],i))
-                p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+                p.feed(html)
                 print '.',
                 sys.stdout.flush()
                 if callback:
@@ -198,8 +201,6 @@ class Gmbox:
             sys.stdout.flush()
             for i in range(0, albums_lists[albumlist_name][1], 10):
                 html=self.get_url_html(albums_list_url_template%(albums_lists[albumlist_name][0],i))
-                html=re.sub(r'&#([0-9]{2,5});',unistr,html)
-                html=re.sub(r'&nbsp;',' ',html)
                 p.feed(html)
                 print '.',
                 sys.stdout.flush()
@@ -219,7 +220,7 @@ class Gmbox:
         print u'正在获取该专辑的信息',
         sys.stdout.flush()
         html = self.get_url_html(albumurl)
-        p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+        p.feed(html)
         print '.',
         sys.stdout.flush()
         print 'done!'
@@ -246,13 +247,28 @@ class Gmbox:
 
         key = re.sub((r'\ '),'+',key)
         p=ListParser()
-        print u'正在获取"'+key+u'"的搜索结果列表...',
+        print u'正在获取"'+key+u'"的专辑搜索结果列表...',
         sys.stdout.flush()
-        html=self.get_url_html(search_uri_template%key)
-        p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
+        html=self.get_url_html(search_url_template%key)
+        p.feed(html)
         print 'done!'
         self.songlist=p.songlist
         self.cached_list['s_'+key]=copy.copy(p.songlist)
+    def searchalbum(self,key):
+        '''搜索关键字'''
+        if 'said_'+key in self.cached_list:
+            self.albumlist=copy.copy(self.cached_list['said_'+key])
+            return
+
+        key = re.sub((r'\ '),'+',key)
+        p=AlbumListParser()
+        print u'正在获取"'+key+u'"的搜索结果列表...',
+        sys.stdout.flush()
+        html=self.get_url_html(albums_search_url_template%key)
+        p.feed(html)
+        print 'done!'
+        self.albumlist=p.albumlist
+        self.cached_list['said_'+key]=copy.copy(p.albumlist)
         
 #全局实例化
 gmbox=Gmbox()

@@ -38,7 +38,7 @@ class ListParser(HTMLParser):
             'album':'',
             'id':''}
         self.tmpsong=self.songtemplate.copy()
-        (self.isa,self.ispan,self.isb,self.insongtable,self.tdclass)=(0,0,0,0,'')
+        (self.isa,self.ispan,self.insongtable,self.tdclass)=(0,0,0,'')
         self.albuminfo={
             'title':'',
             'artist':'',
@@ -72,8 +72,6 @@ class ListParser(HTMLParser):
             self.tdclass=get_attrs_value_by_name(attrs,'class')
         if tag == 'span':
             self.ispan=1
-        if tag == 'b':
-            self.isb=1
 
     def handle_endtag(self, tag):
         '''处理标签结束的函数'''
@@ -85,13 +83,11 @@ class ListParser(HTMLParser):
             self.inalbumtable = 0            
         if tag == 'span':
             self.ispan=0
-        if tag == 'b':
-            self.isb=0
 
     def handle_data(self, data):
         '''处理html节点数据的函数'''
         
-        if self.insongtable and (self.isa or self.ispan or self.isb):
+        if self.insongtable and (self.isa or self.ispan):
             if self.tdclass[:5] == 'Title':
                 self.tmpsong['title']+=data
             elif self.tdclass[:6] == 'Artist':
