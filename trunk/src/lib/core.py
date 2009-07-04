@@ -33,7 +33,8 @@ class Gmbox:
     
     def __init__(self):
         '''初始化一个空的gmbox对象'''
-        self.songlist = {}
+        self.songlist = []
+        self.albumlist = []
         self.cached_list={}
         self.albuminfo = {}
 
@@ -47,6 +48,11 @@ class Gmbox:
         print '\n'.join(['Num=%d Title="%s" Artist="%s" ID="%s"'%
             (self.songlist.index(song)+1,song['title'],song['artist'],song['id']) 
             for song in self.songlist])
+    def listallalbum(self):
+        '''打印当前专辑列表信息'''
+        print '\n'.join(['Num=%d Name="%s" Memo="%s" ID="%s"'%
+            (self.albumlist.index(album)+1,album['name'],album['memo'],album['id']) 
+            for album in self.albumlist])
 
     def get_filename(self,i=0):
         '''生成当前列表的第i首歌曲的文件名'''
@@ -176,11 +182,37 @@ class Gmbox:
             self.songlist = p.songlist
             self.cached_list[stype]=copy.copy(p.songlist)
         else:
-            #raise Exception
+            #TODO:raise Exception
             print u'未知列表:"'+str(stype)+u'",仅支持以下列表: '+u'、'.join(
             ['"%s"'%key for key in songlists])
             log.debug('Unknow list:"'+str(stype))
-
+    
+    def get_album_IDs(self,albumlist_name,callback=None):
+        '''获取专辑列表中的专辑ID'''
+        if 'aid_'+albumlist_name in self.cached_list:
+            self.albumlist=copy.copy(self.cached_list['aid_'+albumlist_name])
+            return
+        if albumlist_name in albums_lists:
+            p = AlbumListParser()
+            print u'正在获取"'+albumlist_name+u'"的专辑列表',
+            sys.stdout.flush()
+            for i in range(0, albums_lists[albumlist_name][1], 10):
+                html=self.get_url_html(albums_list_url_template%(albums_lists[albumlist_name][0],i))
+                html=re.sub(r'&#([0-9]{2,5});',unistr,html)
+                html=re.sub(r'&nbsp;',' ',html)
+                p.feed(html)
+                print '.',
+                sys.stdout.flush()
+                if callback:
+                    callback(int(i/10)+1,(albums_lists[albumlist_name][1]/10))
+            print 'done!'
+            self.albumlist = p.albumlist
+            self.cached_list['aid_'+albumlist_name]=copy.copy(p.albumlist)
+        else:
+            #TODO:raise Exception
+            print u'未知专辑列表:"'+str(albumlist_name)+u'",仅支持以下列表: '+u'、'.join(
+            ['"%s"'%key for key in albums_lists])
+        
     def get_albumlist(self, albumurl):
         '''获取专辑的信息，包括专辑名、歌手名和歌曲列表'''
         p = ListParser()
@@ -188,7 +220,7 @@ class Gmbox:
         sys.stdout.flush()
         html = self.get_url_html(albumurl)
         p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-        print '.'
+        print '.',
         sys.stdout.flush()
         print 'done!'
         self.songlist = p.songlist

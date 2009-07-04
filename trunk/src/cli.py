@@ -31,6 +31,7 @@ class CLI(cmd.Cmd):
     def __init__(self):
         cmd.Cmd.__init__(self)
         self.currentlist=u'华语新歌'
+        self.currentalbumlist=u'影视新碟'
         self.prompt = "gmbox> "
 
     def default(self,line):
@@ -40,8 +41,12 @@ class CLI(cmd.Cmd):
         print u'用法: lists\n查看支持的榜单名.'
     def do_lists(self,arg=None):
         print u'目前gmbox支持以下列表: '+u'、'.join(['"%s"'%key for key in songlists])
+    def help_albums(self):
+        print u'用法: albums\n查看支持的专辑列表名.'
+    def do_albums(self,arg=None):
+        print u'目前gmbox支持以下专辑列表: '+u'、'.join(['"%s"'%key for key in albums_lists])
     def help_list(self):
-        print u'用法: list  <榜单名>\n列出榜单名的所有歌曲,默认列出上次list的榜单或话语新歌.'
+        print u'用法: list  <榜单名>\n列出榜单名的所有歌曲,默认列出上次list的榜单或华语新歌.'
     def do_list(self,arg):
         arg=deal_input(arg)
         if arg != '':
@@ -53,6 +58,19 @@ class CLI(cmd.Cmd):
         gmbox.get_list(self.currentlist)
         gmbox.listall()
         print self.currentlist,u'包含以上',len(gmbox.songlist),u'首歌.'
+    def help_albumslist(self):
+        print u'用法: albumslist  <专辑列表名>\n列出专辑列表的所有专辑,默认列出上次albumslist的专辑或影视新碟.'
+    def do_albumslist(self,arg):
+        arg=deal_input(arg)
+        if arg != '':
+            if arg in albums_lists:
+                self.currentalbumlist=arg
+            else:
+                print u'未知列表:"'+arg+u'"'
+                return
+        gmbox.get_album_IDs(self.currentalbumlist)
+        gmbox.listallalbum()
+        print self.currentalbumlist,u'包含以上',len(gmbox.albumlist),u'个专辑.'
     def help_search(self):
         print u'用法: search  关键字\n搜索关键字'
     def do_search(self,arg):

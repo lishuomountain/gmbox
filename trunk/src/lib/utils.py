@@ -70,3 +70,10 @@ def deal_input(str):
         return str.decode('GBK')
     else:
         return str.decode('UTF-8')
+
+def get_attrs_value_by_name(attrs, name):
+    if not attrs:
+        return None
+    (n,v)=zip(*attrs)
+    n,v=list(n),list(v)
+    return v[n.index(name)] if name in n else None

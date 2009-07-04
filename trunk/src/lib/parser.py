@@ -21,6 +21,7 @@
 import re
 from HTMLParser import HTMLParser
 import logging
+from utils import get_attrs_value_by_name
 
 log = logging.getLogger('lib.parser')
 
@@ -53,27 +54,22 @@ class ListParser(HTMLParser):
         if tag == 'a':
             self.isa=1
             if self.insongtable and self.tdclass[:4] == 'Icon':
-                (n,v)=zip(*attrs)
-                n,v=list(n),list(v)
-                if v[n.index('title')]==u'下载':
-                    self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',v[n.index('onclick')],re.S).group(1)
+                if get_attrs_value_by_name(attrs,'title')==u'下载':
+                    self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',
+                        get_attrs_value_by_name(attrs,'onclick'),re.S).group(1)
                     self.songlist.append(self.tmpsong)
         if tag == 'table':
-            for (n,v) in attrs:
-                if n=='id' and v=='song_list':
-                    self.insongtable=1
-                if n=='id' and v=='album_item':
-                    self.inalbumtable=1
+            if get_attrs_value_by_name(attrs,'id')=='song_list':
+                self.insongtable=1
+            if get_attrs_value_by_name(attrs,'id')=='album_item':
+                self.inalbumtable=1
+
         if self.insongtable and tag == 'td':
-            for (n,v) in attrs:
-                if n=='class':
-                    self.tdclass=v
-                    if v[:5]=='Title':
-                        self.tmpsong=self.songtemplate.copy()
+            self.tdclass=get_attrs_value_by_name(attrs,'class')
+            if self.tdclass[:5]=='Title':
+                self.tmpsong=self.songtemplate.copy()
         if self.inalbumtable and tag == 'td':
-            for (n,v) in attrs:
-                if n == 'class':
-                    self.tdclass = v
+            self.tdclass=get_attrs_value_by_name(attrs,'class')
         if tag == 'span':
             self.ispan=1
         if tag == 'b':
@@ -108,7 +104,7 @@ class ListParser(HTMLParser):
                 self.albuminfo['title'] = data
                 if self.albuminfo['title'].startswith(u'《'):
                     self.albuminfo['title'] = self.albuminfo['title'].replace(u'《','')
-                    self.albuminfo['title'] = self.albuminfo['title'].replace(u'》','')                
+                    self.albuminfo['title'] = self.albuminfo['title'].replace(u'》','')
                 self.albumisfirsttitle=False
             if self.tdclass == 'Description':
                 if self.albumdescriptiontimes == 1:
@@ -138,6 +134,46 @@ class SongParser(HTMLParser):
     def __str__(self):
         return self.url
 
+class AlbumListParser(HTMLParser):
+    '''解析专辑列表页面,得到专辑名字和ID'''
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.albumlist=[]
+        self.albumtemplate={
+            'name':'',
+            'memo':'',
+            'id':''}
+        self.inAlbumInfoTable,self.inTitleTd,self.inMemoTd,self.inLinkA=False,False,False,False
+    def handle_starttag(self, tag, attrs):
+        if tag == 'table':
+            if get_attrs_value_by_name(attrs,'class')=='AlbumInfo':
+                self.inAlbumInfoTable=True
+        if tag == 'td':
+            if get_attrs_value_by_name(attrs,'class')=='Title':
+                self.inTitleTd=True
+            if get_attrs_value_by_name(attrs,'class')=='Tracks':
+                self.inMemoTd=True
+        if tag == 'a':
+            if get_attrs_value_by_name(attrs,'name')=='LandingPageLink':
+                self.inLinkA=True
+                href=get_attrs_value_by_name(attrs,'href')
+                self.tmpalbum=self.albumtemplate.copy()
+                self.tmpalbum['id']=re.match(r'.*id%3D(.*?)&resnum.*',href,re.S).group(1)
+    def handle_data(self, data):
+        if self.inLinkA:
+            self.tmpalbum['name']=data.replace(u'《','').replace(u'》','')
+        if self.inMemoTd:
+            self.tmpalbum['memo']=data
+            self.albumlist.append(self.tmpalbum)
+    def handle_endtag(self, tag):
+        if tag == 'a':
+            self.inLinkA=False
+        if tag == 'table':
+            self.inAlbumInfoTable=False
+        if tag == 'td':
+            self.inTitleTd,self.inMemoTd=False,False
+    
+"""
 class LyricsParser(HTMLParser):
     '''解析歌词页面 '''
     def __init__(self):
@@ -191,3 +227,4 @@ class LyricsParser(HTMLParser):
     def __str__(self):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
+"""
