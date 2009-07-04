@@ -100,11 +100,24 @@ class CLI(cmd.Cmd):
         print u'例子: downalbum http://www.google.cn/music/album?id=Bc21fbc4302aa9dd4'
         
     def do_downalbum(self,arg):
-        if len(arg.split()) != 1:
+        if self._candownalbum():
+            k=[]
+            try:
+                [k.append(int(t)-1) for t in arg.split()]
+            except ValueError:
+                print u'downalbum 后面要加数字序号.'
+                return
+            k=list(set(k))
+            if len(k) > 0:
+                gmbox.downalbums(k)
+            else:
+                print u'downalbum 后面要加数字序号.'
+            
+        """if len(arg.split()) != 1:
             self.help_downalbum()
         else:
             self.albumurl = arg.split()[0]
-            gmbox.downalbum(self.albumurl)
+            gmbox.downalbum(self.albumurl)"""
         
     def help_down(self):
         print u'用法: down num1 [num2 [num3 ...]]\n下载上次list或search的所有歌曲中的一部分,从1开始计数'
@@ -153,6 +166,12 @@ config id3utf8 True|False  设置是否转换ID3信息到UTF-8编码'
             return False
         else:
             return True
+    def _candownalbum(self):
+        if not gmbox.albumlist:
+            print u'执行downalbum或downalbumall命令前,需先执行albumslist或searchalbum命令'
+            return False
+        else:
+            return True
 
 def BatchMode():
     parser = OptionParser(version='%prog '+VERSION, prog='gmbox', 
@@ -163,7 +182,7 @@ def BatchMode():
     parser.add_option('-p', '--print', action="store_true", dest='print', default=True, help=u'search(-s)或list(-l)后的动作,仅打印,默认.')
     parser.add_option('-a', '--downall', action="store_true", dest='downall', help=u'search(-s)或list(-l)后下载全部歌曲.')
     parser.add_option('-d', '--down', action="store", dest='down', metavar=u'"1 3 6"', help=u'search(-s)或list(-l)后下载部分歌曲.后面跟歌曲序号(注意需要引号)')
-    parser.add_option('-m', '--downalbum', dest='downalbum', metavar=u'专辑页面URL', help=u'下载专辑')
+#    parser.add_option('-m', '--downalbum', dest='downalbum', metavar=u'专辑页面URL', help=u'下载专辑')
     (options, args) = parser.parse_args()
     
     cli=CLI()

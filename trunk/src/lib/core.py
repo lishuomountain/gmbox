@@ -125,9 +125,9 @@ class Gmbox:
         else:   #下载页有验证码时url为空
             print '出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
 
-    def downall(self):
+    def downall(self,callback=None):
         '''下载榜单中的所有歌曲'''
-        [self.downone(i) for i in range(len(self.songlist))]
+        [self.downone(i,callback) for i in range(len(self.songlist))]
 
     def down_listed(self,songids=[],callback=None):
         '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
@@ -213,30 +213,36 @@ class Gmbox:
             #TODO:raise Exception
             print u'未知专辑列表:"'+str(albumlist_name)+u'",仅支持以下列表: '+u'、'.join(
             ['"%s"'%key for key in albums_lists])
+
+    def downalbums(self,albumids=[],callback=None):
+        '''下载专辑列表的特定几个专辑,传入序号的列表指定要下载的专辑'''
+        [self.downalbum(i,callback) for i in albumids if i in range(len(self.albumlist))]
         
-    def get_albumlist(self, albumurl):
+    def get_albumlist(self, albumnum):
         '''获取专辑的信息，包括专辑名、歌手名和歌曲列表'''
+        albumid=self.albumlist[albumnum]['id']
+        if 'a_'+albumid in self.cached_list:
+            self.songlist=copy.copy(self.cached_list['a_'+albumid][0])
+            self.albuminfo=copy.copy(self.cached_list['a_'+albumid][1])
+            return
+        
         p = ListParser()
-        print u'正在获取该专辑的信息',
+        print u'正在获取专辑信息',
         sys.stdout.flush()
-        html = self.get_url_html(albumurl)
+        html = self.get_url_html('http://www.google.cn/music/album?id=%s'%albumid)
         p.feed(html)
-        print '.',
-        sys.stdout.flush()
         print 'done!'
         self.songlist = p.songlist
         self.albuminfo = p.albuminfo
+        self.cached_list['a_'+albumid]=copy.copy((p.songlist,p.albuminfo))
 
-    def downalbum(self, albumurl):
+    def downalbum(self, albumnum,callback=None):
         '''下载整个专辑'''
-        self.get_albumlist(albumurl)
-
+        self.get_albumlist(albumnum)
         print u'专辑名:' + self.albuminfo['title']
         print u'歌手名:' + self.albuminfo['artist']
-        print '\n'.join(['Num=%02d Title="%s"'%
-            (self.songlist.index(song)+1,song['title']) 
-            for song in self.songlist])
-        [self.downone(i) for i in range(len(self.songlist))]
+        self.listall()
+        self.downall(callback)
         
         
     def search(self,key):
