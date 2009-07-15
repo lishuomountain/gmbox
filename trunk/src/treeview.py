@@ -169,7 +169,8 @@ class Abs_View(gtk.TreeView):
             iter = self._model.get_iter((i,))
             if self._model.get_value(iter, COL_STATUS):
                 selected.append(i)
-        self.download(selected)
+        if selected:
+            self.download(selected)
         
 '''    def listen(self, widget):
         try:
@@ -196,7 +197,7 @@ class ListView(Abs_View):
         update_thread.start()
 
         return update_thread
-
+        
     def update_listview(self, thread, combo):
 
         # loop inquiry until download thread is not alive
@@ -212,10 +213,55 @@ class ListView(Abs_View):
             else:
                 statusbar.push(0,u'错误:获取列表失败.')
             gtk.gdk.threads_leave()
-    
+
     def list_up_prs(self, current_page, total_pages):
         statusbar.progress.set_fraction(float(current_page)/total_pages)
 
+class AlbumListView(Abs_View):
+    '''专辑榜单下载页面'''
+    
+    def __init__(self):
+        '''get hot song list treeview widget'''
+        Abs_View.__init__(self, 'list_treeview')
+        self._model = gtk.ListStore(bool, str, str,str)
+        self.set_model(self._model)
+        
+    def update_albumlistview(self, thread, combo):
+
+        # loop inquiry until download thread is not alive
+        while thread.isAlive():
+            sleep(0.1)
+        else:
+            gtk.gdk.threads_enter()
+            self._model.clear()
+            if gmbox.albumlist:
+                [self._model.append([False, gmbox.albumlist.index(album)+1, album['name'] , album['memo']]) for album in gmbox.albumlist]
+                combo.set_sensitive(True)
+                statusbar.push(0,u'获取列表成功.')
+            else:
+                statusbar.push(0,u'错误:获取列表失败.')
+            gtk.gdk.threads_leave()
+            
+    def get_albumlist(self, text, combo):
+        '''request network for songs(ablums) list and load it'''
+        statusbar.push(0,u'正在获取"'+text+u'"的专辑列表,请稍候...')
+        list_thread = threading.Thread(target=gmbox.get_album_IDs, args=(text,self.list_up_prs))
+        list_thread.start()
+        update_thread = threading.Thread(target=self.update_albumlistview, args=(list_thread, combo,))
+        update_thread.start()
+
+        return update_thread
+
+    def list_up_prs(self, current_page, total_pages):
+        statusbar.progress.set_fraction(float(current_page)/total_pages)
+
+    def download(self,which):
+        if type(which)==int:
+            down_thread=threading.Thread(target=gmbox.downalbum,args=(which,self.up_prs))
+        else:
+            down_thread=threading.Thread(target=gmbox.downalbums,args=(which,self.up_prs))
+        down_thread.start()
+        
 class SearchView(Abs_View):
     '''关键词搜索页面'''
     
@@ -249,6 +295,47 @@ class SearchView(Abs_View):
             else:
                 statusbar.push(0,u'错误:搜索失败.')
             gtk.gdk.threads_leave()
+
+class AlbumSearchView(Abs_View):
+    '''关键词搜索页面'''
+    
+    def __init__(self):
+        Abs_View.__init__(self, 'list_searchview')
+        self._model = gtk.ListStore(bool, str, str,str)
+        self.set_model(self._model)
+
+    def search(self, text, combo):
+        '''request network for songs(ablums) list and load it'''
+        statusbar.push(0,u'正在搜索专辑"'+text+u'",请稍候...')
+        search_thread = threading.Thread(target=gmbox.searchalbum, args=(text,))
+        search_thread.start()
+        update_thread = threading.Thread(target=self.update_searchview, args=(search_thread, combo,))
+        update_thread.start()
+
+        return update_thread
+
+    def update_searchview(self, thread, combo):
+
+        # loop inquiry until download thread is not alive
+        while thread.isAlive():
+            sleep(0.1)
+        else:
+            gtk.gdk.threads_enter()
+            self._model.clear()
+            if gmbox.albumlist:
+                [self._model.append([False, gmbox.albumlist.index(album)+1, album['name'] , album['memo']]) for album in gmbox.albumlist]
+                combo.set_sensitive(True)
+                statusbar.push(0,u'搜索成功.')
+            else:
+                statusbar.push(0,u'错误:搜索失败.')
+            gtk.gdk.threads_leave()
+            
+    def download(self,which):
+        if type(which)==int:
+            down_thread=threading.Thread(target=gmbox.downalbum,args=(which,self.up_prs))
+        else:
+            down_thread=threading.Thread(target=gmbox.downalbums,args=(which,self.up_prs))
+        down_thread.start()
 """    def addToPlaylist(self, widget):
         selected = self.current_list.treeview.get_selection().get_selected()
         list_model,iter = selected

@@ -54,12 +54,13 @@ class Mainwin(gtk.Window):
 
         self.connect('destroy', gtk.main_quit)
         #self.window.connect('key_press_event', self.key_checker)
-
+        
+        self.but_index=0
         vb = gtk.VBox(False, 0)
-        self.but_box = self.setup_but_box()
         log.debug('Begin to setup notebook')
         self.gm_notebook = Tabview()
         self.status = statusbar
+        self.but_box = self.setup_but_box()
         vb.pack_start(self.but_box, False, False, 5)
         vb.pack_start(self.gm_notebook, True, True)
         vb.pack_start(self.status, False, False)
@@ -119,19 +120,16 @@ class Mainwin(gtk.Window):
         time = gtk.get_current_event_time()
         popup_menu.popup(None, None, None, 0, time)
 
-    def setup_but_box_one(self,but_box,but_index,but_name):
+    def setup_but_box_one(self,but_box,but_name):
         but_x = gtk.Button(but_name)
-        but_x.connect('clicked',lambda w:self.gm_notebook.set_current_page(but_index))
+        but_x.connect('clicked',lambda o,x:self.gm_notebook.set_current_page(x),self.but_index)
+        self.but_index+=1
         but_box.pack_start(but_x)
         
     def setup_but_box(self):
         but_box = gtk.HButtonBox()
-        self.setup_but_box_one(but_box,0,'榜单下载')
-        self.setup_but_box_one(but_box,1,'音乐搜索')
-        self.setup_but_box_one(but_box,2,'下载管理')
-        self.setup_but_box_one(but_box,3,'播放列表')
-        self.setup_but_box_one(but_box,4,'设置')
-        self.setup_but_box_one(but_box,5,'关于')
+        tabs=[u'榜单下载',u'音乐搜索',u'专辑榜单',u'专辑搜索',u'下载管理',u'播放列表',u'设置',u'关于']
+        [self.setup_but_box_one(but_box,i) for i in tabs]
         return but_box
 
 if __name__ == '__main__':
