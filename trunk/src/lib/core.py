@@ -37,6 +37,7 @@ class Gmbox:
         self.albumlist = []
         self.cached_list={}
         self.albuminfo = {}
+        self.downalbumnow = False
 
     def __str__(self):
         '''print对象的时候调用,由于win下可能会中文乱码,建议使用 listall 方法代替'''
@@ -60,30 +61,6 @@ class Gmbox:
         filename=song['title']+'-'+song['artist']+'.mp3'
         return filename
 
-    """以下函数未支持
-    def get_title(self,i=0):
-        song=self.songlist[i]
-        return song['title']
-
-    def get_artist(self,i=0):
-        song=self.songlist[i]
-        return song['artist']
-
-    def get_id(self,i=0):
-        song=self.songlist[i]
-        return song['id']
-
-    def down_lyrics(self,i=0):
-        lyrics_uri_template='http://g.top100.cn/7872775/html/lyrics.html?id=%s'
-        p=LyricsParser()
-        print u'正在获取"'+key+u'"的歌词',
-        print search_uri_template%key
-        html=urllib2.urlopen(search_uri_template%key).read()
-        #print html
-        p.feed(re.sub(r'&#([0-9]{2,5});',unistr,html))
-        self.songlist=p.songlist
-        print 'done!'"""
-        
     def get_url_html(self,url):
         '''获取指定url的html'''
         try:
@@ -110,10 +87,16 @@ class Gmbox:
         return s.url
 
     def downone(self,i=0,callback=None):
-        '''下载榜单中的一首歌曲 '''
+        '''下载当然列表中的一首歌曲 '''
         filename = self.get_filename(i)
-        localuri = os.path.join(config.item['savedir'],filename)
-        
+        if config.item['makealbumdir'] and self.downalbumnow:
+            albumpath = os.path.join(config.item['savedir'],
+                self.albuminfo['title']+'-'+self.albuminfo['artist'])
+            if not os.path.isdir(albumpath):
+                os.mkdir(albumpath)
+            localuri = os.path.join(albumpath,filename)
+        else:
+            localuri = os.path.join(config.item['savedir'],filename)
         if os.path.exists(localuri):
             print filename,u'已存在!'
             return
@@ -126,11 +109,11 @@ class Gmbox:
             print '出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
 
     def downall(self,callback=None):
-        '''下载榜单中的所有歌曲'''
+        '''下载当然列表中的所有歌曲'''
         [self.downone(i,callback) for i in range(len(self.songlist))]
 
     def down_listed(self,songids=[],callback=None):
-        '''下载榜单的特定几首歌曲,传入序号的列表指定要下载的歌'''
+        '''下载当然列表的特定几首歌曲,传入序号的列表指定要下载的歌'''
         [self.downone(i,callback) for i in songids if i in range(len(self.songlist))]
             
     def download(self, remote_uri, local_uri, callback=None):
@@ -166,6 +149,7 @@ class Gmbox:
 
     def get_list(self,stype,callback=None):
         '''获取特定榜单'''
+        self.downalbumnow=False
         if stype in self.cached_list:
             self.songlist=copy.copy(self.cached_list[stype])
             return
@@ -214,13 +198,10 @@ class Gmbox:
             print u'未知专辑列表:"'+str(albumlist_name)+u'",仅支持以下列表: '+u'、'.join(
             ['"%s"'%key for key in albums_lists])
 
-    def downalbums(self,albumids=[],callback=None):
-        '''下载专辑列表的特定几个专辑,传入序号的列表指定要下载的专辑'''
-        [self.downalbum(i,callback) for i in albumids if i in range(len(self.albumlist))]
-        
     def get_albumlist(self, albumnum):
         '''获取专辑的信息，包括专辑名、歌手名和歌曲列表'''
         albumid=self.albumlist[albumnum]['id']
+        self.downalbumnow=True
         if 'a_'+albumid in self.cached_list:
             self.songlist=copy.copy(self.cached_list['a_'+albumid][0])
             self.albuminfo=copy.copy(self.cached_list['a_'+albumid][1])
@@ -236,6 +217,13 @@ class Gmbox:
         self.albuminfo = p.albuminfo
         self.cached_list['a_'+albumid]=copy.copy((p.songlist,p.albuminfo))
 
+    def downalbums(self,albumids=[],callback=None):
+        '''下载专辑列表的特定几个专辑,传入序号的列表指定要下载的专辑'''
+        [self.downalbum(i,callback) for i in albumids if i in range(len(self.albumlist))]
+    def downallalbum(self,callback=None):
+        '''下载专辑列表的所有专辑'''
+        [self.downalbum(i,callback) for i in range(len(self.albumlist))]
+        
     def downalbum(self, albumnum,callback=None):
         '''下载整个专辑'''
         self.get_albumlist(albumnum)
@@ -247,6 +235,7 @@ class Gmbox:
         
     def search(self,key):
         '''搜索关键字'''
+        self.downalbumnow=False
         if 's_'+key in self.cached_list:
             self.songlist=copy.copy(self.cached_list['s_'+key])
             return

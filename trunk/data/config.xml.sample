@@ -2,4 +2,5 @@
 <gmbox>
     <savedir>~/gmbox_download</savedir>
     <id3utf8>True</id3utf8>
+    <makealbumdir>True</makealbumdir>
 </gmbox>

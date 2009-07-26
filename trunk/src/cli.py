@@ -89,36 +89,7 @@ class CLI(cmd.Cmd):
             gmbox.listallalbum()
         else:
             self.help_searchalbum()
-    def help_downall(self):
-        print u'用法: downall\n下载上次list或search的所有歌曲'
-    def do_downall(self,arg=None):
-        if self._candown():
-            gmbox.downall()
-            
-    def help_downalbum(self):
-        print u'用法: downalbum 专辑所在页面URL'
-        print u'例子: downalbum http://www.google.cn/music/album?id=Bc21fbc4302aa9dd4'
-        
-    def do_downalbum(self,arg):
-        if self._candownalbum():
-            k=[]
-            try:
-                [k.append(int(t)-1) for t in arg.split()]
-            except ValueError:
-                print u'downalbum 后面要加数字序号.'
-                return
-            k=list(set(k))
-            if len(k) > 0:
-                gmbox.downalbums(k)
-            else:
-                print u'downalbum 后面要加数字序号.'
-            
-        """if len(arg.split()) != 1:
-            self.help_downalbum()
-        else:
-            self.albumurl = arg.split()[0]
-            gmbox.downalbum(self.albumurl)"""
-        
+
     def help_down(self):
         print u'用法: down num1 [num2 [num3 ...]]\n下载上次list或search的所有歌曲中的一部分,从1开始计数'
     def do_down(self,arg):
@@ -134,9 +105,38 @@ class CLI(cmd.Cmd):
                 gmbox.down_listed(k)
             else:
                 print u'down 后面要加数字序号.'
+    def help_downalbum(self):
+        print u'用法: downalbum num1 [num2 [num3 ...]]\n下载上次list或search的所有专辑中的一部分,从1开始计数'
+    def do_downalbum(self,arg):
+        if self._candownalbum():
+            k=[]
+            try:
+                [k.append(int(t)-1) for t in arg.split()]
+            except ValueError:
+                print u'downalbum 后面要加数字序号.'
+                return
+            k=list(set(k))
+            if len(k) > 0:
+                gmbox.downalbums(k)
+            else:
+                print u'downalbum 后面要加数字序号.'
+            
+    def help_downall(self):
+        print u'用法: downall\n下载上次list或search的所有歌曲'
+    def do_downall(self,arg=None):
+        if self._candown():
+            gmbox.downall()
+    def help_downallalbum(self):
+        print u'用法: downallalbum\n下载上次list或search的所有专辑'
+    def do_downallalbum(self,arg=None):
+        if self._candownalbum():
+            gmbox.downallalbum()
+
     def help_config(self):
-        print u'用法: config 选项 参数:\nconfig savedir 目录        设置歌曲保存路径\n\
-config id3utf8 True|False  设置是否转换ID3信息到UTF-8编码'
+        print u'''用法: config 选项 参数:
+config savedir      目录        设置歌曲保存路径
+config id3utf8      True|False  设置是否转换ID3信息到UTF-8编码
+config makealbumdir True|False  设置下载专辑时是否下载到专辑目录'''
     def do_config(self,arg):
         if arg == '':
             print config.item
@@ -148,6 +148,8 @@ config id3utf8 True|False  设置是否转换ID3信息到UTF-8编码'
                     config.savedir_changed(arg.split()[1])
                 elif arg.split()[0]=='id3utf8':
                     config.id3utf8_changed(arg.split()[1])
+                elif arg.split()[0]=='makealbumdir':
+                    config.makealbumdir_changed(arg.split()[1])
                 else:
                     self.help_config()
         
@@ -155,6 +157,10 @@ config id3utf8 True|False  设置是否转换ID3信息到UTF-8编码'
         print u'用法: exit\n退出gmbox.'
     def do_exit(self,arg):
         sys.exit(0)
+    def help_version(self):
+        print u'用法: version\n显示版本号.'
+    def do_version(self,arg):
+        print 'gmbox V'+VERSION
     def do_EOF(self,arg):
         print
         sys.exit(0)

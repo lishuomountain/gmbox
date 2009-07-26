@@ -50,16 +50,29 @@ class Config():
     def read_config(self):
         '''读配置文件'''
         self.dom=xml.dom.minidom.parse(self.config_file)
-        self.item['savedir']=self.read_dom_text('savedir')
-        self.item['id3utf8']=self.read_dom_text('id3utf8')=='True'
+        self.item['savedir']=self.__read_dom_text('savedir')
+        self.item['id3utf8']=self.__read_dom_text('id3utf8')=='True'
+        self.item['makealbumdir']=self.__read_dom_text('makealbumdir')=='True'
         
-    def read_dom_text(self,key):
+    def __read_dom_text(self,key):
         '''读dom中的节点值'''
-        return self.dom.getElementsByTagName(key)[0].childNodes[0].data
-    def set_dom_text(self,key,value):
+        if self.dom.getElementsByTagName(key):
+            return self.dom.getElementsByTagName(key)[0].childNodes[0].data
+    def __set_dom_text(self,key,value):
         '''写dom中的节点值,同步到文件'''
-        self.dom.getElementsByTagName(key)[0].childNodes[0].data=value
+        if self.dom.getElementsByTagName(key):
+            self.dom.getElementsByTagName(key)[0].childNodes[0].data=value
+        else:
+            self.__add_an_option(key,value)
         self.write_to_file()
+    def __add_an_option(self,key,value):
+        '''在配置文件中增加一项,用于在老版本的配置文件里插入新的配置项'''
+        impl=xml.dom.minidom.getDOMImplementation()
+        doc=impl.createDocument(None, key, None)
+        elmt=doc.documentElement
+        text=doc.createTextNode(value)
+        elmt.appendChild(text)
+        self.dom.getElementsByTagName('gmbox')[0].appendChild(elmt)
         
     def savedir_changed(self,newvalue):
         '''更改歌曲保存目录'''
@@ -76,13 +89,19 @@ class Config():
                 return
         print u'配置: savedir =>',v
         self.item['savedir'] = v
-        self.set_dom_text('savedir',v)
+        self.__set_dom_text('savedir',v)
     def id3utf8_changed(self,newvalue):
         '''更改是否更新ID3信息'''
         v=True if newvalue in [True,'True','true','1','on'] else False
         print u'配置: id3utf8 =>',v
         self.item['id3utf8'] = v
-        self.set_dom_text('id3utf8',str(v))
+        self.__set_dom_text('id3utf8',str(v))
+    def makealbumdir_changed(self,newvalue):
+        '''更改是否更新ID3信息'''
+        v=True if newvalue in [True,'True','true','1','on'] else False
+        print u'配置: makealbumdir =>',v
+        self.item['makealbumdir'] = v
+        self.__set_dom_text('makealbumdir',str(v))
         
     def write_to_file(self):
         '''把dom写到配置文件'''
