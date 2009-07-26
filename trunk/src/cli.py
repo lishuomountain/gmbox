@@ -214,6 +214,9 @@ if __name__ == '__main__':
     if len(sys.argv)==1:
         '''交互模式'''
         cli=CLI()
-        cli.cmdloop(u"欢迎使用 gmbox!\n更多信息请访问 http://code.google.com/p/gmbox/\n可以输入 'help' 查看支持的命令")
+        welcominfo=u"欢迎使用 gmbox!\n更多信息请访问 http://code.google.com/p/gmbox/\n可以输入 'help' 查看支持的命令"
+        print welcominfo
+        cli.cmdloop()
+        #cli.cmdloop(welcominfo)  #本来应该是这样的,但是无奈在windows下会乱码...谁知道怎么搞定?
     else:
         BatchMode()
