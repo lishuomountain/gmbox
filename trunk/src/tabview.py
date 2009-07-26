@@ -202,7 +202,7 @@ class Tabview(gtk.Notebook):
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
 
     def setup_config_tab(self):
-        t=gtk.Table(4,2)
+        t=gtk.Table(5,2)
         #tmp_label=gtk.Label(u'\n注: 以下内容还未生效 ...\n')
         tmp_label=gtk.Label('\n设置\n')
         tmp_label.set_use_markup(True)
@@ -227,11 +227,17 @@ class Tabview(gtk.Notebook):
         t.attach(gtk.Label(u'是否将ID3信息转换为UTF8:'),0,1,2,3,gtk.SHRINK,gtk.SHRINK)
         t.attach(options_id3utf8,1,2,2,3,yoptions=gtk.SHRINK)
 
+        options_makealbumdir = gtk.CheckButton(u'是')
+        options_makealbumdir.set_active(config.item['makealbumdir'])
+        options_makealbumdir.connect('toggled', self.config_makealbumdir)
+        t.attach(gtk.Label(u'下载专辑时是否下载到各自的目录:'),0,1,3,4,gtk.SHRINK,gtk.SHRINK)
+        t.attach(options_makealbumdir,1,2,3,4,yoptions=gtk.SHRINK)
+
         options_localdir = gtk.Entry()
         options_localdir.set_text('此功能尚未实现.')
         options_localdir.set_sensitive(False)
-        t.attach(gtk.Label(u'本地歌曲目录:'),0,1,3,4,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_localdir,1,2,3,4,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u'本地歌曲目录:'),0,1,4,5,gtk.SHRINK,gtk.SHRINK)
+        t.attach(options_localdir,1,2,4,5,yoptions=gtk.SHRINK)
 
         self.append_page(t)
         
@@ -268,6 +274,9 @@ class Tabview(gtk.Notebook):
         
     def config_id3utf8(self,widget):
         config.id3utf8_changed(widget.get_active())
+
+    def config_makealbumdir(self,widget):
+        config.makealbumdir_changed(widget.get_active())
 
 
 # ============================================

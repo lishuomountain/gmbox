@@ -85,7 +85,7 @@ class Abs_View(gtk.TreeView):
 
     def up_prs(self, blocks, block_size, total_size):
         if blocks == -1:
-            statusbar.push(0,u'正在下载...')
+            statusbar.push(0,u'正在下载'+total_size+'...')
             statusbar.textbox.set_text(block_size)
         elif blocks == -2:
             statusbar.push(0,u'已完成.')

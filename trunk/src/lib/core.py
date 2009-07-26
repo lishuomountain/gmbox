@@ -104,6 +104,9 @@ class Gmbox:
         url = self.find_final_uri(i)
         if url:
             print u'正在下载:',filename
+            if self.downalbumnow and callback:
+                numinfo="("+str(i+1)+" of "+str(len(self.songlist))+")"
+                callback(-1,os.path.basename(localuri),numinfo) #-1做为开始信号
             self.download(url,localuri,callback=callback)
         else:   #下载页有验证码时url为空
             print '出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
@@ -122,9 +125,10 @@ class Gmbox:
         self.T=self.startT=time.time()
         (self.D,self.speed)=(0,0)
         c=callback if callback else self.update_progress
-        c(-1,os.path.basename(local_uri),0) #-1做为开始信号
+        if not self.downalbumnow:
+            c(-1,os.path.basename(local_uri),'') #-1做为开始信号
         urllib.urlretrieve(remote_uri, cache_uri, c)
-        c(-2,os.path.basename(local_uri),0) #-2做为结束信号
+        c(-2,os.path.basename(local_uri),'') #-2做为结束信号
         speed=os.stat(cache_uri).st_size/(time.time()-self.startT)
         #下载和试听模式都一样
         if callback==None:
