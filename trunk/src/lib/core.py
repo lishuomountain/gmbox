@@ -73,8 +73,9 @@ class Gmbox:
             return
         #简单的预处理也放在这
         html=re.sub(r'&#([0-9]{2,5});',unistr,html)
-        html=re.sub(r'&nbsp;',' ',html)
+        #html=re.sub(r'&nbsp;',' ',html)
         html=re.sub(r'</?b>','',html)
+        html=entityref.sub(entityrefstr,html)
         return html
         
     def find_final_uri(self,i=0):
