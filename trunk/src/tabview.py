@@ -52,6 +52,7 @@ class Tabview(gtk.Notebook):
         
     def setup_lists_tab(self):
         
+        self.list_view = ListView()
         hb = gtk.HBox(False, 0)
         
         self.combox = gtk.combo_box_new_text()
@@ -64,14 +65,16 @@ class Tabview(gtk.Notebook):
         self.but_down_select.connect('clicked',lambda w:self.list_view.down_select())
         self.but_adition_select = gtk.Button('试听选中的音乐')
         self.but_adition_select.set_sensitive(False)
+        o_select_all = gtk.CheckButton(u'全选')
+        o_select_all.connect('toggled', self.do_select_all, self.list_view)
         hb.pack_start(gtk.Label(u'榜单下载: '), False, False)
         hb.pack_start(self.combox, False, False)
         hb.pack_start(self.but_down_select, False, False)
         hb.pack_start(self.but_adition_select, False, False)
+        hb.pack_end(o_select_all, False)
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.list_view = ListView()
         scroll.add(self.list_view)
 
         vb = gtk.VBox(False, 0)
@@ -82,18 +85,21 @@ class Tabview(gtk.Notebook):
 
     def setup_search_tab(self):
         
+        self.search_view = SearchView()
         hb = gtk.HBox(False, 0)
         self.search_entry = gtk.Entry()
         self.search_entry.connect('activate',lambda w:self.do_search(self.search_ok))
         self.search_ok = gtk.Button("搜索")
         self.search_ok.connect('clicked', self.do_search)
+        o_select_all = gtk.CheckButton(u'全选')
+        o_select_all.connect('toggled', self.do_select_all, self.search_view)
         hb.pack_start(gtk.Label(u'音乐搜索: '), False, False)
         hb.pack_start(self.search_entry)
         hb.pack_start(self.search_ok, False)
+        hb.pack_end(o_select_all, False)
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.search_view = SearchView()
         scroll.add(self.search_view)
         
         vb = gtk.VBox(False, 0)
@@ -113,6 +119,7 @@ class Tabview(gtk.Notebook):
 
     def setup_album_lists_tab(self):
         
+        self.album_list_view = AlbumListView()
         hb = gtk.HBox(False, 0)
         
         self.album_combox = gtk.combo_box_new_text()
@@ -125,14 +132,16 @@ class Tabview(gtk.Notebook):
         self.but_down_select.connect('clicked',lambda w:self.album_list_view.down_select())
         self.but_adition_select = gtk.Button('试听选中的音乐')
         self.but_adition_select.set_sensitive(False)
+        o_select_all = gtk.CheckButton(u'全选')
+        o_select_all.connect('toggled', self.do_select_all, self.album_list_view)
         hb.pack_start(gtk.Label(u'专辑榜单: '), False, False)
         hb.pack_start(self.album_combox, False, False)
         hb.pack_start(self.but_down_select, False, False)
         hb.pack_start(self.but_adition_select, False, False)
+        hb.pack_end(o_select_all, False)
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.album_list_view = AlbumListView()
         scroll.add(self.album_list_view)
 
         vb = gtk.VBox(False, 0)
@@ -143,18 +152,21 @@ class Tabview(gtk.Notebook):
 
     def setup_album_search_tab(self):
         
+        self.album_search_view = AlbumSearchView()
         hb = gtk.HBox(False, 0)
         self.album_search_entry = gtk.Entry()
         self.album_search_entry.connect('activate',lambda w:self.do_album_search(self.album_search_ok))
         self.album_search_ok = gtk.Button("搜索")
         self.album_search_ok.connect('clicked', self.do_album_search)
+        o_select_all = gtk.CheckButton(u'全选')
+        o_select_all.connect('toggled', self.do_select_all, self.album_search_view)
         hb.pack_start(gtk.Label(u'专辑搜索: '), False, False)
         hb.pack_start(self.album_search_entry)
         hb.pack_start(self.album_search_ok, False)
+        hb.pack_end(o_select_all, False)
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.album_search_view = AlbumSearchView()
         scroll.add(self.album_search_view)
         
         vb = gtk.VBox(False, 0)
@@ -257,6 +269,8 @@ class Tabview(gtk.Notebook):
         vb.pack_start(hb,False,False)
         self.append_page(vb)
         
+# signal methods =======================
+
     def config_savedir(self,widget,entry):
         dialog = gtk.FileChooserDialog("Open..",
                None,
@@ -278,9 +292,8 @@ class Tabview(gtk.Notebook):
     def config_makealbumdir(self,widget):
         config.makealbumdir_changed(widget.get_active())
 
-
-# ============================================
-# signal methods
+    def do_select_all(self,widget,view):
+        view.select_all(widget.get_active())
 
     def do_getlist(self, widget):
         '''Begin song(album) list download thread'''

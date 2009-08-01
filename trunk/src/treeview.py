@@ -82,6 +82,11 @@ class Abs_View(gtk.TreeView):
         fixed = not fixed
 
         self._model.set(iter, COL_STATUS, fixed)
+    
+    def select_all(self,v):
+        for i in range(len(self._model)):
+            iter = self._model.get_iter((i,))
+            self._model.set(iter, COL_STATUS, v)
 
     def up_prs(self, blocks, block_size, total_size):
         if blocks == -1:
