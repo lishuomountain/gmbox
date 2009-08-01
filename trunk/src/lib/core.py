@@ -71,11 +71,11 @@ class Gmbox:
         except:
             print '未知错误!请到这里报告bug: http://code.google.com/p/gmbox/issues/entry'
             return
-        #简单的预处理也放在这
+        #预处理HTML
         html=re.sub(r'&#([0-9]{2,5});',unistr,html)
-        #html=re.sub(r'&nbsp;',' ',html)
         html=re.sub(r'</?b>','',html)
         html=entityref.sub(entityrefstr,html)
+        #open('search_res.html','w').write(html)
         return html
         
     def find_final_uri(self,i=0):

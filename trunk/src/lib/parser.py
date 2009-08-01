@@ -50,10 +50,9 @@ class ListParser(HTMLParser):
     
     def handle_starttag(self, tag, attrs):
         '''处理标签开始的函数'''
-        
         if tag == 'a':
             self.isa=1
-            if self.insongtable and self.tdclass[:4] == 'Icon':
+            if self.insongtable and 'Icon' in self.tdclass:
                 if get_attrs_value_by_name(attrs,'title')==u'下载':
                     self.tmpsong['id']=re.match(r'.*id%3D(.*?)\\x26.*',
                         get_attrs_value_by_name(attrs,'onclick'),re.S).group(1)
@@ -66,7 +65,7 @@ class ListParser(HTMLParser):
 
         if self.insongtable and tag == 'td':
             self.tdclass=get_attrs_value_by_name(attrs,'class')
-            if self.tdclass[:5]=='Title':
+            if 'Title' in self.tdclass:
                 self.tmpsong=self.songtemplate.copy()
         if self.inalbumtable and tag == 'td':
             self.tdclass=get_attrs_value_by_name(attrs,'class')
@@ -75,7 +74,6 @@ class ListParser(HTMLParser):
 
     def handle_endtag(self, tag):
         '''处理标签结束的函数'''
-        
         if tag == 'a':
             self.isa=0
         if tag == 'table':
@@ -88,15 +86,15 @@ class ListParser(HTMLParser):
         '''处理html节点数据的函数'''
         
         if self.insongtable and (self.isa or self.ispan):
-            if self.tdclass[:5] == 'Title':
+            if 'Title' in self.tdclass:
                 self.tmpsong['title']+=data
-            elif self.tdclass[:6] == 'Artist':
+            elif 'Artist' in self.tdclass:
                 self.tmpsong['artist']+=(u'、' if self.tmpsong['artist'] else '') + data
-            elif self.tdclass[:5] == 'Album':
+            elif 'Album' in self.tdclass:
                 self.tmpsong['album']=data
 
         if self.inalbumtable:
-            if self.tdclass == 'Title' and self.albumisfirsttitle:
+            if 'Title' in self.tdclass and self.albumisfirsttitle:
                 self.albuminfo['title'] = data
                 if self.albuminfo['title'].startswith(u'《'):
                     self.albuminfo['title'] = self.albuminfo['title'].replace(u'《','')
@@ -224,3 +222,7 @@ class LyricsParser(HTMLParser):
         return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
             (song['title'],song['artist'],song['id']) for song in self.songlist])
 """
+
+if __name__ == '__main__':
+    p=ListParser()
+    p.feed(open("search_res.html").read())
