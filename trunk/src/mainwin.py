@@ -66,6 +66,7 @@ class Mainwin(gtk.Window):
         vb.pack_start(self.status, False, False)
 
         self.add(vb)
+        log.debug('End to setup notebook')
         self.show_all()
 
         

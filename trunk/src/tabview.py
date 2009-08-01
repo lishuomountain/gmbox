@@ -44,9 +44,9 @@ class Tabview(gtk.Notebook):
         self.setup_playlist_tab()
         self.setup_config_tab()
         self.setup_about_tab()
-
         self.show_all()
-
+        self.connect('switch-page',self.page_changed)
+        self.re_fun={} #用于缓存tab切换的时候的函数
 # =========================================
 # methods setup these tabs
         
@@ -115,18 +115,18 @@ class Tabview(gtk.Notebook):
         
         hb = gtk.HBox(False, 0)
         
-        self.combox = gtk.combo_box_new_text()
-        self.combox.append_text("--请选择--")
-        [self.combox.append_text(slist) for slist in albums_lists]
-        self.combox.set_active(0)
-        self.combox.connect("changed", self.do_getalbumlist)
+        self.album_combox = gtk.combo_box_new_text()
+        self.album_combox.append_text("--请选择--")
+        [self.album_combox.append_text(slist) for slist in albums_lists]
+        self.album_combox.set_active(0)
+        self.album_combox.connect("changed", self.do_getalbumlist)
         
         self.but_down_select = gtk.Button('下载选中的音乐')
         self.but_down_select.connect('clicked',lambda w:self.album_list_view.down_select())
         self.but_adition_select = gtk.Button('试听选中的音乐')
         self.but_adition_select.set_sensitive(False)
         hb.pack_start(gtk.Label(u'专辑榜单: '), False, False)
-        hb.pack_start(self.combox, False, False)
+        hb.pack_start(self.album_combox, False, False)
         hb.pack_start(self.but_down_select, False, False)
         hb.pack_start(self.but_adition_select, False, False)
 
@@ -290,6 +290,8 @@ class Tabview(gtk.Notebook):
             # get_list thread will set_sensitive true if download done
             widget.set_sensitive(False)
             self.list_view.get_list(text, widget)
+        #保存一个恢复用的函数,在切到其他tab再切回来的时候调用
+        self.re_fun[0]=lambda:self.list_view.get_list(text, widget)
     def do_getalbumlist(self, widget):
         '''Begin song(album) list download thread'''
         
@@ -298,16 +300,22 @@ class Tabview(gtk.Notebook):
             # get_list thread will set_sensitive true if download done
             widget.set_sensitive(False)
             self.album_list_view.get_albumlist(text, widget)
-            
+        self.re_fun[2]=lambda:self.album_list_view.get_albumlist(text, widget)
     def do_search(self, widget):
         text=self.search_entry.get_text()
         widget.set_sensitive(False)
         self.search_view.search(text, widget)
+        self.re_fun[1]=lambda:self.search_view.search(text, widget)
     def do_album_search(self, widget):
         text=self.album_search_entry.get_text()
         widget.set_sensitive(False)
         self.album_search_view.search(text, widget)
-
+        self.re_fun[3]=lambda:self.album_search_view.search(text, widget)
+    def page_changed(self, notebook, page, page_num):
+        log.debug('tab changed to: '+str(page_num))
+        #切换tab的时候,再调用一次,相当于和gmbox类的当前列表同步
+        if page_num in self.re_fun:
+            self.re_fun[page_num]()
     """def doSearchMusic(self,widget):
         '''music search button clicked callback'''
         
