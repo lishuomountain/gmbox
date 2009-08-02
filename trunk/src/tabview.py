@@ -201,9 +201,10 @@ class Tabview(gtk.Notebook):
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        tmp_label=gtk.Label('coming soon ...')
 
         vb = gtk.VBox(False, 0)
-        vb.pack_start(scroll, True, True)
+        vb.pack_start(tmp_label, True, True)
         vb.pack_start(self.player, False)
 
         self.append_page(vb)
@@ -261,7 +262,7 @@ class Tabview(gtk.Notebook):
         bt_home = gtk.Button(u'项目主页')
         bt_home.connect('clicked',lambda w: webbrowser.open('http://code.google.com/p/gmbox/'))
         bt_blog = gtk.Button(u' 博客 ')
-        bt_blog.connect('clicked',lambda w: webbrowser.open('http://li2z.cn/category/gmbox/'))
+        bt_blog.connect('clicked',lambda w: webbrowser.open('http://li2z.cn/category/gmbox/?from=gmbox'))
         hb = gtk.HBox()
         hb.pack_start(bt_home)
         hb.pack_start(bt_blog)
