@@ -58,7 +58,16 @@ class Gmbox:
     def get_filename(self,i=0):
         '''生成当前列表的第i首歌曲的文件名'''
         song=self.songlist[i]
-        filename=song['title']+'-'+song['artist']+'.mp3'
+        #filename=song['title']+'-'+song['artist']+'.mp3'
+        '''细化下载目录为artist/title.mp3'''
+        if config.item['makealbumdir'] and self.downalbumnow:
+            albumpath = os.path.join(self.albuminfo['artist'],self.albuminfo['title'])
+            filename = os.path.join(albumpath,song['title']+'.mp3')
+        else:
+            path = os.path.join(config.item['savedir'], song['artist'])
+            if not os.path.isdir(path):
+                os.mkdir(path)
+            filename=os.path.join(song['artist'],song['title']+'.mp3')
         return filename
 
     def get_url_html(self,url):
@@ -88,16 +97,16 @@ class Gmbox:
         return s.url
 
     def downone(self,i=0,callback=None):
-        '''下载当然列表中的一首歌曲 '''
+        '''下载当前列表中的一首歌曲 '''
         filename = self.get_filename(i)
-        if config.item['makealbumdir'] and self.downalbumnow:
-            albumpath = os.path.join(config.item['savedir'],
-                self.albuminfo['title']+'-'+self.albuminfo['artist'])
-            if not os.path.isdir(albumpath):
-                os.mkdir(albumpath)
-            localuri = os.path.join(albumpath,filename)
-        else:
-            localuri = os.path.join(config.item['savedir'],filename)
+        #if config.item['makealbumdir'] and self.downalbumnow:
+        #    albumpath = os.path.join(config.item['savedir'],
+        #        self.albuminfo['title']+'-'+self.albuminfo['artist'])
+        #    if not os.path.isdir(albumpath):
+        #        os.mkdir(albumpath)
+        #    localuri = os.path.join(albumpath,filename)
+        #else:
+        localuri = os.path.join(config.item['savedir'],filename)
         if os.path.exists(localuri):
             print filename,u'已存在!'
             return
@@ -212,11 +221,16 @@ class Gmbox:
             self.albuminfo=copy.copy(self.cached_list['a_'+albumid][1])
             return
         
-        p = ListParser()
+        #p = ListParser()
+        p = XmlAlbumParser()
         print u'正在获取专辑信息',
         sys.stdout.flush()
-        html = self.get_url_html('http://www.google.cn/music/album?id=%s'%albumid)
-        p.feed(html)
+        #html = self.get_url_html('http://www.google.cn/music/album?id=%s'%albumid)
+        #p.feed(html)
+        xml = urllib2.urlopen('http://www.google.cn/music/album?id=%s&output=xml'%albumid)
+        p.read(xml)
+        p.read_song()
+
         print 'done!'
         self.songlist = p.songlist
         self.albuminfo = p.albuminfo
@@ -234,6 +248,10 @@ class Gmbox:
         self.get_albumlist(albumnum)
         print u'专辑名:' + self.albuminfo['title']
         print u'歌手名:' + self.albuminfo['artist']
+        albumpath = os.path.join(config.item['savedir'], self.albuminfo['artist'])
+        albumpath = os.path.join(albumpath, self.albuminfo['title'])
+        if not os.path.isdir(albumpath):
+            os.makedirs(albumpath)
         self.listall()
         self.downall(callback)
         

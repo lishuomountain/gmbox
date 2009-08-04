@@ -132,6 +132,12 @@ class CLI(cmd.Cmd):
         if self._candownalbum():
             gmbox.downallalbum()
 
+    def help_listalbum(self):
+        print u'用法:listalbum num\n列出专辑内容'
+
+    def do_listalbum(self,arg=None):
+        pass
+
     def help_config(self):
         print u'''用法: config 选项 参数:
 config savedir      目录        设置歌曲保存路径
@@ -178,6 +184,15 @@ config makealbumdir True|False  设置下载专辑时是否下载到专辑目录
             return False
         else:
             return True
+
+    #shortcuts
+    do_s = do_search
+    do_ls = do_list
+    do_sa = do_searchalbum
+    do_da = do_downall
+    do_daa = do_downallalbum
+    do_dab = do_downalbum
+    do_d = do_down
 
 def BatchMode():
     parser = OptionParser(version='%prog '+VERSION, prog='gmbox', 

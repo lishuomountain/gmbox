@@ -23,8 +23,46 @@ from HTMLParser import HTMLParser
 import logging
 from utils import get_attrs_value_by_name
 
+import xml.dom.minidom
+
 log = logging.getLogger('lib.parser')
 
+
+class XmlAlbumParser():
+    '''解析专辑'''
+    def __init__(self):
+        self.songlist=[]
+        self.songtemplate={
+            'title':'',
+            'artist':'',
+            'album':'',
+            'id':''}
+        self.tmpsong=self.songtemplate.copy()
+        self.albuminfo={
+            'title':'',
+            'artist':'',
+            'time':'',
+            'company':''}
+
+    def read(self,filename):
+        self.dom=xml.dom.minidom.parse(filename)
+        self.albuminfo['title']=self.__read_dom_text('name')
+        self.albuminfo['artist']=self.__read_dom_text('artist')
+        self.albuminfo['time']=self.__read_dom_text('releaseDate')
+
+    def __read_dom_text(self,key):
+        '''读dom中的节点值'''
+        if self.dom.getElementsByTagName(key):
+            return self.dom.getElementsByTagName(key)[0].childNodes[0].data
+
+    def read_song(self):
+        for song in self.dom.getElementsByTagName('song'):
+            self.tmpsong['id'] = song.childNodes[0].firstChild.data
+            self.tmpsong['title'] = song.childNodes[1].firstChild.data
+            self.tmpsong['artist'] = song.childNodes[2].firstChild.data
+            self.tmpsong['album'] = song.childNodes[3].firstChild.data
+            self.songlist.append(self.tmpsong)
+            self.tmpsong=self.songtemplate.copy()
 
 class ListParser(HTMLParser):
     '''解析榜单列表页面的类'''
