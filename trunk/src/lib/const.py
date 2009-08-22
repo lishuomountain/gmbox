@@ -64,6 +64,7 @@ albums_lists = {
 list_url_template = 'http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d'
 albums_list_url_template = 'http://www.google.cn/music/chartlisting?q=%s&cat=album&start=%d'
 album_song_list_url_template = 'http://www.google.cn/music/album?id=%s'
+xml_album_song_list_url_template = 'http://www.google.cn/music/album?id=%s&output=xml'
 search_url_template = 'http://www.google.cn/music/search?q=%s&cat=song'
 albums_search_url_template = 'http://www.google.cn/music/search?q=%s&cat=album'
 song_url_template = 'http://www.google.cn/music/top100/musicdownload?id=%s'

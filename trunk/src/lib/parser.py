@@ -44,18 +44,19 @@ class XmlAlbumParser():
             'time':'',
             'company':''}
 
-    def read(self,filename):
-        self.dom=xml.dom.minidom.parse(filename)
+    def feed(self,str_xml):
+        self.dom=xml.dom.minidom.parse(str_xml)
         self.albuminfo['title']=self.__read_dom_text('name')
         self.albuminfo['artist']=self.__read_dom_text('artist')
         self.albuminfo['time']=self.__read_dom_text('releaseDate')
+        self.__read_song()
 
     def __read_dom_text(self,key):
         '''读dom中的节点值'''
         if self.dom.getElementsByTagName(key):
             return self.dom.getElementsByTagName(key)[0].childNodes[0].data
 
-    def read_song(self):
+    def __read_song(self):
         for song in self.dom.getElementsByTagName('song'):
             self.tmpsong['id'] = song.childNodes[0].firstChild.data
             self.tmpsong['title'] = song.childNodes[1].firstChild.data

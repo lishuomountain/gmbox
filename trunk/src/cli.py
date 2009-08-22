@@ -136,7 +136,10 @@ class CLI(cmd.Cmd):
         print u'用法:listalbum num\n列出专辑内容'
 
     def do_listalbum(self,arg=None):
-        pass
+        if self._candownalbum():
+            gmbox.get_albumlist(int(arg)-1)
+            gmbox.listall()
+
 
     def help_config(self):
         print u'''用法: config 选项 参数:

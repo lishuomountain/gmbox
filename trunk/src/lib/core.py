@@ -225,11 +225,10 @@ class Gmbox:
         p = XmlAlbumParser()
         print u'正在获取专辑信息',
         sys.stdout.flush()
-        #html = self.get_url_html('http://www.google.cn/music/album?id=%s'%albumid)
+        #html = self.get_url_html(album_song_list_url_template%albumid)
         #p.feed(html)
-        xml = urllib2.urlopen('http://www.google.cn/music/album?id=%s&output=xml'%albumid)
-        p.read(xml)
-        p.read_song()
+        xml = urllib2.urlopen(xml_album_song_list_url_template % albumid)
+        p.feed(xml)
 
         print 'done!'
         self.songlist = p.songlist
