@@ -55,20 +55,23 @@ class Gmbox:
             (self.albumlist.index(album)+1,album['name'],album['memo'],album['id']) 
             for album in self.albumlist])
 
-    def get_filename(self,i=0):
-        '''生成当前列表的第i首歌曲的文件名'''
+    def createdir_getfilename(self,i=0):
+        '''创建必要的目录，并返回当前列表的第i首歌曲的文件名（含路径）'''
         song=self.songlist[i]
-        #filename=song['title']+'-'+song['artist']+'.mp3'
-        '''细化下载目录为artist/title.mp3'''
-        if config.item['makealbumdir'] and self.downalbumnow:
-            albumpath = os.path.join(self.albuminfo['artist'],self.albuminfo['title'])
-            filename = os.path.join(albumpath,song['title']+'.mp3')
+        path=config.item['savedir']
+        if config.item['makeartistdir']:
+            path=os.path.join(path,song['artist'])
+            filename=song['title']+'.mp3'
         else:
-            path = os.path.join(config.item['savedir'], song['artist'])
-            if not os.path.isdir(path):
-                os.mkdir(path)
-            filename=os.path.join(song['artist'],song['title']+'.mp3')
-        return filename
+            filename=song['title']+'-'+song['artist']+'.mp3'
+        if self.downalbumnow and config.item['makealbumdir']:
+            path=os.path.join(path,self.albuminfo['title'])
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        if self.downalbumnow and config.item['addalbumnum']:
+            filename='%02d.%s'%(i+1,filename)
+        log.debug(os.path.join(path,filename))
+        return os.path.join(path,filename)
 
     def get_url_html(self,url):
         '''获取指定url的html'''
@@ -98,22 +101,15 @@ class Gmbox:
 
     def downone(self,i=0,callback=None):
         '''下载当前列表中的一首歌曲 '''
-        filename = self.get_filename(i)
-        #if config.item['makealbumdir'] and self.downalbumnow:
-        #    albumpath = os.path.join(config.item['savedir'],
-        #        self.albuminfo['title']+'-'+self.albuminfo['artist'])
-        #    if not os.path.isdir(albumpath):
-        #        os.mkdir(albumpath)
-        #    localuri = os.path.join(albumpath,filename)
-        #else:
-        localuri = os.path.join(config.item['savedir'],filename)
+        localuri = self.createdir_getfilename(i)
+
         if os.path.exists(localuri):
-            print filename,u'已存在!'
+            print os.path.basename(localuri),u'已存在!'
             return
         
         url = self.find_final_uri(i)
         if url:
-            print u'正在下载:',filename
+            print u'正在下载:',os.path.basename(localuri)
             if self.downalbumnow and callback:
                 numinfo="("+str(i+1)+" of "+str(len(self.songlist))+")"
                 callback(-1,os.path.basename(localuri),numinfo) #-1做为开始信号
@@ -264,7 +260,7 @@ class Gmbox:
 
         key = re.sub((r'\ '),'+',key)
         p=ListParser()
-        print u'正在获取"'+key+u'"的专辑搜索结果列表...',
+        print u'正在获取"'+key+u'"的搜索结果列表...',
         sys.stdout.flush()
         html=self.get_url_html(search_url_template%key)
         p.feed(html)
@@ -279,7 +275,7 @@ class Gmbox:
 
         key = re.sub((r'\ '),'+',key)
         p=AlbumListParser()
-        print u'正在获取"'+key+u'"的搜索结果列表...',
+        print u'正在获取"'+key+u'"的专辑搜索结果列表...',
         sys.stdout.flush()
         html=self.get_url_html(albums_search_url_template%key)
         p.feed(html)

@@ -53,6 +53,8 @@ class Config():
         self.item['savedir']=self.__read_dom_text('savedir')
         self.item['id3utf8']=self.__read_dom_text('id3utf8')=='True'
         self.item['makealbumdir']=self.__read_dom_text('makealbumdir')=='True'
+        self.item['makeartistdir']=self.__read_dom_text('makeartistdir')=='True'
+        self.item['addalbumnum']=self.__read_dom_text('addalbumnum')=='True'
         
     def __read_dom_text(self,key):
         '''读dom中的节点值'''
@@ -97,11 +99,22 @@ class Config():
         self.item['id3utf8'] = v
         self.__set_dom_text('id3utf8',str(v))
     def makealbumdir_changed(self,newvalue):
-        '''更改是否更新ID3信息'''
-        v=True if newvalue in [True,'True','true','1','on'] else False
-        print u'配置: makealbumdir =>',v
-        self.item['makealbumdir'] = v
-        self.__set_dom_text('makealbumdir',str(v))
+        '''更改是否建立专辑目录'''
+        self.__bool_value_changed('makealbumdir',newvalue)
+    def makeartistdir_changed(self,newvalue):
+        '''更改是否建立歌手目录'''
+        self.__bool_value_changed('makeartistdir',newvalue)
+    def addalbumnum_changed(self,newvalue):
+        '''更改是否在专辑下载时前置专辑序号'''
+        self.__bool_value_changed('addalbumnum',newvalue)
+
+    def __bool_value_changed(self,k,v):
+        '''是非型的选项变化'''
+        v=True if v in [True,'True','true','1','on'] else False
+        print u'配置: %s => %s'%(k,v)
+        self.item[k] = v
+        self.__set_dom_text(k,str(v))
+    
         
     def write_to_file(self):
         '''把dom写到配置文件'''
