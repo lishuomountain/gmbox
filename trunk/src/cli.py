@@ -139,7 +139,8 @@ class CLI(cmd.Cmd):
         if self._candownalbum():
             gmbox.get_albumlist(int(arg)-1)
             gmbox.listall()
-
+            print gmbox.albuminfo['title']+'-'+gmbox.albuminfo['artist'], \
+                u'包含以上',len(gmbox.songlist),u'首歌.'
 
     def help_config(self):
         print u'''用法: config 选项名 参数:
@@ -152,6 +153,8 @@ config addalbumnum   True|False  设置下载专辑时是否在专辑下载时�
     def do_config(self,arg):
         if arg == '':
             print config.item
+            print u'歌曲下载路径：',gmbox.setup_file_info(u'歌名',u'歌手',False,u'专辑名',u'专辑歌手',1)[0]
+            print u'专辑下载路径：',gmbox.setup_file_info(u'歌名',u'歌手',True,u'专辑名',u'专辑歌手',1)[0]
         else:
             if len(arg.split()) != 2:
                 self.help_config()

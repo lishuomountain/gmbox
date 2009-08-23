@@ -54,24 +54,30 @@ class Gmbox:
         print '\n'.join(['Num=%d Name="%s" Memo="%s" ID="%s"'%
             (self.albumlist.index(album)+1,album['name'],album['memo'],album['id']) 
             for album in self.albumlist])
-
+    def setup_file_info(self,songname,artist,isalbum,albumname,albumartist,albumnum):
+        '''组装歌曲信息，返回 [全文件名,路径,文件名]'''
+        path=config.item['savedir']
+        if config.item['makeartistdir']:
+            path=os.path.join(path,artist)
+            filename=songname+'.mp3'
+        else:
+            filename=songname+'-'+artist+'.mp3'
+        if isalbum and config.item['makealbumdir']:
+            path=os.path.join(path,albumname+'-'+albumartist)
+        if isalbum and config.item['addalbumnum']:
+            filename='%02d.%s'%(albumnum,filename)
+        return [os.path.join(path,filename),path,filename]
+        
     def createdir_getfilename(self,i=0):
         '''创建必要的目录，并返回当前列表的第i首歌曲的文件名（含路径）'''
         song=self.songlist[i]
-        path=config.item['savedir']
-        if config.item['makeartistdir']:
-            path=os.path.join(path,song['artist'])
-            filename=song['title']+'.mp3'
-        else:
-            filename=song['title']+'-'+song['artist']+'.mp3'
-        if self.downalbumnow and config.item['makealbumdir']:
-            path=os.path.join(path,self.albuminfo['title'])
-        if not os.path.isdir(path):
-            os.makedirs(path)
-        if self.downalbumnow and config.item['addalbumnum']:
-            filename='%02d.%s'%(i+1,filename)
-        log.debug(os.path.join(path,filename))
-        return os.path.join(path,filename)
+        info=self.setup_file_info(song['title'],song['artist'],self.downalbumnow,
+            self.albuminfo['title'] if self.downalbumnow else None,
+            self.albuminfo['artist'] if self.downalbumnow else None,i+1)
+
+        if not info[1]:
+            os.makedirs(info[1])
+        return info
 
     def get_url_html(self,url):
         '''获取指定url的html'''
@@ -101,19 +107,19 @@ class Gmbox:
 
     def downone(self,i=0,callback=None):
         '''下载当前列表中的一首歌曲 '''
-        localuri = self.createdir_getfilename(i)
+        nameinfo = self.createdir_getfilename(i)
 
-        if os.path.exists(localuri):
-            print os.path.basename(localuri),u'已存在!'
+        if os.path.exists(nameinfo[0]):
+            print nameinfo[2],u'已存在!'
             return
         
         url = self.find_final_uri(i)
         if url:
-            print u'正在下载:',os.path.basename(localuri)
+            print u'正在下载:',nameinfo[2]
             if self.downalbumnow and callback:
                 numinfo="("+str(i+1)+" of "+str(len(self.songlist))+")"
-                callback(-1,os.path.basename(localuri),numinfo) #-1做为开始信号
-            self.download(url,localuri,callback=callback)
+                callback(-1,nameinfo[2],numinfo) #-1做为开始信号
+            self.download(url,nameinfo[0],callback=callback)
         else:   #下载页有验证码时url为空
             print '出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
 
