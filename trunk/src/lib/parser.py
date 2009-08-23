@@ -58,14 +58,14 @@ class XmlAlbumParser():
 
     def __read_song(self):
         for song in self.dom.getElementsByTagName('song'):
-            self.tmpsong['id'] = song.getElementsByTagName('id')[0].firstChild.data
-            self.tmpsong['title'] = song.getElementsByTagName('name')[0].firstChild.data
-            self.tmpsong['artist'] = u'、'.join([
-                node.firstChild.data for node in song.getElementsByTagName('artist')])
-
-            self.tmpsong['album'] = song.getElementsByTagName('album')[0].firstChild.data
-            self.songlist.append(self.tmpsong)
-            self.tmpsong=self.songtemplate.copy()
+            if 'true'==song.getElementsByTagName('canBeDownloaded')[0].firstChild.data:
+                self.tmpsong['id'] = song.getElementsByTagName('id')[0].firstChild.data
+                self.tmpsong['title'] = song.getElementsByTagName('name')[0].firstChild.data
+                self.tmpsong['artist'] = u'、'.join([
+                    node.firstChild.data for node in song.getElementsByTagName('artist')])
+                self.tmpsong['album'] = song.getElementsByTagName('album')[0].firstChild.data
+                self.songlist.append(self.tmpsong)
+                self.tmpsong=self.songtemplate.copy()
 
 class ListParser(HTMLParser):
     '''解析榜单列表页面的类'''
