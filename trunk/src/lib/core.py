@@ -79,7 +79,7 @@ class Gmbox:
             os.makedirs(info[1])
         return info
 
-    def get_url_html(self,url):
+    def get_url_html(self,url,NeedPreDeal=True):
         '''获取指定url的html'''
         try:
             html = urllib2.urlopen(url).read()
@@ -89,11 +89,11 @@ class Gmbox:
         except:
             print '未知错误!请到这里报告bug: http://code.google.com/p/gmbox/issues/entry'
             return
-        #预处理HTML
-        html=re.sub(r'&#([0-9]{2,5});',unistr,html)
-        html=re.sub(r'</?b>','',html)
-        html=entityref.sub(entityrefstr,html)
-        #open('search_res.html','w').write(html)
+        if NeedPreDeal:
+            #预处理HTML(XML模式不需要)
+            html=re.sub(r'&#([0-9]{2,5});',unistr,html)
+            html=re.sub(r'</?b>','',html)
+            html=entityref.sub(entityrefstr,html)
         return html
         
     def find_final_uri(self,i=0):
@@ -229,7 +229,8 @@ class Gmbox:
         sys.stdout.flush()
         #html = self.get_url_html(album_song_list_url_template%albumid)
         #p.feed(html)
-        xml = urllib2.urlopen(xml_album_song_list_url_template % albumid)
+        #统一用get_url_html读取数据,日后如果要换user-agent之类也方便维护
+        xml = self.get_url_html(xml_album_song_list_url_template % albumid , NeedPreDeal=False)
         p.feed(xml)
 
         print 'done!'

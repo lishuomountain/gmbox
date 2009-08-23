@@ -45,7 +45,7 @@ class XmlAlbumParser():
             'company':''}
 
     def feed(self,str_xml):
-        self.dom=xml.dom.minidom.parse(str_xml)
+        self.dom=xml.dom.minidom.parseString(str_xml)
         self.albuminfo['title']=self.__read_dom_text('name')
         self.albuminfo['artist']=self.__read_dom_text('artist')
         self.albuminfo['time']=self.__read_dom_text('releaseDate')
@@ -58,10 +58,12 @@ class XmlAlbumParser():
 
     def __read_song(self):
         for song in self.dom.getElementsByTagName('song'):
-            self.tmpsong['id'] = song.childNodes[0].firstChild.data
-            self.tmpsong['title'] = song.childNodes[1].firstChild.data
-            self.tmpsong['artist'] = song.childNodes[2].firstChild.data
-            self.tmpsong['album'] = song.childNodes[3].firstChild.data
+            self.tmpsong['id'] = song.getElementsByTagName('id')[0].firstChild.data
+            self.tmpsong['title'] = song.getElementsByTagName('name')[0].firstChild.data
+            self.tmpsong['artist'] = u'、'.join([
+                node.firstChild.data for node in song.getElementsByTagName('artist')])
+
+            self.tmpsong['album'] = song.getElementsByTagName('album')[0].firstChild.data
             self.songlist.append(self.tmpsong)
             self.tmpsong=self.songtemplate.copy()
 
@@ -263,5 +265,8 @@ class LyricsParser(HTMLParser):
 """
 
 if __name__ == '__main__':
-    p=ListParser()
-    p.feed(open("search_res.html").read())
+    #p=ListParser()
+    #p.feed(open("search_res.html").read())
+    p=XmlAlbumParser()
+    p.feed(open("B5da7060c09165b61.xml").read())
+    print p.songlist,p.albuminfo
