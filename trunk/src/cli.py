@@ -58,9 +58,9 @@ class CLI(cmd.Cmd):
         gmbox.get_list(self.currentlist)
         gmbox.listall()
         print self.currentlist,u'包含以上',len(gmbox.songlist),u'首歌.'
-    def help_albumslist(self):
-        print u'用法: albumslist  <专辑列表名>\n列出专辑列表的所有专辑,默认列出上次albumslist的专辑或影视新碟.'
-    def do_albumslist(self,arg):
+    def help_albumlist(self):
+        print u'用法: albumlist  <专辑列表名>\n列出专辑列表的所有专辑,默认列出上次albumlist的专辑或影视新碟.'
+    def do_albumlist(self,arg):
         arg=deal_input(arg)
         if arg != '':
             if arg in albums_lists:
@@ -80,15 +80,15 @@ class CLI(cmd.Cmd):
             gmbox.listall()
         else:
             self.help_search()
-    def help_searchalbum(self):
-        print u'用法: searchalbum  关键字\n以关键字搜索专辑'
-    def do_searchalbum(self,arg):
+    def help_albumsearch(self):
+        print u'用法: albumsearch  关键字\n以关键字搜索专辑'
+    def do_albumsearch(self,arg):
         arg=deal_input(arg)
         if arg != '':
             gmbox.searchalbum(arg)
             gmbox.listallalbum()
         else:
-            self.help_searchalbum()
+            self.help_albumsearch()
 
     def help_down(self):
         print u'用法: down num1 [num2 [num3 ...]]\n下载上次list或search的所有歌曲中的一部分,从1开始计数'
@@ -105,9 +105,9 @@ class CLI(cmd.Cmd):
                 gmbox.down_listed(k)
             else:
                 print u'down 后面要加数字序号.'
-    def help_downalbum(self):
-        print u'用法: downalbum num1 [num2 [num3 ...]]\n下载上次list或search的所有专辑中的一部分,从1开始计数'
-    def do_downalbum(self,arg):
+    def help_albumdown(self):
+        print u'用法: albumdown num1 [num2 [num3 ...]]\n下载上次albumlist或albumsearch的所有专辑中的一部分,从1开始计数'
+    def do_albumdown(self,arg):
         if self._candownalbum():
             k=[]
             try:
@@ -126,16 +126,16 @@ class CLI(cmd.Cmd):
     def do_downall(self,arg=None):
         if self._candown():
             gmbox.downall()
-    def help_downallalbum(self):
-        print u'用法: downallalbum\n下载上次list或search的所有专辑'
-    def do_downallalbum(self,arg=None):
+    def help_albumdownall(self):
+        print u'用法: albumdownall\n下载上次albumlist或albumsearch的所有专辑'
+    def do_albumdownall(self,arg=None):
         if self._candownalbum():
             gmbox.downallalbum()
 
-    def help_listalbum(self):
-        print u'用法:listalbum num\n列出专辑内容'
+    def help_albumsongs(self):
+        print u'用法:albumsongs num\n列出专辑内容'
 
-    def do_listalbum(self,arg=None):
+    def do_albumsongs(self,arg=None):
         if self._candownalbum():
             gmbox.get_albumlist(int(arg)-1)
             gmbox.listall()
@@ -183,8 +183,7 @@ config addalbumnum   True|False  设置下载专辑时是否在专辑下载时�
     def do_EOF(self,arg):
         print
         sys.exit(0)
-    def do_printconfig(self,arg):
-        print config.item
+
     def _candown(self):
         if not gmbox.songlist:
             print u'执行down或downall命令前,需先执行list或search命令'
@@ -199,13 +198,15 @@ config addalbumnum   True|False  设置下载专辑时是否在专辑下载时�
             return True
 
     #shortcuts
+    do_l = do_list
     do_s = do_search
-    do_ls = do_list
-    do_sa = do_searchalbum
-    do_da = do_downall
-    do_daa = do_downallalbum
-    do_dab = do_downalbum
     do_d = do_down
+    do_da = do_downall
+    do_al = do_albumlist
+    do_as = do_albumsearch
+    do_ad = do_albumdown
+    do_ada = do_albumdownall
+    do_ass = do_albumsongs
 
 def BatchMode():
     parser = OptionParser(version='%prog '+VERSION, prog='gmbox', 
