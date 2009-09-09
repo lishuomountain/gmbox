@@ -4,7 +4,7 @@
 
 GUI的使用，相信大家不会有什么问题，在这里说明一下CLI的使用方法。
 
-CLI有两种模式：交互模式和批处理模式。交互模式启动都，可以接受用户输入的指令，并执行相应的动作；批处理模式则由命令行传入需要执行的指令，程序执行完毕后即自动退出。下面分别结束这两种模式。
+CLI有两种模式：交互模式和批处理模式。交互模式下，可以接受用户输入的指令，并执行相应的动作；批处理模式则由命令行传入需要执行的指令，程序执行完毕后即自动退出。下面分别结束这两种模式。
 
 
 = 交互模式 =
@@ -15,12 +15,61 @@ CLI有两种模式：交互模式和批处理模式。交互模式启动都，�
 
 看到gmbox的提示符 "gmbox> " 则表示成功进入交互模式。
 
+windows版本也可以在命令提示符里执行 `cli.exe` 打开交互模式的CLI。
+
 == 交互模式命令介绍 ==
 
 `help` 可以查看目前支持的命令，键入 `help 命令名` 可以查看某个命令的帮助。
 
+*榜单下载的命令：*
+
 `lists` 可以列出目前支持的榜单。无参数。
 
-`list  <榜单名>` 参数`lists`列出榜单名的所有歌曲，默认列出上次list的榜单或华语新歌。
+`list  <榜单名>` 或 `l <榜单名>` 参数`lists`列出的榜单名的所有歌曲，默认列出上次list的榜单或华语新歌。
+
+`search <关键字>` 或 `s <关键字>` 搜索包含关键字的歌曲。
+
+`down num1 [num2 [num3 ...]]` 或 `d num1 [num2 [num3 ...]]` 下载上次搜索或list的结果里面的某几首歌曲，须跟空格分割的数字为参数。
+
+`downall` 或 `da` 下载上次搜索或list的结果的全部歌曲。
+
+*专辑下载的命令：（类似榜单下载）*
+
+`albums` 可以列出目前支持的专辑列表。无参数。
+
+`albumlist <专辑列表名>` 或 `al <专辑列表名>` 列出专辑列表的所有专辑，默认列出上次albumslist的专辑或影视新碟。
+
+`albumsearch <关键字>` 或 `as <关键字>` 搜索包含关键字的专辑。
+
+
+`albumdown num1 [num2 [num3 ...]]` 或 `ad num1 [num2 [num3 ...]]` 下载上次搜索或albumlist的结果里面的某几首歌曲，须跟空格分割的数字为参数。
+
+`albumdownall` 或 `ada` 下载上次albumlist或albumsearch的所有专辑。
+
+`albumsongs num` 或 `ass num` 列出上次搜索或albumlist的结果中的第num个专辑的所包含的歌曲。
+
+*config 命令*
+
+`config` 不加参数的config命令可以列出当前的设置。
+
+`config key vaule` 可以修改配置项key的值为vaule，目前有以下几个配置：
+
+ * `config savedir       <LOCAL_PATH>        `设置歌曲保存路径为LOCAL_PATH
+
+ * `config id3utf8       True|False  `设置是否转换ID3信息到UTF-8编码
+
+ * `config makeartistdir True|False  `设置下载时是否建立歌手目录
+
+ * `config makealbumdir  True|False  `设置下载专辑时是否下载到专辑目录
+
+ * `config addalbumnum   True|False  `设置下载专辑时是否在专辑下载时前置专辑序号
+
+*其他命令*
+
+`version` 查看当前运行的gmbox的版本。
+
+`exit` 退出
+
+= 批处理模式 =
 
 （未完待续）
