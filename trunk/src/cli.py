@@ -211,25 +211,38 @@ config addalbumnum   True|False  设置下载专辑时是否在专辑下载时�
 def BatchMode():
     parser = OptionParser(version='%prog '+VERSION, prog='gmbox', 
         description=u'不加参数运行可以进入交互模式.否则进入批处理模式,执行参数指定的相应动作后退出.')
-    parser.add_option('-b', '--bang', action="store_true", dest='bang', help=u'列出所有支持的榜单名,并退出')
-    parser.add_option('-l', '--list', dest='list', metavar=u'榜单名', help=u'列出榜单歌曲')
-    parser.add_option('-s', '--search', dest='search', metavar=u'关键词', help=u'搜索关键词')
-    parser.add_option('-p', '--print', action="store_true", dest='print', default=True, help=u'search(-s)或list(-l)后的动作,仅打印,默认.')
-    parser.add_option('-a', '--downall', action="store_true", dest='downall', help=u'search(-s)或list(-l)后下载全部歌曲.')
-    parser.add_option('-d', '--down', action="store", dest='down', metavar=u'"1 3 6"', help=u'search(-s)或list(-l)后下载部分歌曲.后面跟歌曲序号(注意需要引号)')
-#    parser.add_option('-m', '--downalbum', dest='downalbum', metavar=u'专辑页面URL', help=u'下载专辑')
+    parser.add_option('-b', '--lists', action="store_true", 
+        dest='lists', help=u'列出所有支持的榜单名,并退出')
+    parser.add_option('-l', '--list', 
+        dest='list', metavar=u'榜单名', help=u'列出榜单歌曲')
+    parser.add_option('-s', '--search', 
+        dest='search', metavar=u'关键词', help=u'搜索包含关键词的歌曲')
+    parser.add_option('-a', '--downall', action="store_true", 
+        dest='downall', help=u'search(-s)或list(-l)后下载全部歌曲.')
+    parser.add_option('-d', '--down', action="store", 
+        dest='down', metavar=u'"1 3 6"', help=u'search(-s)或list(-l)后下载部分歌曲.后面跟歌曲序号(注意需要引号)')
+    
+    parser.add_option('-B', '--albumlists', action="store_true", 
+        dest='albumlists', help=u'列出所有支持的专辑榜单名,并退出')
+    parser.add_option('-L', '--albumlist', 
+        dest='albumlist', metavar=u'专辑列表名', help=u'列出专辑列表的歌曲')
+    parser.add_option('-S', '--albumsearch', 
+        dest='albumsearch', metavar=u'关键词', help=u'搜索包含关键词的专辑')
+    parser.add_option('-A', '--albumdownall', action="store_true", 
+        dest='albumdownall', help=u'albumsearch或albumlist后下载全部歌曲.')
+    parser.add_option('-D', '--albumdown', action="store", 
+        dest='albumdown', metavar=u'"1 3 6"', help=u'albumsearch(-S)或albumlist(-L)后下载部分专辑.后面跟专辑序号(注意需要引号)')
     (options, args) = parser.parse_args()
     
     cli=CLI()
-    if options.bang:
+    
+    if options.lists:
         cli.do_lists()
     else:
         if options.search:
             cli.do_search(options.search)
         elif options.list:
             cli.do_list(options.list)
-        elif options.downalbum:
-            cli.do_downalbum(options.downalbum)
         if not(options.search or options.list) and (options.downall or options.down):
             print u'downall(-a)或down(-d)需要配合search(-s)或list(-l)使用.'
             return
@@ -237,6 +250,21 @@ def BatchMode():
             cli.do_downall()
         elif options.down:
             cli.do_down(options.down)
+    
+    if options.albumlists:
+        cli.do_albums()
+    else:
+        if options.albumsearch:
+            cli.do_albumsearch(options.albumsearch)
+        elif options.albumlist:
+            cli.do_albumlist(options.albumlist)
+        if not(options.albumsearch or options.albumlist) and (options.albumdownall or options.albumdown):
+            print u'albumdownall(-A)或albumdown(-D)需要配合albumsearch(-S)或albumlist(-L)使用.'
+            return
+        if options.albumdownall:
+            cli.do_albumdownall()
+        elif options.albumdown:
+            cli.do_albumdown(options.albumdown)
             
 
 if __name__ == '__main__':
@@ -246,6 +274,6 @@ if __name__ == '__main__':
         welcominfo=u"欢迎使用 gmbox!\n更多信息请访问 http://code.google.com/p/gmbox/\n可以输入 'help' 查看支持的命令"
         print welcominfo
         cli.cmdloop()
-        #cli.cmdloop(welcominfo)  #本来应该是这样的,但是无奈在windows下会乱码...谁知道怎么搞定?
+        #TODO: cli.cmdloop(welcominfo)  #本来应该是这样的,但是无奈在windows下会乱码...谁知道怎么搞定?
     else:
         BatchMode()
