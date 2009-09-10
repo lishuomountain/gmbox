@@ -75,7 +75,7 @@ class Gmbox:
             self.albuminfo['title'] if self.downalbumnow else None,
             self.albuminfo['artist'] if self.downalbumnow else None,i+1)
 
-        if not info[1]:
+        if not os.path.exists(info[1]):
             os.makedirs(info[1])
         return info
 
@@ -250,10 +250,6 @@ class Gmbox:
         self.get_albumlist(albumnum)
         print u'专辑名:' + self.albuminfo['title']
         print u'歌手名:' + self.albuminfo['artist']
-        albumpath = os.path.join(config.item['savedir'], self.albuminfo['artist'])
-        albumpath = os.path.join(albumpath, self.albuminfo['title'])
-        if not os.path.isdir(albumpath):
-            os.makedirs(albumpath)
         self.listall()
         self.downall(callback)
         
