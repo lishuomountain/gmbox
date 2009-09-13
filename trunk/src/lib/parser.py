@@ -135,7 +135,7 @@ class ListParser(HTMLParser):
                 self.tmpsong['album']=data
 
         if self.inalbumtable:
-            if 'Title' in self.tdclass and self.albumisfirsttitle:
+            if self.tdclass and 'Title' in self.tdclass and self.albumisfirsttitle:
                 self.albuminfo['title'] = data
                 if self.albuminfo['title'].startswith(u'《'):
                     self.albuminfo['title'] = self.albuminfo['title'].replace(u'《','')
