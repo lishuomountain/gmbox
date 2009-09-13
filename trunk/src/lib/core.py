@@ -253,6 +253,14 @@ class Gmbox:
         self.listall()
         self.downall(callback)
         
+    def __get_pnum_by_html(self,html):
+        next_page_match = re.match(r'.*href="(.*?)" id="next_page"',html,re.S)
+        if next_page_match:
+            next_page_href = next_page_match.group(1)
+            next_page_num = re.match(r'.*start%3D(\d*?)&',next_page_href).group(1)
+            return int(next_page_num)
+        else:
+            return None
         
     def search(self,key):
         '''搜索关键字'''
@@ -265,8 +273,13 @@ class Gmbox:
         p=ListParser()
         print u'正在获取"'+key+u'"的搜索结果列表...',
         sys.stdout.flush()
-        html=self.get_url_html(search_url_template%key)
-        p.feed(html)
+        pnum=0
+        while isinstance(pnum, int):
+            html = self.get_url_html( search_url_template % (key, pnum) )
+            p.feed(html)
+            pnum = self.__get_pnum_by_html(html)
+            print '.',
+            sys.stdout.flush()
         print 'done!'
         self.songlist=p.songlist
         self.cached_list['s_'+key]=copy.copy(p.songlist)
@@ -280,8 +293,13 @@ class Gmbox:
         p=AlbumListParser()
         print u'正在获取"'+key+u'"的专辑搜索结果列表...',
         sys.stdout.flush()
-        html=self.get_url_html(albums_search_url_template%key)
-        p.feed(html)
+        pnum=0
+        while isinstance(pnum, int):
+            html = self.get_url_html( albums_search_url_template % (key, pnum) )
+            p.feed(html)
+            pnum = self.__get_pnum_by_html(html)
+            print '.',
+            sys.stdout.flush()
         print 'done!'
         self.albumlist=p.albumlist
         self.cached_list['said_'+key]=copy.copy(p.albumlist)

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION = '0.1'
+VERSION = '0.2'
 songlists = {
     u'华语新歌':('chinese_new_songs_cn',100),
     u'欧美新歌':('ea_new_songs_cn',100),
@@ -65,6 +65,6 @@ list_url_template = 'http://www.google.cn/music/chartlisting?q=%s&cat=song&start
 albums_list_url_template = 'http://www.google.cn/music/chartlisting?q=%s&cat=album&start=%d'
 album_song_list_url_template = 'http://www.google.cn/music/album?id=%s'
 xml_album_song_list_url_template = 'http://www.google.cn/music/album?id=%s&output=xml'
-search_url_template = 'http://www.google.cn/music/search?q=%s&cat=song'
-albums_search_url_template = 'http://www.google.cn/music/search?q=%s&cat=album'
+search_url_template = 'http://www.google.cn/music/search?q=%s&cat=song&start=%d'
+albums_search_url_template = 'http://www.google.cn/music/search?q=%s&cat=album&start=%d'
 song_url_template = 'http://www.google.cn/music/top100/musicdownload?id=%s'
