@@ -213,10 +213,10 @@ class ListView(Abs_View):
             self._model.clear()
             if gmbox.songlist:
                 [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
-                combo.set_sensitive(True)
                 statusbar.push(0,u'获取列表成功.')
             else:
                 statusbar.push(0,u'错误:获取列表失败.')
+            combo.set_sensitive(True)
             gtk.gdk.threads_leave()
 
     def list_up_prs(self, current_page, total_pages):
@@ -241,10 +241,10 @@ class AlbumListView(Abs_View):
             self._model.clear()
             if gmbox.albumlist:
                 [self._model.append([False, gmbox.albumlist.index(album)+1, album['name'] , album['memo']]) for album in gmbox.albumlist]
-                combo.set_sensitive(True)
                 statusbar.push(0,u'获取列表成功.')
             else:
                 statusbar.push(0,u'错误:获取列表失败.')
+            combo.set_sensitive(True)
             gtk.gdk.threads_leave()
             
     def get_albumlist(self, text, combo):
@@ -295,10 +295,10 @@ class SearchView(Abs_View):
             self._model.clear()
             if gmbox.songlist:
                 [self._model.append([False, gmbox.songlist.index(song)+1, song['title'] , song['artist']]) for song in gmbox.songlist]
-                combo.set_sensitive(True)
                 statusbar.push(0,u'搜索成功.')
             else:
                 statusbar.push(0,u'错误:搜索失败.')
+            combo.set_sensitive(True)
             gtk.gdk.threads_leave()
 
 class AlbumSearchView(Abs_View):
@@ -329,10 +329,10 @@ class AlbumSearchView(Abs_View):
             self._model.clear()
             if gmbox.albumlist:
                 [self._model.append([False, gmbox.albumlist.index(album)+1, album['name'] , album['memo']]) for album in gmbox.albumlist]
-                combo.set_sensitive(True)
                 statusbar.push(0,u'搜索成功.')
             else:
                 statusbar.push(0,u'错误:搜索失败.')
+            combo.set_sensitive(True)
             gtk.gdk.threads_leave()
             
     def download(self,which):
