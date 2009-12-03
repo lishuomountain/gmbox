@@ -54,26 +54,27 @@ class Gmbox:
         print '\n'.join(['Num=%d Name="%s" Memo="%s" ID="%s"'%
             (self.albumlist.index(album)+1,album['name'],album['memo'],album['id']) 
             for album in self.albumlist])
-    def setup_file_info(self,songname,artist,isalbum,albumname,albumartist,albumnum):
-        '''组装歌曲信息，返回 [全文件名,路径,文件名]'''
-        path=config.item['savedir']
+    def setup_file_info(self, songname, artist, isalbum, albumname, albumartist, albumnum):
+        '''根据设置，组装歌曲信息，返回 [全文件名,路径,文件名]'''
+        path = config.item['savedir']
         if config.item['makeartistdir']:
-            path=os.path.join(path,artist)
-            filename=songname+'.mp3'
+            path = os.path.join(path, artist)
+            filename = songname+'.mp3'
         else:
-            filename=songname+'-'+artist+'.mp3'
+            filename = songname+'-'+artist+'.mp3'
         if isalbum and config.item['makealbumdir']:
-            path=os.path.join(path,albumname+'-'+albumartist)
+            path = os.path.join(path, albumname+'-'+albumartist)
         if isalbum and config.item['addalbumnum']:
-            filename='%02d.%s'%(albumnum,filename)
-        return [os.path.join(path,filename),path,filename]
+            filename = '%02d.%s' % (albumnum, filename)
+        filename = str(filename).translate(None, '''\/:*?<>|'"''')
+        return [os.path.join(path, filename), path, filename]
         
-    def createdir_getfilename(self,i=0):
+    def createdir_getfilename(self, i=0):
         '''创建必要的目录，并返回当前列表的第i首歌曲的文件名（含路径）'''
-        song=self.songlist[i]
-        info=self.setup_file_info(song['title'],song['artist'],self.downalbumnow,
+        song = self.songlist[i]
+        info = self.setup_file_info(song['title'], song['artist'], self.downalbumnow,
             self.albuminfo['title'] if self.downalbumnow else None,
-            self.albuminfo['artist'] if self.downalbumnow else None,i+1)
+            self.albuminfo['artist'] if self.downalbumnow else None, i+1)
 
         if not os.path.exists(info[1]):
             os.makedirs(info[1])
