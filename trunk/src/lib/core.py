@@ -67,6 +67,10 @@ class Gmbox:
         if isalbum and config.item['addalbumnum']:
             filename = '%02d.%s' % (albumnum, filename)
         filename = str(filename).translate(None, '''\/:*?<>|'"''')
+        if len(filename) > 243:
+            print u'警告：由于文件名过长，已被截断', filename,
+            filename = filename[:238]+'.mp3'
+            print '-->', filename
         return [os.path.join(path, filename), path, filename]
         
     def createdir_getfilename(self, i=0):

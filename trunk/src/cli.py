@@ -91,12 +91,17 @@ class CLI(cmd.Cmd):
             self.help_albumsearch()
 
     def help_down(self):
-        print u'用法: down num1 [num2 [num3 ...]]\n下载上次list或search的所有歌曲中的一部分,从1开始计数'
+        print u'用法: down num1,[num2,[num3,...]]\n下载上次list或search的所有歌曲中的一部分,从1开始计数'
     def do_down(self,arg):
         if self._candown():
             k=[]
             try:
-                [k.append(int(t)-1) for t in arg.split()]
+                for t in arg.split(","):
+                    if len(t.split("-")) > 1:
+                        for i in range(int(t.split("-")[0]), int(t.split("-")[1])+1):
+                            k.append(i-1)
+                    else:
+                        k.append(int(t)-1)
             except ValueError:
                 print u'down 后面要加数字序号.'
                 return
@@ -106,12 +111,17 @@ class CLI(cmd.Cmd):
             else:
                 print u'down 后面要加数字序号.'
     def help_albumdown(self):
-        print u'用法: albumdown num1 [num2 [num3 ...]]\n下载上次albumlist或albumsearch的所有专辑中的一部分,从1开始计数'
+        print u'用法: albumdown num1,[num2,[num3,...]]\n下载上次albumlist或albumsearch的所有专辑中的一部分,从1开始计数'
     def do_albumdown(self,arg):
         if self._candownalbum():
             k=[]
             try:
-                [k.append(int(t)-1) for t in arg.split()]
+                for t in arg.split(","):
+                    if len(t.split("-")) > 1:
+                        for i in range(int(t.split("-")[0]), int(t.split("-")[1])+1):
+                            k.append(i-1)
+                    else:
+                        k.append(int(t)-1)
             except ValueError:
                 print u'downalbum 后面要加数字序号.'
                 return
