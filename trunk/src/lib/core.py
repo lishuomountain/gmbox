@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, sys, copy, time, re, logging, urllib, urllib2
+import os, sys, copy, time, re, logging, urllib, urllib2, hashlib
+import xml.dom.minidom as minidom
 
 from parser import *
 from const import *
@@ -109,10 +110,30 @@ class Gmbox:
         s=SongParser()
         s.feed(html)
         return s.url
-
+    
+    def get_lyric_url(self, id):
+        '''获取歌词下载地址，按照flash播放器所用的歌词xml信息'''
+        sig = hashlib.md5(flash_player_key + id).hexdigest()
+        xml_url = song_streaming_url_template % (id, sig)
+        try:
+            xml_string = self.get_url_html(xml_url, False)
+            dom = minidom.parseString(xml_string)
+            url = dom.getElementsByTagName('lyricsUrl')[0].childNodes[0].data
+        except:
+            return None
+        return url
+    
     def downone(self,i=0,callback=None):
         '''下载当前列表中的一首歌曲 '''
         nameinfo = self.createdir_getfilename(i)
+        lyric_filename = os.path.splitext(nameinfo[0])[0] + ".lrc"
+        if config.item['lyric']:
+            if not os.path.exists(lyric_filename):
+                lyric_url = self.get_lyric_url(self.songlist[i]['id'])
+                if lyric_url:
+                    self.download(lyric_url, lyric_filename, self.update_null)
+                else:
+                    print nameinfo[2],u'的歌词不存在!'
 
         if os.path.exists(nameinfo[0]):
             print nameinfo[2],u'已存在!'
@@ -126,7 +147,11 @@ class Gmbox:
                 callback(-1,nameinfo[2],numinfo) #-1做为开始信号
             self.download(url,nameinfo[0],callback=callback)
         else:   #下载页有验证码时url为空
-            print '出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
+            print u'出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
+
+        if config.item['id3utf8']:
+            '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
+            os.system('mid3iconv -e gbk "'+nameinfo[0] + '"')
 
     def downall(self,callback=None):
         '''下载当然列表中的所有歌曲'''
@@ -152,10 +177,6 @@ class Gmbox:
             print '\r['+''.join(['=' for i in range(50)])+ \
                 '] 100.00%%  %s/s       '%sizeread(speed)
         os.rename(cache_uri, local_uri)
-        #TODO:以后转码函数需要移到download外面成为独立的函数.
-        if config.item['id3utf8']:
-            '''在Linux下转换到UTF 编码，现在只有comment里还是乱码'''
-            os.system('mid3iconv -e gbk "'+local_uri + '"')
 
     def update_progress(self, blocks, block_size, total_size):
         '''默认的进度显示的回调函数'''
@@ -167,7 +188,10 @@ class Gmbox:
             print '\r['+''.join(['=' for i in range((int)(percentage/2))])+'>'+ \
                 ''.join([' ' for i in range((int)(50-percentage/2))])+ \
                 (']  %0.2f%%  %s/s    ' % (percentage,sizeread(self.speed))),
-
+    def update_null(self, arg1, arg2, arg3):
+        '''下载歌词或封面时用的回调函数，啥都不显示'''
+        pass
+        
     def get_list(self,stype,callback=None):
         '''获取特定榜单'''
         self.downalbumnow=False
@@ -249,13 +273,20 @@ class Gmbox:
     def downallalbum(self,callback=None):
         '''下载专辑列表的所有专辑'''
         [self.downalbum(i,callback) for i in range(len(self.albumlist))]
-        
+
     def downalbum(self, albumnum,callback=None):
         '''下载整个专辑'''
         self.get_albumlist(albumnum)
         print u'专辑名:' + self.albuminfo['title']
         print u'歌手名:' + self.albuminfo['artist']
         self.listall()
+
+        if config.item['cover']:
+            nameinfo = self.createdir_getfilename(0)
+            cover_filename = os.path.join(os.path.dirname(nameinfo[0]), "cover.jpg")
+            if not os.path.exists(cover_filename):
+                self.download(self.albuminfo['cover'], cover_filename, self.update_null)
+
         self.downall(callback)
         
     def __get_pnum_by_html(self,html):

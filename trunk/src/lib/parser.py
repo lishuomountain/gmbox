@@ -49,6 +49,7 @@ class XmlAlbumParser():
         self.albuminfo['title']=self.__read_dom_text('name')
         self.albuminfo['artist']=self.__read_dom_text('artist')
         self.albuminfo['time']=self.__read_dom_text('releaseDate')
+        self.albuminfo['cover']=self.__read_dom_text('thumbnailLink').replace("size=2", "size=4")
         self.__read_song()
 
     def __read_dom_text(self,key):

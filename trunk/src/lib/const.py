@@ -68,3 +68,5 @@ xml_album_song_list_url_template = 'http://www.google.cn/music/album?id=%s&outpu
 search_url_template = 'http://www.google.cn/music/search?q=%s&cat=song&start=%d'
 albums_search_url_template = 'http://www.google.cn/music/search?q=%s&cat=album&start=%d'
 song_url_template = 'http://www.google.cn/music/top100/musicdownload?id=%s'
+song_streaming_url_template = 'http://www.google.cn/music/songstreaming?id=%s&cad=pl_player&sig=%s&output=xml'
+flash_player_key = 'c51181b7f9bfce1ac742ed8b4a1ae4ed'

@@ -55,7 +55,9 @@ class Config():
         self.item['makealbumdir']=self.__read_dom_text('makealbumdir')=='True'
         self.item['makeartistdir']=self.__read_dom_text('makeartistdir')=='True'
         self.item['addalbumnum']=self.__read_dom_text('addalbumnum')=='True'
-        
+        self.item['lyric']=self.__read_dom_text('lyric')=='True'
+        self.item['cover']=self.__read_dom_text('cover')=='True'
+    
     def __read_dom_text(self,key):
         '''读dom中的节点值'''
         if self.dom.getElementsByTagName(key):
@@ -107,6 +109,12 @@ class Config():
     def addalbumnum_changed(self,newvalue):
         '''更改是否在专辑下载时前置专辑序号'''
         self.__bool_value_changed('addalbumnum',newvalue)
+    def lyric_changed(self,newvalue):
+        '''更改是否在下载歌曲时同时下载歌词'''
+        self.__bool_value_changed('lyric',newvalue)
+    def cover_changed(self,newvalue):
+        '''更改是否下载专辑时同时下载专辑封面'''
+        self.__bool_value_changed('cover',newvalue)
 
     def __bool_value_changed(self,k,v):
         '''是非型的选项变化'''

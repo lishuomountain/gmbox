@@ -221,7 +221,7 @@ class Tabview(gtk.Notebook):
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
 
     def setup_config_tab(self):
-        t=gtk.Table(8,2)
+        t=gtk.Table(10,2)
         #tmp_label=gtk.Label(u'\n注: 以下内容还未生效 ...\n')
         tmp_label=gtk.Label('\n设置\n')
         tmp_label.set_use_markup(True)
@@ -263,16 +263,28 @@ class Tabview(gtk.Notebook):
         options_addalbumnum.connect('toggled', self.config_addalbumnum)
         t.attach(gtk.Label(u''),0,1,5,6,gtk.SHRINK,gtk.SHRINK)
         t.attach(options_addalbumnum,1,2,5,6,yoptions=gtk.SHRINK)
+        
+        options_lyric = gtk.CheckButton(u'下载歌曲时同时下载歌词')
+        options_lyric.set_active(config.item['lyric'])
+        options_lyric.connect('toggled', self.config_lyric)
+        t.attach(gtk.Label(u''),0,1,6,7,gtk.SHRINK,gtk.SHRINK)
+        t.attach(options_lyric,1,2,6,7,yoptions=gtk.SHRINK)
+        
+        options_cover = gtk.CheckButton(u'下载专辑时同时下载专辑封面')
+        options_cover.set_active(config.item['cover'])
+        options_cover.connect('toggled', self.config_cover)
+        t.attach(gtk.Label(u''),0,1,7,8,gtk.SHRINK,gtk.SHRINK)
+        t.attach(options_cover,1,2,7,8,yoptions=gtk.SHRINK)
 
         options_localdir = gtk.Entry()
         options_localdir.set_text('此功能尚未实现.')
         options_localdir.set_sensitive(False)
-        t.attach(gtk.Label(u'本地歌曲目录:'),0,1,6,7,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_localdir,1,2,6,7,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u'本地歌曲目录:'),0,1,8,9,gtk.SHRINK,gtk.SHRINK)
+        t.attach(options_localdir,1,2,8,9,yoptions=gtk.SHRINK)
 
         self.previewLabel = gtk.Label()
-        t.attach(gtk.Label(u'文件名预览:'),0,1,7,8,gtk.SHRINK,gtk.SHRINK)
-        t.attach(self.previewLabel,1,2,7,8,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u'文件名预览:'),0,1,9,10,gtk.SHRINK,gtk.SHRINK)
+        t.attach(self.previewLabel,1,2,9,10,yoptions=gtk.SHRINK)
         self.refresh_pre()
 
         self.append_page(t)
@@ -328,6 +340,14 @@ class Tabview(gtk.Notebook):
 
     def config_addalbumnum(self,widget):
         config.addalbumnum_changed(widget.get_active())
+        self.refresh_pre()
+        
+    def config_lyric(self,widget):
+        config.lyric_changed(widget.get_active())
+        self.refresh_pre()
+        
+    def config_cover(self,widget):
+        config.cover_changed(widget.get_active())
         self.refresh_pre()
 
     def do_select_all(self,widget,view):

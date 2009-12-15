@@ -159,6 +159,8 @@ config id3utf8       True|False  设置是否转换ID3信息到UTF-8编码
 config makeartistdir True|False  设置下载时是否建立歌手目录
 config makealbumdir  True|False  设置下载专辑时是否下载到专辑目录
 config addalbumnum   True|False  设置下载专辑时是否在专辑下载时前置专辑序号
+config lyric         True|False  设置下载歌曲时是否同时下载歌词
+config cover         True|False  设置下载专辑时是否下载专辑封面
 '''
     def do_config(self,arg):
         if arg == '':
@@ -179,6 +181,10 @@ config addalbumnum   True|False  设置下载专辑时是否在专辑下载时�
                     config.makeartistdir_changed(arg.split()[1])
                 elif arg.split()[0]=='addalbumnum':
                     config.addalbumnum_changed(arg.split()[1])
+                elif arg.split()[0]=='lyric':
+                    config.lyric_changed(arg.split()[1])
+                elif arg.split()[0]=='cover':
+                    config.cover_changed(arg.split()[1])
                 else:
                     self.help_config()
         
