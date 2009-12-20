@@ -19,8 +19,10 @@
 
 import gtk, copy, logging, threading
 from time import sleep
-from lib.core import gmbox
+
+from threads import threads
 from statusbar import *
+from lib.core import gmbox
 
 log = logging.getLogger('gmbox.treeview')
 
@@ -160,13 +162,16 @@ class Abs_View(gtk.TreeView):
             self.current_path = None
                             
 # methods for popup menu above
-        
     def download(self,which):
-        if type(which)==int:
-            down_thread=threading.Thread(target=gmbox.downone,args=(which,self.up_prs))
+        if threads.down and threads.down.isAlive():
+            print u'另一个进程正在下载。。。'
+            return
+        if isinstance(which, int):
+            threads.down = threading.Thread(target=gmbox.downone,args=(which, self.up_prs))
         else:
-            down_thread=threading.Thread(target=gmbox.down_listed,args=(which,self.up_prs))
-        down_thread.start()
+            threads.down = threading.Thread(target=gmbox.down_listed,args=(which, self.up_prs))
+        threads.down.daemon = True
+        threads.down.start()
         
     def down_select(self):
         selected=[]
@@ -261,11 +266,15 @@ class AlbumListView(Abs_View):
         statusbar.progress.set_fraction(float(current_page)/total_pages)
 
     def download(self,which):
-        if type(which)==int:
-            down_thread=threading.Thread(target=gmbox.downalbum,args=(which,self.up_prs))
+        if threads.down and threads.down.isAlive():
+            print u'另一个进程正在下载。。。'
+            return
+        if isinstance(which, int):
+            threads.down = threading.Thread(target=gmbox.downalbum,args=(which,self.up_prs))
         else:
-            down_thread=threading.Thread(target=gmbox.downalbums,args=(which,self.up_prs))
-        down_thread.start()
+            threads.down = threading.Thread(target=gmbox.downalbums,args=(which,self.up_prs))
+        threads.down.daemon = True
+        threads.down.start()
         
 class SearchView(Abs_View):
     '''关键词搜索页面'''
@@ -336,11 +345,15 @@ class AlbumSearchView(Abs_View):
             gtk.gdk.threads_leave()
             
     def download(self,which):
-        if type(which)==int:
-            down_thread=threading.Thread(target=gmbox.downalbum,args=(which,self.up_prs))
+        if threads.down and threads.down.isAlive():
+            print u'另一个进程正在下载。。。'
+            return
+        if isinstance(which, int):
+            threads.down = threading.Thread(target=gmbox.downalbum,args=(which,self.up_prs))
         else:
-            down_thread=threading.Thread(target=gmbox.downalbums,args=(which,self.up_prs))
-        down_thread.start()
+            threads.down = threading.Thread(target=gmbox.downalbums,args=(which,self.up_prs))
+        threads.down.daemon = True
+        threads.down.start()
 """    def addToPlaylist(self, widget):
         selected = self.current_list.treeview.get_selection().get_selected()
         list_model,iter = selected

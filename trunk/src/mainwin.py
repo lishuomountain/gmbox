@@ -20,18 +20,18 @@
 import pygtk,sys
 if not sys.platform == 'win32':
     pygtk.require('2.0')
-import gtk
-import os
+import os, logging, gtk, gobject
 from optparse import OptionParser
-import logging
-import gobject
 
-from lib.utils import find_image_or_data,module_path
 from tabview import *
 from statusbar import *
+from threads import threads
+from lib.utils import find_image_or_data,module_path
 
-if os.name == 'posix':
+try:
     import pynotify
+except ImportError:
+    pynotify = None
 
 log = logging.getLogger('gmbox')
 
@@ -51,8 +51,7 @@ class Mainwin(gtk.Window):
         log.debug('Setup up system tray icon')
         self.setupSystray()
 
-
-        self.connect('destroy', gtk.main_quit)
+        self.connect('delete_event', self.quit)
         #self.window.connect('key_press_event', self.key_checker)
         
         self.but_index=0
@@ -68,7 +67,6 @@ class Mainwin(gtk.Window):
         self.add(vb)
         log.debug('End to setup notebook')
         self.show_all()
-
         
     def setupSystray(self):
         
@@ -77,10 +75,10 @@ class Mainwin(gtk.Window):
         self.systray.set_from_file(find_image_or_data('gmbox.png',module_path()))
         self.systray.connect("activate", self.systrayCb)
         self.systray.connect('popup-menu', self.systrayPopup)
-        self.systray.set_tooltip("Click to toggle window visibility")
+        self.systray.set_tooltip(u'点击可隐藏/显示主窗口')
         self.systray.set_visible(True)
 
-        if os.name == 'posix':
+        if pynotify:
             pynotify.init("Some Application or Title")
             self.notification = pynotify.Notification("Title", "body", "dialog-warning")
             self.notification.set_urgency(pynotify.URGENCY_NORMAL)
@@ -94,8 +92,6 @@ class Mainwin(gtk.Window):
             self.hide()
         else:
             self.show()
-            #self.deiconify()
-            #self.present()
 
     def systrayPopup(self, statusicon, button, activate_time):
         """Create and show popup menu"""
@@ -114,7 +110,7 @@ class Mainwin(gtk.Window):
         #popup_menu.append(next_item)
 
         quit_item = gtk.ImageMenuItem(gtk.STOCK_QUIT)
-        quit_item.connect("activate", gtk.main_quit)
+        quit_item.connect("activate", self.quit)
         popup_menu.append(quit_item)
 
         popup_menu.show_all()
@@ -132,7 +128,20 @@ class Mainwin(gtk.Window):
         tabs=[u'榜单下载',u'音乐搜索',u'专辑榜单',u'专辑搜索',u'下载管理',u'播放列表',u'设置',u'关于']
         [self.setup_but_box_one(but_box, tab) for tab in tabs]
         return but_box
-
+        
+    def quit(self, win, evt=gtk.gdk.DELETE):
+        if not threads.down or not threads.down.isAlive():
+            gtk.main_quit(win)
+            return False
+        from dialogs import QuitDialog
+        dialog = QuitDialog(u'退出？', u'有未完成的下载，确定要退出？')
+        response = dialog.run()
+        dialog.destroy()
+        if response == gtk.RESPONSE_YES:
+            gtk.main_quit(win)
+        else:
+            return True
+        
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-d', '--debug',  action='store_true', dest='debug')

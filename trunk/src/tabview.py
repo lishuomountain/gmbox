@@ -47,6 +47,7 @@ class Tabview(gtk.Notebook):
         self.show_all()
         self.connect('switch-page',self.page_changed)
         self.re_fun={} #用于缓存tab切换的时候的函数
+        
 # =========================================
 # methods setup these tabs
         
