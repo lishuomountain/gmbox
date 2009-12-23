@@ -20,11 +20,12 @@
 
 import gtk
 class Statusbar(gtk.Statusbar):
+    '''主窗口下面的状态栏'''
     def __init__(self):
         gtk.Statusbar.__init__(self)
-        self.textbox=gtk.Label("")
-        self.progress=gtk.ProgressBar()
+        self.textbox = gtk.Label('')
+        self.progress = gtk.ProgressBar()
         self.pack_start(self.textbox, True, True)
         self.pack_start(self.progress, False, False)
 
-statusbar=Statusbar()
+statusbar = Statusbar()

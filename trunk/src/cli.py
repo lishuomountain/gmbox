@@ -18,9 +18,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 '''gmbox的命令行界面'''
-import sys,copy,cmd
+import sys, cmd
 from optparse import OptionParser
-from lib.core import *
+
+from lib.core import gmbox
+from lib.config import config
+from lib.const import VERSION, songlists, albums_lists
+from lib.utils import deal_input
  
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -30,51 +34,51 @@ class CLI(cmd.Cmd):
     '''解析命令行参数'''
     def __init__(self):
         cmd.Cmd.__init__(self)
-        self.currentlist=u'华语新歌'
-        self.currentalbumlist=u'影视新碟'
+        self.currentlist = u'华语新歌'
+        self.currentalbumlist = u'影视新碟'
         self.prompt = "gmbox> "
 
-    def default(self,line):
-        print line,u' 不支持的命令!'
+    def default(self, line):
+        print line, u' 不支持的命令!'
 
     def help_lists(self):
         print u'用法: lists\n查看支持的榜单名.'
-    def do_lists(self,arg=None):
+    def do_lists(self):
         print u'目前gmbox支持以下列表: '+u'、'.join(['"%s"'%key for key in songlists])
     def help_albums(self):
         print u'用法: albums\n查看支持的专辑列表名.'
-    def do_albums(self,arg=None):
+    def do_albums(self):
         print u'目前gmbox支持以下专辑列表: '+u'、'.join(['"%s"'%key for key in albums_lists])
     def help_list(self):
         print u'用法: list  <榜单名>\n列出榜单名的所有歌曲,默认列出上次list的榜单或华语新歌.'
-    def do_list(self,arg):
-        arg=deal_input(arg)
+    def do_list(self, arg):
+        arg = deal_input(arg)
         if arg != '':
             if arg in songlists:
-                self.currentlist=arg
+                self.currentlist = arg
             else:
                 print u'未知列表:"'+arg+u'"'
                 return
         gmbox.get_list(self.currentlist)
         gmbox.listall()
-        print self.currentlist,u'包含以上',len(gmbox.songlist),u'首歌.'
+        print self.currentlist, u'包含以上', len(gmbox.songlist), u'首歌.'
     def help_albumlist(self):
         print u'用法: albumlist  <专辑列表名>\n列出专辑列表的所有专辑,默认列出上次albumlist的专辑或影视新碟.'
-    def do_albumlist(self,arg):
-        arg=deal_input(arg)
+    def do_albumlist(self, arg):
+        arg = deal_input(arg)
         if arg != '':
             if arg in albums_lists:
-                self.currentalbumlist=arg
+                self.currentalbumlist = arg
             else:
-                print u'未知列表:"'+arg+u'"'
+                print u'未知列表:"' + arg + u'"'
                 return
         gmbox.get_album_IDs(self.currentalbumlist)
         gmbox.listallalbum()
-        print self.currentalbumlist,u'包含以上',len(gmbox.albumlist),u'个专辑.'
+        print self.currentalbumlist, u'包含以上', len(gmbox.albumlist), u'个专辑.'
     def help_search(self):
         print u'用法: search  关键字\n搜索关键字'
-    def do_search(self,arg):
-        arg=deal_input(arg)
+    def do_search(self, arg):
+        arg = deal_input(arg)
         if arg != '':
             gmbox.search(arg)
             gmbox.listall()
@@ -82,8 +86,8 @@ class CLI(cmd.Cmd):
             self.help_search()
     def help_albumsearch(self):
         print u'用法: albumsearch  关键字\n以关键字搜索专辑'
-    def do_albumsearch(self,arg):
-        arg=deal_input(arg)
+    def do_albumsearch(self, arg):
+        arg = deal_input(arg)
         if arg != '':
             gmbox.searchalbum(arg)
             gmbox.listallalbum()
@@ -92,9 +96,9 @@ class CLI(cmd.Cmd):
 
     def help_down(self):
         print u'用法: down num1,[num2,[num3,...]]\n下载上次list或search的所有歌曲中的一部分,从1开始计数'
-    def do_down(self,arg):
+    def do_down(self, arg):
         if self._candown():
-            k=[]
+            k = []
             try:
                 for t in arg.split(","):
                     if len(t.split("-")) > 1:
@@ -105,16 +109,16 @@ class CLI(cmd.Cmd):
             except ValueError:
                 print u'down 后面要加数字序号.'
                 return
-            k=list(set(k))
+            k = list(set(k))
             if len(k) > 0:
                 gmbox.down_listed(k)
             else:
                 print u'down 后面要加数字序号.'
     def help_albumdown(self):
         print u'用法: albumdown num1,[num2,[num3,...]]\n下载上次albumlist或albumsearch的所有专辑中的一部分,从1开始计数'
-    def do_albumdown(self,arg):
+    def do_albumdown(self, arg):
         if self._candownalbum():
-            k=[]
+            k = []
             try:
                 for t in arg.split(","):
                     if len(t.split("-")) > 1:
@@ -125,7 +129,7 @@ class CLI(cmd.Cmd):
             except ValueError:
                 print u'downalbum 后面要加数字序号.'
                 return
-            k=list(set(k))
+            k = list(set(k))
             if len(k) > 0:
                 gmbox.downalbums(k)
             else:
@@ -133,19 +137,19 @@ class CLI(cmd.Cmd):
             
     def help_downall(self):
         print u'用法: downall\n下载上次list或search的所有歌曲'
-    def do_downall(self,arg=None):
+    def do_downall(self):
         if self._candown():
             gmbox.downall()
     def help_albumdownall(self):
         print u'用法: albumdownall\n下载上次albumlist或albumsearch的所有专辑'
-    def do_albumdownall(self,arg=None):
+    def do_albumdownall(self):
         if self._candownalbum():
             gmbox.downallalbum()
 
     def help_albumsongs(self):
         print u'用法:albumsongs num\n列出专辑内容'
 
-    def do_albumsongs(self,arg=None):
+    def do_albumsongs(self, arg = None):
         if self._candownalbum():
             gmbox.get_albumlist(int(arg)-1)
             gmbox.listall()
@@ -162,42 +166,42 @@ config addalbumnum   True|False  设置下载专辑时是否在专辑下载时�
 config lyric         True|False  设置下载歌曲时是否同时下载歌词
 config cover         True|False  设置下载专辑时是否下载专辑封面
 '''
-    def do_config(self,arg):
+    def do_config(self, arg):
         if arg == '':
             print config.item
-            print u'歌曲下载路径：',gmbox.setup_file_info(u'歌名',u'歌手',False,u'专辑名',u'专辑歌手',1)[0]
-            print u'专辑下载路径：',gmbox.setup_file_info(u'歌名',u'歌手',True,u'专辑名',u'专辑歌手',1)[0]
+            print u'歌曲下载路径：', gmbox.setup_file_info(u'歌名', u'歌手', False, u'专辑名', u'专辑歌手', 1)[0]
+            print u'专辑下载路径：', gmbox.setup_file_info(u'歌名', u'歌手', True, u'专辑名', u'专辑歌手', 1)[0]
         else:
             if len(arg.split()) != 2:
                 self.help_config()
             else:
-                if arg.split()[0]=='savedir':
+                if arg.split()[0] == 'savedir':
                     config.savedir_changed(arg.split()[1])
-                elif arg.split()[0]=='id3utf8':
+                elif arg.split()[0] == 'id3utf8':
                     config.id3utf8_changed(arg.split()[1])
-                elif arg.split()[0]=='makealbumdir':
+                elif arg.split()[0] == 'makealbumdir':
                     config.makealbumdir_changed(arg.split()[1])
-                elif arg.split()[0]=='makeartistdir':
+                elif arg.split()[0] == 'makeartistdir':
                     config.makeartistdir_changed(arg.split()[1])
-                elif arg.split()[0]=='addalbumnum':
+                elif arg.split()[0] == 'addalbumnum':
                     config.addalbumnum_changed(arg.split()[1])
-                elif arg.split()[0]=='lyric':
+                elif arg.split()[0] == 'lyric':
                     config.lyric_changed(arg.split()[1])
-                elif arg.split()[0]=='cover':
+                elif arg.split()[0] == 'cover':
                     config.cover_changed(arg.split()[1])
                 else:
                     self.help_config()
         
     def help_exit(self):
         print u'用法: exit\n退出gmbox.'
-    def do_exit(self,arg):
+    def do_exit(self):
         sys.exit(0)
     def help_version(self):
         print u'用法: version\n显示版本号.'
-    def do_version(self,arg):
+    def do_version(self):
         print 'gmbox V'+VERSION
-    def do_EOF(self,arg):
-        print
+    def do_EOF(self, arg):
+        print arg
         sys.exit(0)
 
     def _candown(self):
@@ -250,7 +254,7 @@ def BatchMode():
         dest='albumdown', metavar=u'"1 3 6"', help=u'albumsearch(-S)或albumlist(-L)后下载部分专辑.后面跟专辑序号(注意需要引号)')
     (options, args) = parser.parse_args()
     
-    cli=CLI()
+    cli = CLI()
     
     if options.lists:
         cli.do_lists()
@@ -284,10 +288,10 @@ def BatchMode():
             
 
 if __name__ == '__main__':
-    if len(sys.argv)==1:
-        '''交互模式'''
-        cli=CLI()
-        welcominfo=u"欢迎使用 gmbox!\n更多信息请访问 http://code.google.com/p/gmbox/\n可以输入 'help' 查看支持的命令"
+    if len(sys.argv) == 1:
+        #交互模式
+        cli = CLI()
+        welcominfo = u"欢迎使用 gmbox!\n更多信息请访问 http://code.google.com/p/gmbox/\n可以输入 'help' 查看支持的命令"
         print welcominfo
         cli.cmdloop()
         #TODO: cli.cmdloop(welcominfo)  #本来应该是这样的,但是无奈在windows下会乱码...谁知道怎么搞定?

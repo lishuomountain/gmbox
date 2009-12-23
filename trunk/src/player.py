@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import gtk
+import os, pynotify, gtk
 
 class playbox(gtk.HBox):
     '''embedded to play list tab for audition songs'''
@@ -40,42 +40,42 @@ class playbox(gtk.HBox):
         self.pack_start(self.but_pause, False)
         self.pack_start(self.but_next, False)
         
-    def play(self,start):
+    def play(self, start):
         '''试听,播放'''
-        if os.name=='posix':
+        if os.name == 'posix':
             self.notification = pynotify.Notification("试听", self.current_list.get_title(start), "dialog-warning")
             self.notification.set_timeout(1)
             self.notification.show()
         self.playbar.set_text("now playing " + self.current_list.get_title(start))
-        print "now playing ",self.current_list.get_title(start)
+        print "now playing ", self.current_list.get_title(start)
         self.current_list.play(start)
         #self.current_list.autoplay(start)
 
     def listen_init(self, widget):
-        self.current_list=self.playlist
-        self.current_path=self.path[0]
+        self.current_list = self.playlist
+        self.current_path = self.path[0]
         self.listen(widget)
 
-    def focus_next(self,widget):
-        self.current_path= self.current_path + 1
+    def focus_next(self, widget):
+        self.current_path = self.current_path + 1
         widget.set_cursor(self.current_path)
-        if DEBUG:
-            print "now focus",self.current_path
-    def focus_prev(self,widget):
-        self.current_path= self.current_path - 1
+        #if DEBUG:
+        #    print "now focus", self.current_path
+    def focus_prev(self, widget):
+        self.current_path = self.current_path - 1
         widget.set_cursor(self.current_path)
-        if DEBUG:
-            print "now focus",self.current_path
+        #if DEBUG:
+        #    print "now focus", self.current_path
 
-    def play_next(self,widget):
+    def play_next(self, widget):
         #widget.focus_next(widget)
         self.focus_next(widget)
         self.listen(widget)
-        if DEBUG:
-            print "now playing",self.current_path
-    def play_prev(self,widget):
+        #if DEBUG:
+        #    print "now playing", self.current_path
+    def play_prev(self, widget):
         #widget.focus_prev(widget)
         self.focus_prev(widget)
         self.listen(widget)
-        if DEBUG:
-            print "now playing",self.current_path
+        #if DEBUG:
+        #    print "now playing", self.current_path

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION = '0.2'
+VERSION = '0.2.3'
 songlists = {
     u'华语新歌':('chinese_new_songs_cn',100),
     u'欧美新歌':('ea_new_songs_cn',100),

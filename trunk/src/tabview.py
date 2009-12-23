@@ -23,15 +23,17 @@ import logging
 import webbrowser
 
 from player import playbox
-from treeview import ListView,SearchView,AlbumListView,AlbumSearchView
-from lib.const import *
-from lib.config import *
+from treeview import ListView, SearchView, AlbumListView, AlbumSearchView
+from lib.const import songlists, albums_lists, VERSION
+from lib.config import config
 from lib.core import gmbox
 
 log = logging.getLogger('gmbox.tabview')
 
 class Tabview(gtk.Notebook):
+    '''主窗口的各页面'''
     def __init__(self):
+        '''初始化'''
         gtk.Notebook.__init__(self)
         
         self.set_show_tabs(False)
@@ -45,8 +47,8 @@ class Tabview(gtk.Notebook):
         self.setup_config_tab()
         self.setup_about_tab()
         self.show_all()
-        self.connect('switch-page',self.page_changed)
-        self.re_fun={} #用于缓存tab切换的时候的函数
+        self.connect('switch-page', self.page_changed)
+        self.re_fun = {} #用于缓存tab切换的时候的函数
         
 # =========================================
 # methods setup these tabs
@@ -63,7 +65,7 @@ class Tabview(gtk.Notebook):
         self.combox.connect("changed", self.do_getlist)
         
         self.but_down_select = gtk.Button('下载选中的音乐')
-        self.but_down_select.connect('clicked',lambda w:self.list_view.down_select())
+        self.but_down_select.connect('clicked', lambda w:self.list_view.down_select())
         self.but_adition_select = gtk.Button('试听选中的音乐')
         self.but_adition_select.set_sensitive(False)
         o_select_all = gtk.CheckButton(u'全选')
@@ -89,11 +91,11 @@ class Tabview(gtk.Notebook):
         self.search_view = SearchView()
         hb = gtk.HBox(False, 0)
         self.search_entry = gtk.Entry()
-        self.search_entry.connect('activate',lambda w:self.do_search(self.search_ok))
+        self.search_entry.connect('activate', lambda w:self.do_search(self.search_ok))
         self.search_ok = gtk.Button("搜索")
         self.search_ok.connect('clicked', self.do_search)
         self.but_down_select = gtk.Button('下载所选')
-        self.but_down_select.connect('clicked',lambda w:self.search_view.down_select())
+        self.but_down_select.connect('clicked', lambda w:self.search_view.down_select())
         o_select_all = gtk.CheckButton(u'全选')
         o_select_all.connect('toggled', self.do_select_all, self.search_view)
         hb.pack_start(gtk.Label(u'音乐搜索: '), False, False)
@@ -133,7 +135,7 @@ class Tabview(gtk.Notebook):
         self.album_combox.connect("changed", self.do_getalbumlist)
         
         self.but_down_select = gtk.Button('下载选中的音乐')
-        self.but_down_select.connect('clicked',lambda w:self.album_list_view.down_select())
+        self.but_down_select.connect('clicked', lambda w:self.album_list_view.down_select())
         self.but_adition_select = gtk.Button('试听选中的音乐')
         self.but_adition_select.set_sensitive(False)
         o_select_all = gtk.CheckButton(u'全选')
@@ -159,11 +161,11 @@ class Tabview(gtk.Notebook):
         self.album_search_view = AlbumSearchView()
         hb = gtk.HBox(False, 0)
         self.album_search_entry = gtk.Entry()
-        self.album_search_entry.connect('activate',lambda w:self.do_album_search(self.album_search_ok))
+        self.album_search_entry.connect('activate', lambda w:self.do_album_search(self.album_search_ok))
         self.album_search_ok = gtk.Button("搜索")
         self.album_search_ok.connect('clicked', self.do_album_search)
         self.but_down_select = gtk.Button('下载所选')
-        self.but_down_select.connect('clicked',lambda w:self.album_search_view.down_select())
+        self.but_down_select.connect('clicked', lambda w:self.album_search_view.down_select())
         o_select_all = gtk.CheckButton(u'全选')
         o_select_all.connect('toggled', self.do_select_all, self.album_search_view)
         hb.pack_start(gtk.Label(u'专辑搜索: '), False, False)
@@ -186,21 +188,13 @@ class Tabview(gtk.Notebook):
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        tmp_label=gtk.Label('coming soon ...')
+        tmp_label = gtk.Label('coming soon ...')
         tmp_label.set_use_markup(True)
 
         vb = gtk.VBox(False, 0)
         vb.pack_start(tmp_label, True, True)
 
         self.append_page(vb)
-
-        #page 3:  downlist page
-        #self.down_tree = downpage.DownTreeView(self.xml)
-        #self.down_tree = DownTreeView(self.xml)
-        #self.file_list_view = FileListView(self.xml,gmbox.musicdir)
-        #button = self.xml.get_widget('filelist_button')
-        #button.connect('clicked',self.dolistLocalFile,)
-
         
     def setup_playlist_tab(self):
 
@@ -208,7 +202,7 @@ class Tabview(gtk.Notebook):
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        tmp_label=gtk.Label('coming soon ...')
+        tmp_label = gtk.Label('coming soon ...')
 
         vb = gtk.VBox(False, 0)
         vb.pack_start(tmp_label, True, True)
@@ -222,95 +216,93 @@ class Tabview(gtk.Notebook):
         #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
 
     def setup_config_tab(self):
-        t=gtk.Table(10,2)
+        t = gtk.Table(10, 2)
         #tmp_label=gtk.Label(u'\n注: 以下内容还未生效 ...\n')
-        tmp_label=gtk.Label('\n设置\n')
+        tmp_label = gtk.Label('\n设置\n')
         tmp_label.set_use_markup(True)
-        t.attach(tmp_label,0,2,0,1,gtk.SHRINK,gtk.SHRINK)
+        t.attach(tmp_label, 0, 2, 0, 1, gtk.SHRINK, gtk.SHRINK)
     
         hb_savedir = gtk.HBox(False, 0)
         options_savedir = gtk.Entry()
         options_savedir.set_text(config.item['savedir'])
         options_savedir.set_sensitive(False)
         bt_savedir = gtk.Button('浏览...')
-        bt_savedir.connect('clicked',self.config_savedir,options_savedir)
+        bt_savedir.connect('clicked', self.config_savedir, options_savedir)
 
         hb_savedir.pack_start(options_savedir, True, True)
         hb_savedir.pack_start(bt_savedir, False, False)
         
-        t.attach(gtk.Label(u'    歌曲下载目录:  '),0,1,1,2,gtk.SHRINK,gtk.SHRINK)
-        t.attach(hb_savedir,1,2,1,2,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u'    歌曲下载目录:  '), 0, 1 , 1, 2, gtk.SHRINK, gtk.SHRINK)
+        t.attach(hb_savedir, 1, 2, 1, 2, yoptions=gtk.SHRINK)
 
         options_id3utf8 = gtk.CheckButton(u'将ID3信息转换为UTF8,(windows用户无效)')
         options_id3utf8.set_active(config.item['id3utf8'])
         options_id3utf8.connect('toggled', self.config_id3utf8)
-        t.attach(gtk.Label(u''),0,1,2,3,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_id3utf8,1,2,2,3,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u''), 0, 1, 2, 3, gtk.SHRINK, gtk.SHRINK)
+        t.attach(options_id3utf8, 1, 2, 2, 3, yoptions=gtk.SHRINK)
 
         options_makeartistdir = gtk.CheckButton(u'下载时建立歌手目录')
         options_makeartistdir.set_active(config.item['makeartistdir'])
         options_makeartistdir.connect('toggled', self.config_makeartistdir)
-        t.attach(gtk.Label(u''),0,1,3,4,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_makeartistdir,1,2,3,4,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u''), 0, 1, 3, 4, gtk.SHRINK, gtk.SHRINK)
+        t.attach(options_makeartistdir, 1, 2, 3, 4, yoptions=gtk.SHRINK)
 
         options_makealbumdir = gtk.CheckButton(u'下载专辑时下载到各自的目录')
         options_makealbumdir.set_active(config.item['makealbumdir'])
         options_makealbumdir.connect('toggled', self.config_makealbumdir)
-        t.attach(gtk.Label(u''),0,1,4,5,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_makealbumdir,1,2,4,5,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u''), 0, 1, 4, 5, gtk.SHRINK, gtk.SHRINK)
+        t.attach(options_makealbumdir, 1, 2, 4, 5, yoptions=gtk.SHRINK)
 
         options_addalbumnum = gtk.CheckButton(u'在歌名前放置目录序号')
         options_addalbumnum.set_active(config.item['addalbumnum'])
         options_addalbumnum.connect('toggled', self.config_addalbumnum)
-        t.attach(gtk.Label(u''),0,1,5,6,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_addalbumnum,1,2,5,6,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u''), 0, 1, 5, 6, gtk.SHRINK, gtk.SHRINK)
+        t.attach(options_addalbumnum, 1, 2, 5, 6, yoptions=gtk.SHRINK)
         
         options_lyric = gtk.CheckButton(u'下载歌曲时同时下载歌词')
         options_lyric.set_active(config.item['lyric'])
         options_lyric.connect('toggled', self.config_lyric)
-        t.attach(gtk.Label(u''),0,1,6,7,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_lyric,1,2,6,7,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u''), 0, 1, 6, 7, gtk.SHRINK, gtk.SHRINK)
+        t.attach(options_lyric, 1, 2, 6, 7, yoptions=gtk.SHRINK)
         
         options_cover = gtk.CheckButton(u'下载专辑时同时下载专辑封面')
         options_cover.set_active(config.item['cover'])
         options_cover.connect('toggled', self.config_cover)
-        t.attach(gtk.Label(u''),0,1,7,8,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_cover,1,2,7,8,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u''), 0, 1, 7, 8, gtk.SHRINK, gtk.SHRINK)
+        t.attach(options_cover, 1, 2, 7, 8, yoptions=gtk.SHRINK)
 
         options_localdir = gtk.Entry()
         options_localdir.set_text('此功能尚未实现.')
         options_localdir.set_sensitive(False)
-        t.attach(gtk.Label(u'本地歌曲目录:'),0,1,8,9,gtk.SHRINK,gtk.SHRINK)
-        t.attach(options_localdir,1,2,8,9,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u'本地歌曲目录:'), 0, 1, 8, 9, gtk.SHRINK, gtk.SHRINK)
+        t.attach(options_localdir, 1, 2, 8, 9, yoptions=gtk.SHRINK)
 
         self.previewLabel = gtk.Label()
-        t.attach(gtk.Label(u'文件名预览:'),0,1,9,10,gtk.SHRINK,gtk.SHRINK)
-        t.attach(self.previewLabel,1,2,9,10,yoptions=gtk.SHRINK)
+        t.attach(gtk.Label(u'文件名预览:'), 0, 1, 9, 10, gtk.SHRINK, gtk.SHRINK)
+        t.attach(self.previewLabel, 1, 2, 9, 10, yoptions=gtk.SHRINK)
         self.refresh_pre()
 
         self.append_page(t)
         
     def setup_about_tab(self):
         vb = gtk.VBox()
-        about_label=gtk.Label('<span size="xx-large" weight="ultrabold">'
-            +'gmbox V'+VERSION+'</span>')
+        about_label = gtk.Label('<span size="xx-large" weight="ultrabold">'
+            + 'gmbox V' + VERSION + '</span>')
         about_label.set_use_markup(True)
         bt_home = gtk.Button(u'项目主页')
-        bt_home.connect('clicked',lambda w: webbrowser.open('http://code.google.com/p/gmbox/'))
+        bt_home.connect('clicked', lambda w: webbrowser.open('http://code.google.com/p/gmbox/'))
         bt_blog = gtk.Button(u' 博客 ')
-        bt_blog.connect('clicked',lambda w: webbrowser.open('http://li2z.cn/category/gmbox/?from=gmbox'))
+        bt_blog.connect('clicked', lambda w: webbrowser.open('http://li2z.cn/category/gmbox/?from=gmbox'))
         hb = gtk.HBox()
         hb.pack_start(bt_home)
         hb.pack_start(bt_blog)
         vb.pack_start(about_label)
-        vb.pack_start(hb,False,False)
+        vb.pack_start(hb, False, False)
         self.append_page(vb)
         
 # signal methods =======================
-
-    def config_savedir(self,widget,entry):
-        dialog = gtk.FileChooserDialog("Open..",
-               None,
+    def config_savedir(self, widget, entry):
+        dialog = gtk.FileChooserDialog("Open..", None,
                gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
@@ -323,119 +315,71 @@ class Tabview(gtk.Notebook):
             print '取消'
         dialog.destroy()
         
-    def config_id3utf8(self,widget):
+    def config_id3utf8(self, widget):
         config.id3utf8_changed(widget.get_active())
 
     def refresh_pre(self):
-        v=u'歌曲下载路径：'+gmbox.setup_file_info(u'歌名',u'歌手',False,u'专辑名',u'专辑歌手',1)[0] \
-            +'\n'+u'专辑下载路径：'+gmbox.setup_file_info(u'歌名',u'歌手',True,u'专辑名',u'专辑歌手',1)[0]
+        v = u'歌曲下载路径：' + \
+            gmbox.setup_file_info(u'歌名', u'歌手', False, u'专辑名', u'专辑歌手', 1)[0] \
+            + '\n' + u'专辑下载路径：' + \
+            gmbox.setup_file_info(u'歌名', u'歌手', True, u'专辑名', u'专辑歌手', 1)[0]
         self.previewLabel.set_text(v)
     
-    def config_makealbumdir(self,widget):
+    def config_makealbumdir(self, widget):
         config.makealbumdir_changed(widget.get_active())
         self.refresh_pre()
 
-    def config_makeartistdir(self,widget):
+    def config_makeartistdir(self, widget):
         config.makeartistdir_changed(widget.get_active())
         self.refresh_pre()
 
-    def config_addalbumnum(self,widget):
+    def config_addalbumnum(self, widget):
         config.addalbumnum_changed(widget.get_active())
         self.refresh_pre()
         
-    def config_lyric(self,widget):
+    def config_lyric(self, widget):
         config.lyric_changed(widget.get_active())
         self.refresh_pre()
         
-    def config_cover(self,widget):
+    def config_cover(self, widget):
         config.cover_changed(widget.get_active())
         self.refresh_pre()
 
-    def do_select_all(self,widget,view):
+    def do_select_all(self, widget, view):
         view.select_all(widget.get_active())
 
     def do_getlist(self, widget):
         '''Begin song(album) list download thread'''
         
-        text=widget.get_active_text().decode('utf8')
+        text = widget.get_active_text().decode('utf8')
         if text != "--请选择--":
             # get_list thread will set_sensitive true if download done
             widget.set_sensitive(False)
             self.list_view.get_list(text, widget)
         #保存一个恢复用的函数,在切到其他tab再切回来的时候调用
-        self.re_fun[0]=lambda:self.list_view.get_list(text, widget)
+        self.re_fun[0] = lambda:self.list_view.get_list(text, widget)
     def do_getalbumlist(self, widget):
         '''Begin song(album) list download thread'''
         
-        text=widget.get_active_text().decode('utf8')
+        text = widget.get_active_text().decode('utf8')
         if text != "--请选择--":
             # get_list thread will set_sensitive true if download done
             widget.set_sensitive(False)
             self.album_list_view.get_albumlist(text, widget)
-        self.re_fun[2]=lambda:self.album_list_view.get_albumlist(text, widget)
+        self.re_fun[2] = lambda:self.album_list_view.get_albumlist(text, widget)
     def do_search(self, widget):
-        text=self.search_entry.get_text()
+        text = self.search_entry.get_text()
         widget.set_sensitive(False)
         self.search_view.search(text, widget)
-        self.re_fun[1]=lambda:self.search_view.search(text, widget)
+        self.re_fun[1] = lambda:self.search_view.search(text, widget)
     def do_album_search(self, widget):
-        text=self.album_search_entry.get_text()
+        text = self.album_search_entry.get_text()
         widget.set_sensitive(False)
         self.album_search_view.search(text, widget)
-        self.re_fun[3]=lambda:self.album_search_view.search(text, widget)
+        self.re_fun[3] = lambda:self.album_search_view.search(text, widget)
     def page_changed(self, notebook, page, page_num):
-        log.debug('tab changed to: '+str(page_num))
+        log.debug('tab changed to: ' + str(page_num))
         #切换tab的时候,再调用一次,相当于和gmbox类的当前列表同步
         if page_num in self.re_fun:
             self.re_fun[page_num]()
-    """def doSearchMusic(self,widget):
-        '''music search button clicked callback'''
-        
-        key = self.search_entry.get_text().decode('utf8')
-        print key
-        self.search_button.set_sensitive(False)
-        thread.start_new_thread(self.SearchMusic,(key,))
 
-    def dolistLocalFile(self,widget):
-        '''callback for download manage tab'''
-        
-        print "while start thread"
-        thread.start_new_thread(self.listLocalFile,(widget,))
-        print "OK"
-    
-    def SetupPopup2(self):
-        '''popup menu for playlist tab'''
-        
-        time = gtk.get_current_event_time()
-
-        popupmenu = gtk.Menu()
-
-        menuitem = gtk.MenuItem('试听')
-        menuitem.connect('activate', self.listen_init)
-        popupmenu.append(menuitem)
-        
-        menuitem = gtk.MenuItem('从列表删除')
-        menuitem.connect('activate', self.DelFromPlaylist)
-        popupmenu.append(menuitem)
-        
-        popupmenu.show_all()
-        popupmenu.popup(None, None, None, 0, time)
-
-
-    def playlist_click_checker(self, view, event):
-        self.get_current_location(view,event)
-
-        if event.type == gtk.gdk._2BUTTON_PRESS:
-            self.listen(view)
-
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-            #selected,iter = view.get_selection().get_selected()
-            #index = selected.get_value(iter, 0)
-            #print index
-
-            # Here test whether we have songlist, if have, show popup menu
-            try:
-                self.SetupPopup2()
-            except:
-                pass
-"""

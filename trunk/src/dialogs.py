@@ -20,6 +20,7 @@
 import gtk
 
 class QuitDialog(gtk.MessageDialog):
+    '''退出确认对话框'''
     def __init__(self, title, message):
         gtk.MessageDialog.__init__(self, None, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO)
         self.set_markup('<big><b>%s</b></big>' % title)

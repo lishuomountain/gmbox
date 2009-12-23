@@ -17,16 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pygtk,sys
+'''GMbox的GTK主窗口文件'''
+import pygtk, sys
 if not sys.platform == 'win32':
     pygtk.require('2.0')
-import os, logging, gtk, gobject
+import logging, gtk, gobject
 from optparse import OptionParser
 
-from tabview import *
-from statusbar import *
+from tabview import Tabview
+from statusbar import statusbar
 from threads import threads
-from lib.utils import find_image_or_data,module_path
+from lib.utils import find_image_or_data, module_path
 
 try:
     import pynotify
@@ -36,43 +37,45 @@ except ImportError:
 log = logging.getLogger('gmbox')
 
 class Mainwin(gtk.Window):
+    '''GMbox的GTK主窗口'''
     def __init__(self):
-        
         gtk.Window.__init__(self, gtk.WINDOW_TOPLEVEL)
-
         log = logging.getLogger('gmbox.mainwin')
         
         self.set_title("GMBox")
         self.set_default_size(800, 600)
-        # need work
-        ui_logo=gtk.gdk.pixbuf_new_from_file(find_image_or_data('gmbox.png',module_path()))
+        
+        logofile = find_image_or_data('gmbox.png', module_path())
+        ui_logo = gtk.gdk.pixbuf_new_from_file(logofile)
         self.set_icon(ui_logo)
 
         log.debug('Setup up system tray icon')
+        self.systray, self.notification = None, None
         self.setupSystray()
 
-        self.connect('delete_event', self.quit)
+        self.connect('delete_event', self.on_quit)
         #self.window.connect('key_press_event', self.key_checker)
         
-        self.but_index=0
-        vb = gtk.VBox(False, 0)
+        self.but_index = 0
+        vbox = gtk.VBox(False, 0)
         log.debug('Begin to setup notebook')
         self.gm_notebook = Tabview()
         self.status = statusbar
         self.but_box = self.setup_but_box()
-        vb.pack_start(self.but_box, False, False, 5)
-        vb.pack_start(self.gm_notebook, True, True)
-        vb.pack_start(self.status, False, False)
+        vbox.pack_start(self.but_box, False, False, 5)
+        vbox.pack_start(self.gm_notebook, True, True)
+        vbox.pack_start(self.status, False, False)
 
-        self.add(vb)
+        self.add(vbox)
         log.debug('End to setup notebook')
         self.show_all()
         
     def setupSystray(self):
-        
+        '''设置托盘图标'''
         self.systray = gtk.StatusIcon()
         # need write a find picture method
-        self.systray.set_from_file(find_image_or_data('gmbox.png',module_path()))
+        iconfile = find_image_or_data('gmbox.png', module_path())
+        self.systray.set_from_file(iconfile)
         self.systray.connect("activate", self.systrayCb)
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip(u'点击可隐藏/显示主窗口')
@@ -87,7 +90,6 @@ class Mainwin(gtk.Window):
 
     def systrayCb(self, widget):
         """Check out window's status"""
-        
         if self.get_property('visible'):
             self.hide()
         else:
@@ -95,7 +97,6 @@ class Mainwin(gtk.Window):
 
     def systrayPopup(self, statusicon, button, activate_time):
         """Create and show popup menu"""
-        
         popup_menu = gtk.Menu()
         restore_item = gtk.MenuItem("Restore")
         restore_item.connect("activate", self.systrayCb)
@@ -110,26 +111,31 @@ class Mainwin(gtk.Window):
         #popup_menu.append(next_item)
 
         quit_item = gtk.ImageMenuItem(gtk.STOCK_QUIT)
-        quit_item.connect("activate", self.quit)
+        quit_item.connect("activate", self.on_quit)
         popup_menu.append(quit_item)
 
         popup_menu.show_all()
         time = gtk.get_current_event_time()
         popup_menu.popup(None, None, None, 0, time)
 
-    def setup_but_box_one(self,but_box,but_name):
+    def setup_but_box_one(self, but_box, but_name):
+        '''设置单个顶层按钮'''
         but_x = gtk.Button(but_name)
-        but_x.connect('clicked',lambda o,x:self.gm_notebook.set_current_page(x),self.but_index)
-        self.but_index+=1
+        but_x.connect('clicked', 
+            lambda o, x:self.gm_notebook.set_current_page(x), self.but_index)
+        self.but_index += 1
         but_box.pack_start(but_x)
         
     def setup_but_box(self):
+        '''设置顶层按钮'''
         but_box = gtk.HButtonBox()
-        tabs=[u'榜单下载',u'音乐搜索',u'专辑榜单',u'专辑搜索',u'下载管理',u'播放列表',u'设置',u'关于']
+        tabs = [u'榜单下载', u'音乐搜索', u'专辑榜单', u'专辑搜索', 
+            u'下载管理', u'播放列表', u'设置', u'关于']
         [self.setup_but_box_one(but_box, tab) for tab in tabs]
         return but_box
         
-    def quit(self, win, evt=gtk.gdk.DELETE):
+    def on_quit(self, win, evt=gtk.gdk.DELETE):
+        '''退出'''
         if not threads.down or not threads.down.isAlive():
             gtk.main_quit(win)
             return False
