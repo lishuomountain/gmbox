@@ -19,7 +19,7 @@
 
 import os, pynotify, gtk
 
-class playbox(gtk.HBox):
+class PlayBox(gtk.HBox):
     '''embedded to play list tab for audition songs'''
     
     def __init__(self):

@@ -22,11 +22,10 @@ import gtk
 import logging
 import webbrowser
 
-from player import playbox
+from player import PlayBox
+from config import ConfigTable
 from treeview import ListView, SearchView, AlbumListView, AlbumSearchView
 from lib.const import songlists, albums_lists, VERSION
-from lib.config import config
-from lib.core import gmbox
 
 log = logging.getLogger('gmbox.tabview')
 
@@ -42,7 +41,7 @@ class Tabview(gtk.Notebook):
         self.setup_search_tab()
         self.setup_album_lists_tab()
         self.setup_album_search_tab()
-        self.setup_down_tab()
+#        self.setup_down_tab()
         self.setup_playlist_tab()
         self.setup_config_tab()
         self.setup_about_tab()
@@ -113,15 +112,6 @@ class Tabview(gtk.Notebook):
         vb.pack_start(scroll, True, True)
 
         self.append_page(vb)
-        #page 2: search page
-        
-        #self.search_entry = self.xml.get_widget('search_entry')
-        #self.search_entry.connect('key_press_event', self.entry_key_checker)
-        #self.search_button = self.xml.get_widget('search_button')
-
-        #self.search_list_view= SearchListView(self.xml)
-        #self.search_list_view.treeview.connect('button-press-event', self.click_checker)
-        #self.search_list_view.treeview.connect('key_press_event', self.tree_view_key_checker)
 
     def setup_album_lists_tab(self):
         
@@ -184,21 +174,21 @@ class Tabview(gtk.Notebook):
 
         self.append_page(vb)
 
-    def setup_down_tab(self):
-
-        scroll = gtk.ScrolledWindow()
-        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        tmp_label = gtk.Label('coming soon ...')
-        tmp_label.set_use_markup(True)
-
-        vb = gtk.VBox(False, 0)
-        vb.pack_start(tmp_label, True, True)
-
-        self.append_page(vb)
+#    def setup_down_tab(self):
+#
+#        scroll = gtk.ScrolledWindow()
+#        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+#        tmp_label = gtk.Label('coming soon ...')
+#        tmp_label.set_use_markup(True)
+#
+#        vb = gtk.VBox(False, 0)
+#        vb.pack_start(tmp_label, True, True)
+#
+#        self.append_page(vb)
         
     def setup_playlist_tab(self):
 
-        self.player = playbox()
+        self.player = PlayBox()
 
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -210,79 +200,9 @@ class Tabview(gtk.Notebook):
 
         self.append_page(vb)
 
-        #page 4: playlist page
-        #self.playlist_view= PlayListView(self.xml)
-        #self.playlist_view.treeview.connect('button-press-event',self.playlist_click_checker)
-        #self.playlist_view.treeview.connect('key_press_event',self.tree_view_key_checker)
-
     def setup_config_tab(self):
-        t = gtk.Table(10, 2)
-        #tmp_label=gtk.Label(u'\n注: 以下内容还未生效 ...\n')
-        tmp_label = gtk.Label('\n设置\n')
-        tmp_label.set_use_markup(True)
-        t.attach(tmp_label, 0, 2, 0, 1, gtk.SHRINK, gtk.SHRINK)
-    
-        hb_savedir = gtk.HBox(False, 0)
-        options_savedir = gtk.Entry()
-        options_savedir.set_text(config.item['savedir'])
-        options_savedir.set_sensitive(False)
-        bt_savedir = gtk.Button('浏览...')
-        bt_savedir.connect('clicked', self.config_savedir, options_savedir)
-
-        hb_savedir.pack_start(options_savedir, True, True)
-        hb_savedir.pack_start(bt_savedir, False, False)
-        
-        t.attach(gtk.Label(u'    歌曲下载目录:  '), 0, 1 , 1, 2, gtk.SHRINK, gtk.SHRINK)
-        t.attach(hb_savedir, 1, 2, 1, 2, yoptions=gtk.SHRINK)
-
-        options_id3utf8 = gtk.CheckButton(u'将ID3信息转换为UTF8,(windows用户无效)')
-        options_id3utf8.set_active(config.item['id3utf8'])
-        options_id3utf8.connect('toggled', self.config_id3utf8)
-        t.attach(gtk.Label(u''), 0, 1, 2, 3, gtk.SHRINK, gtk.SHRINK)
-        t.attach(options_id3utf8, 1, 2, 2, 3, yoptions=gtk.SHRINK)
-
-        options_makeartistdir = gtk.CheckButton(u'下载时建立歌手目录')
-        options_makeartistdir.set_active(config.item['makeartistdir'])
-        options_makeartistdir.connect('toggled', self.config_makeartistdir)
-        t.attach(gtk.Label(u''), 0, 1, 3, 4, gtk.SHRINK, gtk.SHRINK)
-        t.attach(options_makeartistdir, 1, 2, 3, 4, yoptions=gtk.SHRINK)
-
-        options_makealbumdir = gtk.CheckButton(u'下载专辑时下载到各自的目录')
-        options_makealbumdir.set_active(config.item['makealbumdir'])
-        options_makealbumdir.connect('toggled', self.config_makealbumdir)
-        t.attach(gtk.Label(u''), 0, 1, 4, 5, gtk.SHRINK, gtk.SHRINK)
-        t.attach(options_makealbumdir, 1, 2, 4, 5, yoptions=gtk.SHRINK)
-
-        options_addalbumnum = gtk.CheckButton(u'在歌名前放置目录序号')
-        options_addalbumnum.set_active(config.item['addalbumnum'])
-        options_addalbumnum.connect('toggled', self.config_addalbumnum)
-        t.attach(gtk.Label(u''), 0, 1, 5, 6, gtk.SHRINK, gtk.SHRINK)
-        t.attach(options_addalbumnum, 1, 2, 5, 6, yoptions=gtk.SHRINK)
-        
-        options_lyric = gtk.CheckButton(u'下载歌曲时同时下载歌词')
-        options_lyric.set_active(config.item['lyric'])
-        options_lyric.connect('toggled', self.config_lyric)
-        t.attach(gtk.Label(u''), 0, 1, 6, 7, gtk.SHRINK, gtk.SHRINK)
-        t.attach(options_lyric, 1, 2, 6, 7, yoptions=gtk.SHRINK)
-        
-        options_cover = gtk.CheckButton(u'下载专辑时同时下载专辑封面')
-        options_cover.set_active(config.item['cover'])
-        options_cover.connect('toggled', self.config_cover)
-        t.attach(gtk.Label(u''), 0, 1, 7, 8, gtk.SHRINK, gtk.SHRINK)
-        t.attach(options_cover, 1, 2, 7, 8, yoptions=gtk.SHRINK)
-
-        options_localdir = gtk.Entry()
-        options_localdir.set_text('此功能尚未实现.')
-        options_localdir.set_sensitive(False)
-        t.attach(gtk.Label(u'本地歌曲目录:'), 0, 1, 8, 9, gtk.SHRINK, gtk.SHRINK)
-        t.attach(options_localdir, 1, 2, 8, 9, yoptions=gtk.SHRINK)
-
-        self.previewLabel = gtk.Label()
-        t.attach(gtk.Label(u'文件名预览:'), 0, 1, 9, 10, gtk.SHRINK, gtk.SHRINK)
-        t.attach(self.previewLabel, 1, 2, 9, 10, yoptions=gtk.SHRINK)
-        self.refresh_pre()
-
-        self.append_page(t)
+        config_table = ConfigTable()
+        self.append_page(config_table)
         
     def setup_about_tab(self):
         vb = gtk.VBox()
@@ -301,49 +221,6 @@ class Tabview(gtk.Notebook):
         self.append_page(vb)
         
 # signal methods =======================
-    def config_savedir(self, widget, entry):
-        dialog = gtk.FileChooserDialog("Open..", None,
-               gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-               (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-        dialog.set_default_response(gtk.RESPONSE_OK) 
-        response = dialog.run()
-        if response == gtk.RESPONSE_OK:
-            config.savedir_changed(dialog.get_filename())
-            entry.set_text(dialog.get_filename())
-        elif response == gtk.RESPONSE_CANCEL:
-            print '取消'
-        dialog.destroy()
-        
-    def config_id3utf8(self, widget):
-        config.id3utf8_changed(widget.get_active())
-
-    def refresh_pre(self):
-        v = u'歌曲下载路径：' + \
-            gmbox.setup_file_info(u'歌名', u'歌手', False, u'专辑名', u'专辑歌手', 1)[0] \
-            + '\n' + u'专辑下载路径：' + \
-            gmbox.setup_file_info(u'歌名', u'歌手', True, u'专辑名', u'专辑歌手', 1)[0]
-        self.previewLabel.set_text(v)
-    
-    def config_makealbumdir(self, widget):
-        config.makealbumdir_changed(widget.get_active())
-        self.refresh_pre()
-
-    def config_makeartistdir(self, widget):
-        config.makeartistdir_changed(widget.get_active())
-        self.refresh_pre()
-
-    def config_addalbumnum(self, widget):
-        config.addalbumnum_changed(widget.get_active())
-        self.refresh_pre()
-        
-    def config_lyric(self, widget):
-        config.lyric_changed(widget.get_active())
-        self.refresh_pre()
-        
-    def config_cover(self, widget):
-        config.cover_changed(widget.get_active())
-        self.refresh_pre()
 
     def do_select_all(self, widget, view):
         view.select_all(widget.get_active())

@@ -130,7 +130,7 @@ class Mainwin(gtk.Window):
         '''设置顶层按钮'''
         but_box = gtk.HButtonBox()
         tabs = [u'榜单下载', u'音乐搜索', u'专辑榜单', u'专辑搜索', 
-            u'下载管理', u'播放列表', u'设置', u'关于']
+            u'播放列表', u'设置', u'关于']
         [self.setup_but_box_one(but_box, tab) for tab in tabs]
         return but_box
         
