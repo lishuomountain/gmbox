@@ -16,40 +16,55 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''GUI内置的播放界面'''
 
-import os, pynotify, gtk
+import os, gtk
+from subprocess import Popen, PIPE
+try:
+    import pynotify
+except ImportError:
+    pynotify = None
+    
+from threads import threads
 
 class PlayBox(gtk.HBox):
-    '''embedded to play list tab for audition songs'''
-    
+    '''播放界面'''
     def __init__(self):
         gtk.HBox.__init__(self)
 
-        # need more work: change interface label to china
-        self.but_prev = gtk.Button(label="前一首",
+        self.but_prev = gtk.Button(label=u'前一首',
                                    stock=gtk.STOCK_MEDIA_PREVIOUS)
-        self.but_next = gtk.Button(label="后一首",
+        self.but_next = gtk.Button(label=u'后一首',
                                    stock=gtk.STOCK_MEDIA_NEXT)
-        self.but_play = gtk.Button(label="播放",
+        self.but_play = gtk.Button(label=u'播放',
                                    stock=gtk.STOCK_MEDIA_PLAY)
-        self.but_pause = gtk.Button(label="暂停",
-                                    stock=gtk.STOCK_MEDIA_PAUSE)
+        self.but_stop = gtk.Button(label=u'停止',
+                                   stock=gtk.STOCK_MEDIA_STOP)
+        self.but_play.connect('clicked', self.play)
+        self.but_stop.connect('clicked', self.stop)
 
         self.pack_start(self.but_prev, False)
         self.pack_start(self.but_play, False)
-        self.pack_start(self.but_pause, False)
+        self.pack_start(self.but_stop, False)
         self.pack_start(self.but_next, False)
+        pynotify.init("GMbox")
         
-    def play(self, start):
-        '''试听,播放'''
+    def play(self, widget):
+        '''试听，播放'''
+        threads.kill_paly()
         if os.name == 'posix':
-            self.notification = pynotify.Notification("试听", self.current_list.get_title(start), "dialog-warning")
-            self.notification.set_timeout(1)
+            self.notification = pynotify.Notification('试听', u'把握你的美-江映蓉', 'dialog-info')
+            self.notification.set_timeout(5000)
             self.notification.show()
-        self.playbar.set_text("now playing " + self.current_list.get_title(start))
-        print "now playing ", self.current_list.get_title(start)
-        self.current_list.play(start)
+        #self.playbar.set_text('now playing ' + self.current_list.get_title(start))
+        #print 'now playing ', self.current_list.get_title(start)
+        #self.current_list.play(start)
         #self.current_list.autoplay(start)
+        threads.play = Popen(['mpg123', '/home/lily/gmbox_download/把握你的美-江映蓉.mp3'], stdout=PIPE, stderr=PIPE)
+        
+    def stop(self, widget=None):
+        '''停止'''
+        threads.kill_paly()
 
     def listen_init(self, widget):
         self.current_list = self.playlist
@@ -60,22 +75,22 @@ class PlayBox(gtk.HBox):
         self.current_path = self.current_path + 1
         widget.set_cursor(self.current_path)
         #if DEBUG:
-        #    print "now focus", self.current_path
+        #    print 'now focus', self.current_path
     def focus_prev(self, widget):
         self.current_path = self.current_path - 1
         widget.set_cursor(self.current_path)
         #if DEBUG:
-        #    print "now focus", self.current_path
+        #    print 'now focus', self.current_path
 
     def play_next(self, widget):
         #widget.focus_next(widget)
         self.focus_next(widget)
         self.listen(widget)
         #if DEBUG:
-        #    print "now playing", self.current_path
+        #    print 'now playing', self.current_path
     def play_prev(self, widget):
         #widget.focus_prev(widget)
         self.focus_prev(widget)
         self.listen(widget)
         #if DEBUG:
-        #    print "now playing", self.current_path
+        #    print 'now playing', self.current_path

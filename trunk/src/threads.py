@@ -17,8 +17,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+'''GUI：处理子进程及子线程'''
+
 class Threads():
+    '''处理子进程及子线程'''
     def __init__(self):
         self.down = None
+        self.play = None
+    def is_downing(self):
+        '''是否仍在下载'''
+        return True if threads.down and threads.down.is_alive() else False
+    def kill_paly(self):
+        '''杀死播放子进程'''
+        if self.play != None:
+            self.play.poll()
+            if self.play.returncode == None:
+                self.play.terminate()
+        
 threads = Threads()
 

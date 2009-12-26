@@ -163,7 +163,7 @@ class Abs_View(gtk.TreeView):
                             
 # methods for popup menu above
     def download(self, which):
-        if threads.down and threads.down.isAlive():
+        if threads.is_downing():
             print u'另一个进程正在下载。。。'
             return
         if isinstance(which, int):
@@ -270,7 +270,7 @@ class AlbumListView(Abs_View):
         statusbar.progress.set_fraction(float(current_page)/total_pages)
 
     def download(self, which):
-        if threads.down and threads.down.isAlive():
+        if threads.is_downing():
             print u'另一个进程正在下载。。。'
             return
         if isinstance(which, int):
@@ -353,7 +353,7 @@ class AlbumSearchView(Abs_View):
             gtk.gdk.threads_leave()
             
     def download(self, which):
-        if threads.down and threads.down.isAlive():
+        if threads.is_downing():
             print u'另一个进程正在下载。。。'
             return
         if isinstance(which, int):

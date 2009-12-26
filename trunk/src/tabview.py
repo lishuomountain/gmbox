@@ -41,7 +41,6 @@ class Tabview(gtk.Notebook):
         self.setup_search_tab()
         self.setup_album_lists_tab()
         self.setup_album_search_tab()
-#        self.setup_down_tab()
         self.setup_playlist_tab()
         self.setup_config_tab()
         self.setup_about_tab()
@@ -173,18 +172,6 @@ class Tabview(gtk.Notebook):
         vb.pack_start(scroll, True, True)
 
         self.append_page(vb)
-
-#    def setup_down_tab(self):
-#
-#        scroll = gtk.ScrolledWindow()
-#        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-#        tmp_label = gtk.Label('coming soon ...')
-#        tmp_label.set_use_markup(True)
-#
-#        vb = gtk.VBox(False, 0)
-#        vb.pack_start(tmp_label, True, True)
-#
-#        self.append_page(vb)
         
     def setup_playlist_tab(self):
 

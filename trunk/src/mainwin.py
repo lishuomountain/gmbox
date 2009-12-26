@@ -29,11 +29,6 @@ from statusbar import statusbar
 from threads import threads
 from lib.utils import find_image_or_data, module_path
 
-try:
-    import pynotify
-except ImportError:
-    pynotify = None
-
 log = logging.getLogger('gmbox')
 
 class Mainwin(gtk.Window):
@@ -80,13 +75,6 @@ class Mainwin(gtk.Window):
         self.systray.connect('popup-menu', self.systrayPopup)
         self.systray.set_tooltip(u'点击可隐藏/显示主窗口')
         self.systray.set_visible(True)
-
-        if pynotify:
-            pynotify.init("Some Application or Title")
-            self.notification = pynotify.Notification("Title", "body", "dialog-warning")
-            self.notification.set_urgency(pynotify.URGENCY_NORMAL)
-            self.notification.set_timeout(1)
-        return
 
     def systrayCb(self, widget):
         """Check out window's status"""
@@ -136,17 +124,20 @@ class Mainwin(gtk.Window):
         
     def on_quit(self, win, evt=gtk.gdk.DELETE):
         '''退出'''
-        if not threads.down or not threads.down.isAlive():
-            gtk.main_quit(win)
+        if not threads.is_downing():
+            self.quit(win)
             return False
         from dialogs import QuitDialog
         dialog = QuitDialog(u'退出？', u'有未完成的下载，确定要退出？')
         response = dialog.run()
         dialog.destroy()
         if response == gtk.RESPONSE_YES:
-            gtk.main_quit(win)
+            self.quit(win)
         else:
             return True
+    def quit(self, win):
+        threads.kill_paly()
+        gtk.main_quit(win)
         
 if __name__ == '__main__':
     parser = OptionParser()

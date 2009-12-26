@@ -134,8 +134,7 @@ class ConfigTable(gtk.Table):
         
     def config_lyric(self, widget):
         config.lyric_changed(widget.get_active())
-        self.refresh_pre()
         
     def config_cover(self, widget):
         config.cover_changed(widget.get_active())
-        self.refresh_pre()
+
