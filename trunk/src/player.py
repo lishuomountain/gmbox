@@ -27,10 +27,10 @@ except ImportError:
     
 from threads import threads
 
-class PlayBox(gtk.HBox):
+class PlayBox(gtk.VBox):
     '''播放界面'''
     def __init__(self):
-        gtk.HBox.__init__(self)
+        gtk.VBox.__init__(self)
 
         self.but_prev = gtk.Button(label=u'前一首',
                                    stock=gtk.STOCK_MEDIA_PREVIOUS)
@@ -42,17 +42,22 @@ class PlayBox(gtk.HBox):
                                    stock=gtk.STOCK_MEDIA_STOP)
         self.but_play.connect('clicked', self.play)
         self.but_stop.connect('clicked', self.stop)
-
-        self.pack_start(self.but_prev, False)
-        self.pack_start(self.but_play, False)
-        self.pack_start(self.but_stop, False)
-        self.pack_start(self.but_next, False)
-        pynotify.init("GMbox")
+        
+        buttons = gtk.HBox()
+        buttons.pack_start(self.but_prev, False)
+        buttons.pack_start(self.but_play, False)
+        buttons.pack_start(self.but_stop, False)
+        buttons.pack_start(self.but_next, False)
+        
+        self.pack_start(gtk.ProgressBar())
+        self.pack_start(buttons)
+        if pynotify:
+            pynotify.init("GMbox")
         
     def play(self, widget):
         '''试听，播放'''
         threads.kill_paly()
-        if os.name == 'posix':
+        if pynotify:
             self.notification = pynotify.Notification('试听', u'把握你的美-江映蓉', 'dialog-info')
             self.notification.set_timeout(5000)
             self.notification.show()

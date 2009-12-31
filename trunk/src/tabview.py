@@ -177,9 +177,8 @@ class Tabview(gtk.Notebook):
 
         self.player = PlayBox()
 
-        scroll = gtk.ScrolledWindow()
-        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        tmp_label = gtk.Label('coming soon ...')
+        tmp_label = gtk.Label('<span size="xx-large" weight="ultrabold">coming soon ...</span>')
+        tmp_label.set_use_markup(True)
 
         vb = gtk.VBox(False, 0)
         vb.pack_start(tmp_label, True, True)
