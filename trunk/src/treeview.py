@@ -26,8 +26,7 @@ from lib.core import gmbox
 
 log = logging.getLogger('gmbox.treeview')
 
-(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST, COL_DOWN) = range(5)
-(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST, COL_ALBUM) = range(5)
+(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST) = range(4)
 
 class Abs_View(gtk.TreeView):
     '''基类：构造各个页面的Treeview'''
@@ -37,52 +36,37 @@ class Abs_View(gtk.TreeView):
 
         gtk.TreeView.__init__(self)
         self.connect('button-press-event', self.click_checker)        
-        #self.model = gtk.ListStore(bool, str, str,str)
-        #self.model.connect("row-changed", self.SaveSongIndex)
 
-        #self.set_model(self.model)
         self.set_enable_search(0)
-        #treeview.bind('<Button-3>', self.click_checker)
-        #treeview.bind('<Double-Button-1>', self.listen)
         self.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
 
         renderer = gtk.CellRendererToggle()
         renderer.connect('toggled', self.fixed_toggled)
         column = gtk.TreeViewColumn("选中", renderer, active=COL_STATUS)
-        #column = gtk.TreeViewColumn("选中", renderer)
-        #column.set_resizable(True)
         self.append_column(column)
 
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_NUM)
         column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
-        #column.set_resizable(True)
         self.append_column(column)
 
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_TITLE)
-        #renderer.set_property('editable', True)
-        #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
-        #column.set_resizable(True)
+        column.set_resizable(True)
         self.append_column(column)
 
         renderer = gtk.CellRendererText()
         renderer.set_data("column", COL_ARTIST)
-        #renderer.set_property('editable', True)
-        #renderer.connect("edited", self.on_cell_edited, None)
         column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
-        #column.set_resizable(True)
+        column.set_resizable(True)
         self.append_column(column)
         self.set_rules_hint(True)
 
     def fixed_toggled(self, cell, path):
         oiter = self._model.get_iter((int(path),))
         fixed = self._model.get_value(oiter, COL_STATUS)
-
-        # do something with the value
         fixed = not fixed
-
         self._model.set(oiter, COL_STATUS, fixed)
     
     def select_all(self, v):
@@ -133,19 +117,9 @@ class Abs_View(gtk.TreeView):
         
     def click_checker(self, view, event):
         '''榜单页，下载页击键处理'''
-        
-        #self.get_current_list(view,event)
         self.get_current_location(event.x, event.y)
-        #if event.type == gtk.gdk._2BUTTON_PRESS:
-        #    self.listen(view)
             
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-            #selected,iter = view.get_selection().get_selected()
-            #index = selected.get_value(iter, 0)
-            #print index
-
-            # Don't use exception, It's good for debug
-            # Here test whether we have songlist, if have, show popup menu
             if None != self.current_path:
                 self.SetupPopup()
 
@@ -182,12 +156,6 @@ class Abs_View(gtk.TreeView):
         if selected:
             self.download(selected)
         
-'''    def listen(self, widget):
-        try:
-            thread.start_new_thread(self.play,(self.current_path,))
-        except:
-            print "Error"'''
-    
 class ListView(Abs_View):
     '''榜单下载页面'''
     

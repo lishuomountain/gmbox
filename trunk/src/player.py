@@ -27,6 +27,42 @@ except ImportError:
     
 from threads import threads
 
+(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST) = range(4)
+class PlayList(gtk.TreeView):
+    '''播放列表类'''
+    def __init__(self):
+        gtk.TreeView.__init__(self)
+        self.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+
+        renderer = gtk.CellRendererToggle()
+        renderer.connect('toggled', self.fixed_toggled)
+        column = gtk.TreeViewColumn("选中", renderer, active=COL_STATUS)
+        self.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_NUM)
+        column = gtk.TreeViewColumn("编号", renderer, text=COL_NUM)
+        self.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_TITLE)
+        column = gtk.TreeViewColumn("歌曲", renderer, text=COL_TITLE)
+        column.set_resizable(True)
+        self.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        renderer.set_data("column", COL_ARTIST)
+        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
+        column.set_resizable(True)
+        self.append_column(column)
+        self.set_rules_hint(True)
+    def fixed_toggled(self, cell, path):
+        oiter = self._model.get_iter((int(path),))
+        fixed = self._model.get_value(oiter, COL_STATUS)
+        fixed = not fixed
+        self._model.set(oiter, COL_STATUS, fixed)
+
+
 class PlayBox(gtk.VBox):
     '''播放界面'''
     def __init__(self):
@@ -49,6 +85,8 @@ class PlayBox(gtk.VBox):
         buttons.pack_start(self.but_stop, False)
         buttons.pack_start(self.but_next, False)
         
+        play_list = PlayList()
+        self.pack_start(play_list)        
         self.pack_start(gtk.ProgressBar())
         self.pack_start(buttons)
         if pynotify:
