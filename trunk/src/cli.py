@@ -43,11 +43,11 @@ class CLI(cmd.Cmd):
 
     def help_lists(self):
         print u'用法: lists\n查看支持的榜单名.'
-    def do_lists(self):
+    def do_lists(self, arg = None):
         print u'目前gmbox支持以下列表: '+u'、'.join(['"%s"'%key for key in songlists])
     def help_albums(self):
         print u'用法: albums\n查看支持的专辑列表名.'
-    def do_albums(self):
+    def do_albums(self, arg = None):
         print u'目前gmbox支持以下专辑列表: '+u'、'.join(['"%s"'%key for key in albums_lists])
     def help_list(self):
         print u'用法: list  <榜单名>\n列出榜单名的所有歌曲,默认列出上次list的榜单或华语新歌.'
@@ -137,12 +137,12 @@ class CLI(cmd.Cmd):
             
     def help_downall(self):
         print u'用法: downall\n下载上次list或search的所有歌曲'
-    def do_downall(self):
+    def do_downall(self, arg):
         if self._candown():
             gmbox.downall()
     def help_albumdownall(self):
         print u'用法: albumdownall\n下载上次albumlist或albumsearch的所有专辑'
-    def do_albumdownall(self):
+    def do_albumdownall(self, arg):
         if self._candownalbum():
             gmbox.downallalbum()
 
@@ -194,11 +194,11 @@ config cover         True|False  设置下载专辑时是否下载专辑封面
         
     def help_exit(self):
         print u'用法: exit\n退出gmbox.'
-    def do_exit(self):
+    def do_exit(self, arg):
         sys.exit(0)
     def help_version(self):
         print u'用法: version\n显示版本号.'
-    def do_version(self):
+    def do_version(self, arg):
         print 'gmbox V'+VERSION
     def do_EOF(self, arg):
         print arg
