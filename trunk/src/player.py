@@ -20,6 +20,7 @@
 
 import os, gtk
 from subprocess import Popen, PIPE
+from lib.config import config
 try:
     import pynotify
 except ImportError:
@@ -27,7 +28,7 @@ except ImportError:
     
 from threads import threads
 
-(COL_STATUS, COL_NUM, COL_TITLE, COL_ARTIST) = range(4)
+(COL_STATUS, COL_NUM, COL_TITLE, COL_FILE) = range(4)
 class PlayList(gtk.TreeView):
     '''播放列表类'''
     def __init__(self):
@@ -50,18 +51,24 @@ class PlayList(gtk.TreeView):
         column.set_resizable(True)
         self.append_column(column)
 
-        renderer = gtk.CellRendererText()
-        renderer.set_data("column", COL_ARTIST)
-        column = gtk.TreeViewColumn("歌手", renderer, text=COL_ARTIST)
-        column.set_resizable(True)
-        self.append_column(column)
         self.set_rules_hint(True)
+        
+        self._model = gtk.ListStore(bool, str, str, str)
+        self.set_model(self._model)
+        
+        os.path.walk(config.item['savedir'], self.insert, None)
+        
     def fixed_toggled(self, cell, path):
         oiter = self._model.get_iter((int(path),))
         fixed = self._model.get_value(oiter, COL_STATUS)
         fixed = not fixed
         self._model.set(oiter, COL_STATUS, fixed)
-
+    
+    def insert(self, arg, dirname, names):
+        for name in names:
+            fname = os.path.join(dirname, name)
+            if os.path.isfile(fname) and fname.lower().endswith('.mp3'):
+                self._model.append([False, len(self._model), name, fname])
 
 class PlayBox(gtk.VBox):
     '''播放界面'''
@@ -85,25 +92,32 @@ class PlayBox(gtk.VBox):
         buttons.pack_start(self.but_stop, False)
         buttons.pack_start(self.but_next, False)
         
-        play_list = PlayList()
-        self.pack_start(play_list)        
-        self.pack_start(gtk.ProgressBar())
-        self.pack_start(buttons)
+        self.play_list = PlayList()
+        self.pack_start(self.play_list)        
+        self.pack_start(gtk.ProgressBar(), False, False)
+        self.pack_start(buttons, False, False)
         if pynotify:
             pynotify.init("GMbox")
         
     def play(self, widget):
         '''试听，播放'''
+        selected = []
+        for i in range(len(self.play_list._model)):
+            oiter = self.play_list._model.get_iter((i,))
+            if self.play_list._model.get_value(oiter, COL_STATUS):
+                selected.append(self.play_list._model.get_value(oiter, COL_FILE))
+        self.play_files(selected)
+
+    def play_files(self, files):
         threads.kill_paly()
-        if pynotify:
-            self.notification = pynotify.Notification('试听', u'把握你的美-江映蓉', 'dialog-info')
-            self.notification.set_timeout(5000)
-            self.notification.show()
-        #self.playbar.set_text('now playing ' + self.current_list.get_title(start))
-        #print 'now playing ', self.current_list.get_title(start)
-        #self.current_list.play(start)
-        #self.current_list.autoplay(start)
-        threads.play = Popen(['mpg123', '/home/lily/gmbox_download/把握你的美-江映蓉.mp3'], stdout=PIPE, stderr=PIPE)
+        for f in files:
+            if pynotify:
+                info = os.path.basename(f)[:-4]
+                self.notification = pynotify.Notification(u'正在播放', info, 'dialog-info')
+                self.notification.set_timeout(5000)
+                self.notification.show()
+            
+            threads.play = Popen(['mpg123', f], stdout=PIPE, stderr=PIPE)
         
     def stop(self, widget=None):
         '''停止'''
@@ -117,23 +131,16 @@ class PlayBox(gtk.VBox):
     def focus_next(self, widget):
         self.current_path = self.current_path + 1
         widget.set_cursor(self.current_path)
-        #if DEBUG:
-        #    print 'now focus', self.current_path
+
     def focus_prev(self, widget):
         self.current_path = self.current_path - 1
         widget.set_cursor(self.current_path)
-        #if DEBUG:
-        #    print 'now focus', self.current_path
 
     def play_next(self, widget):
-        #widget.focus_next(widget)
         self.focus_next(widget)
         self.listen(widget)
-        #if DEBUG:
-        #    print 'now playing', self.current_path
+
     def play_prev(self, widget):
-        #widget.focus_prev(widget)
         self.focus_prev(widget)
         self.listen(widget)
-        #if DEBUG:
-        #    print 'now playing', self.current_path
+

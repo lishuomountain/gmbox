@@ -176,13 +176,8 @@ class Tabview(gtk.Notebook):
     def setup_playlist_tab(self):
 
         self.player = PlayBox()
-
-        tmp_label = gtk.Label('<span size="xx-large" weight="ultrabold">coming soon ...</span>')
-        tmp_label.set_use_markup(True)
-
         vb = gtk.VBox(False, 0)
-        vb.pack_start(tmp_label, True, True)
-        vb.pack_start(self.player, False)
+        vb.pack_start(self.player)
 
         self.append_page(vb)
 
