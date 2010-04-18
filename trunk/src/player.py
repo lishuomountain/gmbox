@@ -20,6 +20,7 @@
 
 import os, gtk
 from subprocess import Popen, PIPE
+from threading import Thread
 from lib.config import config
 try:
     import pynotify
@@ -34,6 +35,7 @@ class PlayList(gtk.TreeView):
     def __init__(self):
         gtk.TreeView.__init__(self)
         self.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        self.connect('button-press-event', self.click_checker)
 
         renderer = gtk.CellRendererToggle()
         renderer.connect('toggled', self.fixed_toggled)
@@ -58,6 +60,13 @@ class PlayList(gtk.TreeView):
         
         os.path.walk(config.item['savedir'], self.insert, None)
         
+        self.current_path = 0
+        self.set_cursor(self.current_path)
+        
+    def click_checker(self, view, event):
+        self.current_path = self.get_path_at_pos(event.x, event.y)[0][0]
+        print self.current_path
+    
     def fixed_toggled(self, cell, path):
         oiter = self._model.get_iter((int(path),))
         fixed = self._model.get_value(oiter, COL_STATUS)
@@ -68,7 +77,33 @@ class PlayList(gtk.TreeView):
         for name in names:
             fname = os.path.join(dirname, name)
             if os.path.isfile(fname) and fname.lower().endswith('.mp3'):
-                self._model.append([False, len(self._model), name, fname])
+                self._model.append([True, len(self._model), name, fname])
+    
+    def focus_next(self):
+        self.current_path = self.current_path + 1
+        while not self.is_selected(self.current_path):
+            self.current_path = self.current_path + 1
+        self.set_cursor(self.current_path)
+        return True
+
+    def focus_prev(self):
+        if self.current_path == 0:
+            return
+        self.current_path = self.current_path - 1
+        while not self.is_selected(self.current_path):
+            self.current_path = self.current_path - 1
+        self.set_cursor(self.current_path)
+    
+    def is_selected(self, i):
+        oiter = self._model.get_iter((i,))
+        return self._model.get_value(oiter, COL_STATUS)
+    
+    def get_file(self, i='curr'):
+        if i == 'curr':
+            oiter = self._model.get_iter((self.current_path,))
+        else:
+            oiter = self._model.get_iter((i,))
+        return self._model.get_value(oiter, COL_FILE)
 
 class PlayBox(gtk.VBox):
     '''播放界面'''
@@ -79,12 +114,14 @@ class PlayBox(gtk.VBox):
                                    stock=gtk.STOCK_MEDIA_PREVIOUS)
         self.but_next = gtk.Button(label=u'后一首',
                                    stock=gtk.STOCK_MEDIA_NEXT)
-        self.but_play = gtk.Button(label=u'播放',
+        self.but_play = gtk.Button(label=u'播放所选',
                                    stock=gtk.STOCK_MEDIA_PLAY)
         self.but_stop = gtk.Button(label=u'停止',
                                    stock=gtk.STOCK_MEDIA_STOP)
         self.but_play.connect('clicked', self.play)
         self.but_stop.connect('clicked', self.stop)
+        self.but_prev.connect('clicked', self.play_prev)
+        self.but_next.connect('clicked', self.play_next)
         
         buttons = gtk.HBox()
         buttons.pack_start(self.but_prev, False)
@@ -96,51 +133,56 @@ class PlayBox(gtk.VBox):
         self.pack_start(self.play_list)        
         self.pack_start(gtk.ProgressBar(), False, False)
         self.pack_start(buttons, False, False)
+        self.play_state = None
         if pynotify:
             pynotify.init("GMbox")
         
     def play(self, widget):
         '''试听，播放'''
-        selected = []
-        for i in range(len(self.play_list._model)):
-            oiter = self.play_list._model.get_iter((i,))
-            if self.play_list._model.get_value(oiter, COL_STATUS):
-                selected.append(self.play_list._model.get_value(oiter, COL_FILE))
-        self.play_files(selected)
-
-    def play_files(self, files):
-        threads.kill_paly()
-        for f in files:
-            if pynotify:
-                info = os.path.basename(f)[:-4]
-                self.notification = pynotify.Notification(u'正在播放', info, 'dialog-info')
-                self.notification.set_timeout(5000)
-                self.notification.show()
+        if threads.is_playing():
+            return
+        threads.play_control = Thread(target=self.play_files)
+        self.play_state = 'playing'
+        threads.play_control.daemon = True
+        threads.play_control.start()
+    
+    def play_files(self):
+        threads.kill_play()
+        while True:
+            f=self.play_list.get_file()
+            threads.play = self.play_file(f)
+            threads.play.communicate()
+            if threads.play.returncode == 0 and not self.play_list.focus_next():
+                break;
+            if self.play_state == 'stoped':
+                break;
             
-            threads.play = Popen(['mpg123', f], stdout=PIPE, stderr=PIPE)
+    def play_file(self, f):
+        if pynotify:
+            info = os.path.basename(f)[:-4]
+            self.notification = pynotify.Notification(u'正在播放', info, 'dialog-info')
+            self.notification.set_timeout(5000)
+            self.notification.show()
+        
+        return Popen(['mpg123', f], stdout=PIPE, stderr=PIPE)
         
     def stop(self, widget=None):
         '''停止'''
-        threads.kill_paly()
-
-    def listen_init(self, widget):
-        self.current_list = self.playlist
-        self.current_path = self.path[0]
-        self.listen(widget)
-
-    def focus_next(self, widget):
-        self.current_path = self.current_path + 1
-        widget.set_cursor(self.current_path)
-
-    def focus_prev(self, widget):
-        self.current_path = self.current_path - 1
-        widget.set_cursor(self.current_path)
+        self.play_state = 'stoped'
+        threads.kill_play()
 
     def play_next(self, widget):
-        self.focus_next(widget)
-        self.listen(widget)
+        self.play_list.focus_next()
+        if self.play_state != 'playing':
+            self.play(None)
+        else:
+            threads.play.terminate()
 
     def play_prev(self, widget):
-        self.focus_prev(widget)
-        self.listen(widget)
+        self.play_list.focus_prev()
+        if self.play_state != 'playing':
+            self.play(None)
+        else:
+            threads.play.terminate()
 
+playbox = PlayBox()

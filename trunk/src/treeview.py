@@ -35,7 +35,7 @@ class Abs_View(gtk.TreeView):
         '''依次存入：status,歌曲编号，歌曲名，歌手          #专辑，长度，url'''
 
         gtk.TreeView.__init__(self)
-        self.connect('button-press-event', self.click_checker)        
+        self.connect('button-press-event', self.click_checker)
 
         self.set_enable_search(0)
         self.get_selection().set_mode(gtk.SELECTION_MULTIPLE)

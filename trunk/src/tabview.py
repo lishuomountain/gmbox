@@ -22,7 +22,7 @@ import gtk
 import logging
 import webbrowser
 
-from player import PlayBox
+from player import playbox
 from config import ConfigTable
 from treeview import ListView, SearchView, AlbumListView, AlbumSearchView
 from lib.const import songlists, albums_lists, VERSION
@@ -175,7 +175,7 @@ class Tabview(gtk.Notebook):
         
     def setup_playlist_tab(self):
 
-        self.player = PlayBox()
+        self.player = playbox
         vb = gtk.VBox(False, 0)
         vb.pack_start(self.player)
 

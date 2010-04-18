@@ -22,12 +22,16 @@
 class Threads():
     '''处理子进程及子线程'''
     def __init__(self):
-        self.down = None
-        self.play = None
+        self.down = None  #此为线程
+        self.play = None  #此为进程
+        self.play_control = None  #此为线程
     def is_downing(self):
         '''是否仍在下载'''
         return True if threads.down and threads.down.is_alive() else False
-    def kill_paly(self):
+    def is_playing(self):
+        '''是否在播放'''
+        return True if threads.play_control and threads.play_control.is_alive() else False
+    def kill_play(self):
         '''杀死播放子进程'''
         if self.play != None:
             self.play.poll()

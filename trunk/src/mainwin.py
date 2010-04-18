@@ -27,6 +27,7 @@ from optparse import OptionParser
 from tabview import Tabview
 from statusbar import statusbar
 from threads import threads
+from player import playbox
 from lib.utils import find_image_or_data, module_path
 
 log = logging.getLogger('gmbox')
@@ -136,7 +137,8 @@ class Mainwin(gtk.Window):
         else:
             return True
     def quit(self, win):
-        threads.kill_paly()
+        playbox.play_state = 'stoped'
+        threads.kill_play()
         gtk.main_quit(win)
         
 if __name__ == '__main__':
