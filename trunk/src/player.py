@@ -64,9 +64,15 @@ class PlayList(gtk.TreeView):
         self.set_cursor(self.current_path)
         
     def click_checker(self, view, event):
-        self.current_path = self.get_path_at_pos(event.x, event.y)[0][0]
-        print self.current_path
+        pos = self.get_path_at_pos(int(event.x), int(event.y))
+        if pos is not None:
+            self.current_path = pos[0][0]
     
+    def play_rfsh(self, o):
+        self._model.clear()
+        os.path.walk(config.item['savedir'], self.insert, None)
+        self.set_cursor(self.current_path)
+        
     def fixed_toggled(self, cell, path):
         oiter = self._model.get_iter((int(path),))
         fixed = self._model.get_value(oiter, COL_STATUS)
@@ -80,8 +86,12 @@ class PlayList(gtk.TreeView):
                 self._model.append([True, len(self._model), name, fname])
     
     def focus_next(self):
+        if self.current_path == len(self._model):
+            return
         self.current_path = self.current_path + 1
         while not self.is_selected(self.current_path):
+            if self.current_path == len(self._model):
+                return
             self.current_path = self.current_path + 1
         self.set_cursor(self.current_path)
         return True
@@ -91,6 +101,8 @@ class PlayList(gtk.TreeView):
             return
         self.current_path = self.current_path - 1
         while not self.is_selected(self.current_path):
+            if self.current_path == 0:
+                return
             self.current_path = self.current_path - 1
         self.set_cursor(self.current_path)
     
@@ -118,6 +130,8 @@ class PlayBox(gtk.VBox):
                                    stock=gtk.STOCK_MEDIA_PLAY)
         self.but_stop = gtk.Button(label=u'停止',
                                    stock=gtk.STOCK_MEDIA_STOP)
+        self.but_rfsh = gtk.Button(label=u'刷新')
+
         self.but_play.connect('clicked', self.play)
         self.but_stop.connect('clicked', self.stop)
         self.but_prev.connect('clicked', self.play_prev)
@@ -128,12 +142,17 @@ class PlayBox(gtk.VBox):
         buttons.pack_start(self.but_play, False)
         buttons.pack_start(self.but_stop, False)
         buttons.pack_start(self.but_next, False)
+        buttons.pack_end(self.but_rfsh, False)
         
         self.play_list = PlayList()
-        self.pack_start(self.play_list)        
+        scroll = gtk.ScrolledWindow()
+        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scroll.add(self.play_list)
+        self.pack_start(scroll)        
         self.pack_start(gtk.ProgressBar(), False, False)
         self.pack_start(buttons, False, False)
         self.play_state = None
+        self.but_rfsh.connect('clicked', self.play_list.play_rfsh)
         if pynotify:
             pynotify.init("GMbox")
         
@@ -184,5 +203,5 @@ class PlayBox(gtk.VBox):
             self.play(None)
         else:
             threads.play.terminate()
-
+    
 playbox = PlayBox()
