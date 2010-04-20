@@ -22,6 +22,7 @@ import os, gtk
 from subprocess import Popen, PIPE
 from threading import Thread
 from lib.config import config
+from lyrics import Lyrics
 try:
     import pynotify
 except ImportError:
@@ -87,24 +88,25 @@ class PlayList(gtk.TreeView):
     
     def focus_next(self):
         if self.current_path == len(self._model):
-            return
+            return False
         self.current_path = self.current_path + 1
         while not self.is_selected(self.current_path):
             if self.current_path == len(self._model):
-                return
+                return False
             self.current_path = self.current_path + 1
         self.set_cursor(self.current_path)
         return True
 
     def focus_prev(self):
         if self.current_path == 0:
-            return
+            return False
         self.current_path = self.current_path - 1
         while not self.is_selected(self.current_path):
             if self.current_path == 0:
-                return
+                return False
             self.current_path = self.current_path - 1
         self.set_cursor(self.current_path)
+        return True
     
     def is_selected(self, i):
         oiter = self._model.get_iter((i,))
@@ -148,7 +150,11 @@ class PlayBox(gtk.VBox):
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll.add(self.play_list)
-        self.pack_start(scroll)        
+        hbox = gtk.HBox()
+        hbox.pack_start(scroll)
+        self.lyrics = Lyrics()
+        hbox.pack_start(self.lyrics)
+        self.pack_start(hbox)        
         self.pack_start(gtk.ProgressBar(), False, False)
         self.pack_start(buttons, False, False)
         self.play_state = None
@@ -183,6 +189,7 @@ class PlayBox(gtk.VBox):
             self.notification.set_timeout(5000)
             self.notification.show()
         
+        self.lyrics.load(f[:-4] + '.lrc')
         return Popen(['mpg123', f], stdout=PIPE, stderr=PIPE)
         
     def stop(self, widget=None):

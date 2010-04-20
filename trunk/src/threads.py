@@ -25,6 +25,7 @@ class Threads():
         self.down = None  #此为线程
         self.play = None  #此为进程
         self.play_control = None  #此为线程
+        self.lyrics = None  #此为线程
     def is_downing(self):
         '''是否仍在下载'''
         return True if threads.down and threads.down.is_alive() else False
