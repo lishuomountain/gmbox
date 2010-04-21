@@ -18,36 +18,46 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''GUI内置的歌词显示'''
 
-import re
+import re, os
 import gtk
 from time import time, sleep
 from threading import Thread
 from threads import threads
 
 class Lyrics(gtk.Label):
-    
+    '''歌词显示控件'''
     def __init__(self):
+        '''初始化'''
         gtk.Label.__init__(self)
         self.time_reg = re.compile(r'\[([0-9]{1,2}:[0-9]{1,2}\.[0-9]{1,2})\]')
-        self.con_reg = re.compile(r'^[0-9\[\]:\.]*(.*)$')
+        self.con_reg = re.compile('^[0-9\[\]:\.]*(.*)$')
         self.__ref_freq = 0.1
         self.status = 'idle'
-    
+        self.comm_style = '<span>%s</span>\n'
+        self.curr_style = '<span color="blue" size="large" weight="ultrabold">%s</span>\n'
+        
     def load(self, lrc_file):
+        '''载入歌词文件，同时打开歌词刷新子线程'''
         self.stime = int(time() * 100)
-        lrc = open(lrc_file).read()
-        self.lyrics = {0 : '开始'}
+        lrc = open(lrc_file).read().decode('utf8')
+        if lrc.startswith(u'\ufeff'):
+            lrc = lrc[1:]
+        self.lyrics = {0 : u'《%s》' % os.path.basename(lrc_file)[:-4]}
         self.timeline = [0]
-        for line in lrc.decode('utf8').split('\n'):
-            curr = self.con_reg.findall(line)
+        for line in lrc.split('\n'):
+            curr = self.con_reg.findall(line)[0]
+            if curr.endswith('\r'):
+                curr = curr.split('\r')[0]
             for timestamp in self.time_reg.findall(line):
                 h = int(timestamp.split(':')[0])
                 m = int(timestamp.split(':')[1].split('.')[0])
                 s = int(timestamp.split(':')[1].split('.')[1])
                 hms = ( h * 60 + m ) * 100 + s
                 self.timeline.append(hms)
-                self.lyrics[hms] = curr[0].split('\r')[0]
+                self.lyrics[hms] = curr
         self.timeline.sort()
+#        for t in self.timeline:
+#            print t,'==>',self.lyrics[t]
         self.status = 'needstop'
         sleep(self.__ref_freq * 2.5)
         threads.lyrics = Thread(target=self.update_lyrics)
@@ -55,26 +65,31 @@ class Lyrics(gtk.Label):
         threads.lyrics.start()
     
     def update_lyrics(self):
+        '''负责刷新歌词'''
         self.status = 'runing'
+        old_region_s = -1
         while True:
             passed = int(time() * 100) - self.stime
-            bef = 0
-            for the in self.timeline:
-                if passed <= the:
+            region_s = 0
+            for region_e in self.timeline:
+                if passed <= region_e:
                     break
-                bef = the
-            #TODO: 这里要优化
-            self.set_time(bef, the)
+                region_s = region_e
+            if old_region_s != region_s:
+                self.set_time(region_s, region_e)
+                old_region_s = region_s
             if self.status == 'needstop':
                 break
             sleep(self.__ref_freq)
     
-    def set_time(self, bef, the):
-        text = ''
+    def set_time(self, region_s, region_e):
+        '''根据时间点，组织并显示歌词'''
+        text = '\n'
         for hms in self.timeline:
-            if hms == bef:
-                text += '<span color="blue" size="large" weight="ultrabold">'+self.lyrics[hms]+'</span>'+'\n'
+            if hms == region_s:
+                text += self.curr_style % self.lyrics[hms]
             else:
-                text += self.lyrics[hms]+'\n'
+                text += self.comm_style % self.lyrics[hms]
         self.set_text(text)
         self.set_use_markup(True)
+        
