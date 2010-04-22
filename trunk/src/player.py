@@ -84,10 +84,10 @@ class PlayList(gtk.TreeView):
         for name in names:
             fname = os.path.join(dirname, name)
             if os.path.isfile(fname) and fname.lower().endswith('.mp3'):
-                self._model.append([True, len(self._model), name, fname])
+                self._model.append([True, len(self._model) + 1, name, fname])
     
     def focus_next(self):
-        if self.current_path == len(self._model):
+        if self.current_path == len(self._model) - 1:
             return False
         self.current_path = self.current_path + 1
         while not self.is_selected(self.current_path):
@@ -152,8 +152,12 @@ class PlayBox(gtk.VBox):
         scroll.add(self.play_list)
         hbox = gtk.HBox()
         hbox.pack_start(scroll)
+        self.cover = gtk.Image()
         self.lyrics = Lyrics()
-        hbox.pack_start(self.lyrics)
+        vbox = gtk.VBox()
+        vbox.pack_start(self.cover, False, False)
+        vbox.pack_start(self.lyrics)
+        hbox.pack_start(vbox)
         self.pack_start(hbox)        
         self.pack_start(gtk.ProgressBar(), False, False)
         self.pack_start(buttons, False, False)
@@ -188,6 +192,14 @@ class PlayBox(gtk.VBox):
             self.notification = pynotify.Notification(u'正在播放', info, 'dialog-info')
             self.notification.set_timeout(5000)
             self.notification.show()
+        
+        coverfile = os.path.join(os.path.dirname(f), 'cover.jpg')
+        if os.path.exists(coverfile):
+            self.cover.set_from_file(coverfile)
+            #self.lyrics.lines = 13
+        else:
+            self.cover.clear()
+            #self.lyrics.lines = 19
         
         self.lyrics.load(f[:-4] + '.lrc')
         return Popen(['mpg123', f], stdout=PIPE, stderr=PIPE)

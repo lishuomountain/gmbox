@@ -80,6 +80,7 @@ def get_attrs_value_by_name(attrs, name):
 entityref = re.compile('&([a-zA-Z][a-zA-Z0-9]*);')
 import htmlentitydefs
 entityrefs = htmlentitydefs.name2codepoint.copy()
+captcha_reg = re.compile(r'<img src="([^"]*)" alt="" class="captchaImage">')
 del(entityrefs['quot'])
 def entityrefstr(m):
     '''给re.sub做第二个参数,返回&eacute;等对应的中文'''

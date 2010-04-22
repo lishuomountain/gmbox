@@ -107,9 +107,14 @@ class Gmbox:
         song = self.songlist[i]
         songurl = song_url_template % (song['id'],)
         html = self.get_url_html(songurl)
-        s = SongParser()
-        s.feed(html)
-        return s.url
+        captcha = captcha_reg.findall(html)
+        if captcha:
+            print '杯具，google让你输入验证码了。。。换个IP或者等等再试吧。'
+            return None
+        else:
+            s = SongParser()
+            s.feed(html)
+            return s.url
     
     def get_lyric_url(self, sid):
         '''获取歌词下载地址，按照flash播放器所用的歌词xml信息'''
@@ -146,9 +151,8 @@ class Gmbox:
                 numinfo = "(%d of %d)" % (i + 1, len(self.songlist))
                 callback(-1, nameinfo[2], numinfo) #-1做为开始信号
             self.download(url, nameinfo[0], callback=callback)
-        else:   #下载页有验证码时url为空
-            print u'出错了,也许是google加了验证码,请换IP后再试或等24小时后再试...'
-
+        else:
+            return None
         if config.item['id3utf8']:
             #在Linux下转换到UTF 编码，现在只有comment里还是乱码
             os.system('mid3iconv -e gbk "'+nameinfo[0] + '"')

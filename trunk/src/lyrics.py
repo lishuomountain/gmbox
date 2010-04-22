@@ -33,11 +33,19 @@ class Lyrics(gtk.Label):
         self.con_reg = re.compile('^[0-9\[\]:\.]*(.*)$')
         self.__ref_freq = 0.1
         self.status = 'idle'
+        self.lines = 15
         self.comm_style = '<span>%s</span>\n'
-        self.curr_style = '<span color="blue" size="large" weight="ultrabold">%s</span>\n'
+        self.curr_style = '<span color="blue" size="large" weight="bold">%s</span>\n'
+        self.err_style = '<span color="red" size="large" weight="ultrabold">%s</span>\n'
+        self.set_markup('<span size="large" weight="ultrabold">歌词显示区域</span>')
         
     def load(self, lrc_file):
         '''载入歌词文件，同时打开歌词刷新子线程'''
+        self.status = 'needstop'
+        sleep(self.__ref_freq * 2.5)
+        if not os.path.exists(lrc_file):
+            self.set_markup(self.err_style % u'未发现对应的歌词文件！')
+            return
         self.stime = int(time() * 100)
         lrc = open(lrc_file).read().decode('utf8')
         if lrc.startswith(u'\ufeff'):
@@ -53,13 +61,12 @@ class Lyrics(gtk.Label):
                 m = int(timestamp.split(':')[1].split('.')[0])
                 s = int(timestamp.split(':')[1].split('.')[1])
                 hms = ( h * 60 + m ) * 100 + s
-                self.timeline.append(hms)
-                self.lyrics[hms] = curr
+                if hms != 0:
+                    self.timeline.append(hms)
+                    self.lyrics[hms] = curr
         self.timeline.sort()
 #        for t in self.timeline:
 #            print t,'==>',self.lyrics[t]
-        self.status = 'needstop'
-        sleep(self.__ref_freq * 2.5)
         threads.lyrics = Thread(target=self.update_lyrics)
         threads.lyrics.daemon = True
         threads.lyrics.start()
@@ -85,11 +92,18 @@ class Lyrics(gtk.Label):
     def set_time(self, region_s, region_e):
         '''根据时间点，组织并显示歌词'''
         text = '\n'
+        now = self.timeline.index(region_s)
+        i = 0
         for hms in self.timeline:
-            if hms == region_s:
-                text += self.curr_style % self.lyrics[hms]
-            else:
-                text += self.comm_style % self.lyrics[hms]
-        self.set_text(text)
-        self.set_use_markup(True)
+            #这个大if，是为了尽量显示指定的行。
+            if ( now < self.lines / 2 and i < self.lines ) or \
+                ( now > len(self.timeline) - self.lines / 2 and \
+                i >= len(self.timeline) - self.lines ) or \
+                ( abs( i - now ) <= int(self.lines / 2) ):
+                if hms == region_s:
+                    text += self.curr_style % self.lyrics[hms]
+                else:
+                    text += self.comm_style % self.lyrics[hms]
+            i += 1
+        self.set_markup(text)
         
