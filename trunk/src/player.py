@@ -19,7 +19,7 @@
 '''GUI内置的播放界面'''
 
 import os, gtk
-from subprocess import Popen, PIPE
+import subprocess
 from threading import Thread
 from lib.config import config
 from lyrics import Lyrics
@@ -117,7 +117,10 @@ class PlayList(gtk.TreeView):
             oiter = self._model.get_iter((self.current_path,))
         else:
             oiter = self._model.get_iter((i,))
-        return self._model.get_value(oiter, COL_FILE)
+        if os.name == 'nt':
+            return self._model.get_value(oiter, COL_FILE).encode('GBK')
+        else:
+            return self._model.get_value(oiter, COL_FILE)
 
 class PlayBox(gtk.VBox):
     '''播放界面'''
@@ -202,7 +205,15 @@ class PlayBox(gtk.VBox):
             #self.lyrics.lines = 19
         
         self.lyrics.load(f[:-4] + '.lrc')
-        return Popen(['mpg123', f], stdout=PIPE, stderr=PIPE)
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+        else:
+            startupinfo = None
+        
+        return subprocess.Popen(['mpg123', f], stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, startupinfo=startupinfo)
         
     def stop(self, widget=None):
         '''停止'''

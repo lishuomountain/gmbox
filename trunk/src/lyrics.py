@@ -23,6 +23,7 @@ import gtk
 from time import time, sleep
 from threading import Thread
 from threads import threads
+from lib.utils import deal_input
 
 class Lyrics(gtk.Label):
     '''歌词显示控件'''
@@ -50,7 +51,7 @@ class Lyrics(gtk.Label):
         lrc = open(lrc_file).read().decode('utf8')
         if lrc.startswith(u'\ufeff'):
             lrc = lrc[1:]
-        self.lyrics = {0 : u'《%s》' % os.path.basename(lrc_file)[:-4]}
+        self.lyrics = {0 : u'《%s》' % deal_input(os.path.basename(lrc_file)[:-4])}
         self.timeline = [0]
         for line in lrc.split('\n'):
             curr = self.con_reg.findall(line)[0]
