@@ -7,3 +7,4 @@ xcopy c:\\GTK\Microsoft.VC90.CRT gmbox\Microsoft.VC90.CRT /E /I /R
 copy c:\\GTK\bin\jpeg62.dll gmbox\
 copy D:\\gm\mpg123-1.9.1-static-x86\mpg123.exe gmbox\
 rd build /S /Q
+"C:\Program Files\7-Zip\7z.exe" a -sfx gmbox.exe gmbox

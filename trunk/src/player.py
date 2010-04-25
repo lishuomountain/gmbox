@@ -22,6 +22,7 @@ import os, gtk
 import subprocess
 from threading import Thread
 from lib.config import config
+from lib.utils import deal_input
 from lyrics import Lyrics
 try:
     import pynotify
@@ -198,7 +199,7 @@ class PlayBox(gtk.VBox):
         
         coverfile = os.path.join(os.path.dirname(f), 'cover.jpg')
         if os.path.exists(coverfile):
-            self.cover.set_from_file(coverfile)
+            self.cover.set_from_file(deal_input(coverfile))
             #self.lyrics.lines = 13
         else:
             self.cover.clear()
