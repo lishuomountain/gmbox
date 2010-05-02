@@ -114,10 +114,9 @@ class ConfigTable(gtk.Table):
         config.id3utf8_changed(widget.get_active())
 
     def refresh_pre(self):
-        v = u'歌曲下载路径：' + \
-            gmbox.setup_file_info(u'歌名', u'歌手', False, u'专辑名', u'专辑歌手', 1)[0] \
-            + '\n' + u'专辑下载路径：' + \
-            gmbox.setup_file_info(u'歌名', u'歌手', True, u'专辑名', u'专辑歌手', 1)[0]
+        t1 = gmbox.setup_file_info(u'歌名', u'歌手', False, u'专辑名', u'专辑歌手', 1)[0]
+        t2 = gmbox.setup_file_info(u'歌名', u'歌手', True, u'专辑名', u'专辑歌手', 1)[0]
+        v = u'歌曲下载路径：%s\n专辑下载路径：%s' % (t1, t2)
         self.previewLabel.set_text(v)
     
     def config_makealbumdir(self, widget):
