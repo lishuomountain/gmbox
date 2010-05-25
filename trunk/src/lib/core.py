@@ -57,21 +57,26 @@ class Gmbox:
             for album in self.albumlist])
     def setup_file_info(self, songname, artist, isalbum, albumname, albumartist, albumnum):
         '''根据设置，组装歌曲信息，返回 [全文件名,路径,文件名]'''
-        path = config.item['savedir']
+        excu_str = '''\/:*?<>|'"'''
+        tpath = None
         if config.item['makeartistdir']:
-            path = os.path.join(path, artist)
+            tpath = str(artist).translate(None, excu_str)
             filename = songname+'.mp3'
         else:
             filename = songname+'-'+artist+'.mp3'
         if isalbum and config.item['makealbumdir']:
-            path = os.path.join(path, albumname+'-'+albumartist)
+            tpath = str(albumname+'-'+albumartist).translate(None, excu_str)
         if isalbum and config.item['addalbumnum']:
             filename = '%02d.%s' % (albumnum, filename)
-        filename = str(filename).translate(None, '''\/:*?<>|'"''')
+        filename = str(filename).translate(None, excu_str)
         if len(filename) > 243:
             print u'警告：由于文件名过长，已被截断', filename,
             filename = filename[:238]+'.mp3'
             print '-->', filename
+        if tpath:
+            path = os.path.join(config.item['savedir'], tpath)
+        else:
+            path = config.item['savedir']
         return [os.path.join(path, filename), path, filename]
         
     def createdir_getfilename(self, i=0):
