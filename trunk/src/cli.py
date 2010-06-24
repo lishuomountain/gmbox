@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 '''gmbox的命令行界面'''
-import sys, cmd
+import sys, cmd, readline
 from optparse import OptionParser
 
 from lib.core import gmbox
@@ -34,6 +34,7 @@ class CLI(cmd.Cmd):
     '''解析命令行参数'''
     def __init__(self):
         cmd.Cmd.__init__(self)
+        self.use_rawinput = False
         self.currentlist = u'华语新歌'
         self.currentalbumlist = u'影视新碟'
         self.prompt = "gmbox> "
