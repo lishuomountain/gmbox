@@ -203,6 +203,7 @@ class PlayBox(gtk.VBox):
             #self.lyrics.lines = 13
         else:
             self.cover.clear()
+            coverfile = None
             #self.lyrics.lines = 19
         
         self.lyrics.load(f[:-4] + '.lrc')

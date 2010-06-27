@@ -24,7 +24,11 @@ from time import time, sleep
 from threading import Thread
 from threads import threads
 from lib.utils import deal_input
-
+try:
+    import pynotify
+except ImportError:
+    pynotify = None
+    
 class Lyrics(gtk.Label):
     '''歌词显示控件'''
     def __init__(self):
@@ -107,4 +111,11 @@ class Lyrics(gtk.Label):
                     text += self.comm_style % self.lyrics[hms]
             i += 1
         self.set_markup(text)
-        
+        if pynotify:
+            self.notification = pynotify.Notification(self.lyrics[region_s])
+            timeout = (region_e - region_s - 1) * 10
+            if timeout <= 0:
+                timeout = 5000
+            self.notification.set_timeout(timeout)
+            self.notification.show()
+
