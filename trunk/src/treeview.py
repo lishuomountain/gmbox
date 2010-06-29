@@ -23,6 +23,7 @@ from time import sleep
 from threads import threads
 from statusbar import statusbar
 from lib.core import gmbox
+from dialogs import InfoDialog
 
 log = logging.getLogger('gmbox.treeview')
 
@@ -80,6 +81,12 @@ class Abs_View(gtk.TreeView):
             statusbar.textbox.set_text(block_size)
         elif blocks == -2:
             statusbar.push(0, u'已完成.')
+        elif blocks == -99:
+            print 111
+            dialog = InfoDialog(u'杯具啊', u'由于你短时间下载太多，Google让你输入验证码了。换个IP或者等24小时再试吧。')
+            dialog.run()
+            dialog.destroy()
+            print 222
         else:
             percentage = float(blocks) / (total_size / block_size + 1)
             statusbar.progress.set_fraction(percentage)

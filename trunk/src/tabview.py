@@ -193,7 +193,7 @@ class Tabview(gtk.Notebook):
         bt_home = gtk.Button(u'项目主页')
         bt_home.connect('clicked', lambda w: webbrowser.open('http://code.google.com/p/gmbox/'))
         bt_blog = gtk.Button(u' 博客 ')
-        bt_blog.connect('clicked', lambda w: webbrowser.open('http://li2z.cn/category/gmbox/?from=gmbox'))
+        bt_blog.connect('clicked', lambda w: webbrowser.open('http://luy.li/category/gmbox/?from=gmbox'))
         bt_twitter = gtk.Button(u' Twitter ')
         bt_twitter.connect('clicked', lambda w: webbrowser.open('http://twitter.com/bones7456'))
         hb = gtk.HBox()

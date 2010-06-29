@@ -97,6 +97,9 @@ class Gmbox:
         except urllib2.URLError:
             print '网络错误,请检查网络...'
             return
+        except httplib.BadStatusLine:
+            print '网络错误，设置了错误的代理？'
+            return
         except:
             print '未知错误!请到这里报告bug: http://code.google.com/p/gmbox/issues/entry'
             return
@@ -107,7 +110,7 @@ class Gmbox:
             html = entityref.sub(entityrefstr, html)
         return html
         
-    def find_final_uri(self, i=0):
+    def find_final_uri(self, i=0, callback=None):
         '''找到最终真实下载地址，以供下一步DownLoad类下载'''
         song = self.songlist[i]
         songurl = song_url_template % (song['id'],)
@@ -115,6 +118,8 @@ class Gmbox:
         captcha = captcha_reg.findall(html)
         if captcha:
             print '杯具，google让你输入验证码了。。。换个IP或者等等再试吧。'
+            if callback:
+                callback(-99, '', '') # -99表示出验证码了。
             return None
         else:
             s = SongParser()
@@ -135,6 +140,7 @@ class Gmbox:
     
     def downone(self, i=0, callback=None):
         '''下载当前列表中的一首歌曲 '''
+        callback(-99, '', '')
         nameinfo = self.createdir_getfilename(i)
         lyric_filename = os.path.splitext(nameinfo[0])[0] + ".lrc"
         if config.item['lyric']:
@@ -149,7 +155,7 @@ class Gmbox:
             print nameinfo[2], u'已存在!'
             return
         
-        url = self.find_final_uri(i)
+        url = self.find_final_uri(i, callback=callback)
         if url:
             print u'正在下载:', nameinfo[2]
             if self.downalbumnow and callback:

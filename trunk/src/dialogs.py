@@ -26,3 +26,14 @@ class QuitDialog(gtk.MessageDialog):
         self.set_markup('<big><b>%s</b></big>' % title)
         self.format_secondary_markup(message)
 
+class InfoDialog(gtk.MessageDialog):
+    '''验证码信息对话框'''
+    def __init__(self, title, message):
+        gtk.MessageDialog.__init__(self, None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE)
+        self.set_markup('<big><b>%s</b></big>' % title)
+        self.format_secondary_markup(message)
+
+if __name__ == '__main__':
+    dialog = InfoDialog(u'杯具啊', u'由于你短时间下载太多，Google让你输入验证码了。换个IP或者等24小时再试吧。')
+    dialog.run()
+    dialog.destroy()
