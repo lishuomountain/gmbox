@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# exaile-plugin-gmbox - exaile plugin to support google.cn music
-# Copyright (C) 2010 muzuiget
+# gmbox - Google music box
+# Copyright (C) 2010 gmbox team
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
