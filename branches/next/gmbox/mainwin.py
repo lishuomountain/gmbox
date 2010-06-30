@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gmboxtree import *
-from gmboxapi import gmboxapi, songlists_dict, albumslists_dict
-from gmlist import listing_const
+from lib.core import gmbox
+from lib.const import listing_map
+from treestuff import *
 import gtk
 import gobject
 import os
@@ -478,7 +478,7 @@ class ListingPage(gtk.ScrolledWindow):
         self.treeview.get_selection().unselect_all()
         
     def setup_treeview(self):        
-        for listing_parent in listing_const:
+        for listing_parent in listing_map:
             parent_search = Search(None, listing_parent[0], 0)
             index = self.treestore.append(None, (parent_search,))
             for listing in listing_parent[1]:
@@ -676,14 +676,14 @@ class TrackSearcher(threading.Thread):
     def run(self):
         has_more = False
         if self.type == 1:
-            has_more = gmboxapi.search(self.text, self.page)
+            has_more = gmbox.search(self.text, self.page)
         else:
-            has_more = gmboxapi.get_list(self.text, self.page)
+            has_more = gmbox.get_list(self.text, self.page)
         if has_more:
             next_page = self.page + 1
         else:
             next_page = 0
-        self.callback(gmboxapi.songlist, self.type, self.text, next_page)
+        self.callback(gmbox.songlist, self.type, self.text, next_page)
 
 class TrackUrlGeter(threading.Thread):
     
@@ -694,7 +694,7 @@ class TrackUrlGeter(threading.Thread):
         
     def run(self):
         for track in self.tracks:
-            track.url = gmboxapi.get_stream_url(track.id)
+            track.url = gmbox.get_stream_url(track.id)
             self.callback([track])
         
 class AlbumSearcher(threading.Thread):
@@ -709,14 +709,14 @@ class AlbumSearcher(threading.Thread):
     def run(self):
         has_more = False
         if self.type == 2:
-            has_more = gmboxapi.searchalbum(self.text, self.page)
+            has_more = gmbox.searchalbum(self.text, self.page)
         else:
-            has_more = gmboxapi.get_album_IDs(self.text, self.page)
+            has_more = gmbox.get_album_IDs(self.text, self.page)
         if has_more:
             next_page = self.page + 1
         else:
             next_page = 0
-        self.callback(gmboxapi.albumlist, self.type, self.text, next_page)
+        self.callback(gmbox.albumlist, self.type, self.text, next_page)
         
 class AlbumTrackGeter(threading.Thread):
     
@@ -726,13 +726,13 @@ class AlbumTrackGeter(threading.Thread):
         self.callback = callback
         
     def run(self):
-        gmboxapi.get_albumlist(self.album.id)
+        gmbox.get_albumlist(self.album.id)
         # some extra info
-        self.album.company = gmboxapi.albuminfo["company"]   
-        self.album.artist = gmboxapi.albuminfo["artist"]             
-        self.album.cover = gmboxapi.albuminfo["cover"]    
-        self.album.time = gmboxapi.albuminfo["time"]
-        self.callback(gmboxapi.songlist, self.album)
+        self.album.company = gmbox.albuminfo["company"]   
+        self.album.artist = gmbox.albuminfo["artist"]             
+        self.album.cover = gmbox.albuminfo["cover"]    
+        self.album.time = gmbox.albuminfo["time"]
+        self.callback(gmbox.songlist, self.album)
         
 class Downloader(threading.Thread):
     
@@ -798,7 +798,7 @@ class Downloader(threading.Thread):
         # check download
         if not os.path.exists(local_url):            
             # get url
-            url = gmboxapi.get_lyric_url(self.track.id)
+            url = gmbox.get_lyric_url(self.track.id)
             if url is None:
                 self.track.status = Track.STATUS_NO_LYRIC
             else:
@@ -833,7 +833,7 @@ class Downloader(threading.Thread):
             self.track.process = "100%"
         else:            
             # get url
-            url = gmboxapi.find_final_uri(self.track.id)
+            url = gmbox.find_final_uri(self.track.id)
             if url is None:
                 self.track.status = Track.STATUS_GET_URL_FAIL
             else:

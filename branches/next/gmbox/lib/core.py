@@ -23,7 +23,6 @@ import xml.dom.minidom as minidom
 from parser import XmlAlbumParser, ListParser, SongParser, AlbumListParser
 from const import *
 from utils import *
-from config import config
 
 log = logging.getLogger('lib.core')
 
@@ -110,21 +109,30 @@ class Gmbox:
             html = entityref.sub(entityrefstr, html)
         return html
         
-    def find_final_uri(self, i=0, callback=None):
+    def find_final_uri(self, id):
         '''找到最终真实下载地址，以供下一步DownLoad类下载'''
-        song = self.songlist[i]
-        songurl = song_url_template % (song['id'],)
+        songurl = song_url_template % (id,)
         html = self.get_url_html(songurl)
         captcha = captcha_reg.findall(html)
         if captcha:
             print '杯具，google让你输入验证码了。。。换个IP或者等等再试吧。'
-            if callback:
-                callback(-99, '', '') # -99表示出验证码了。
             return None
         else:
             s = SongParser()
             s.feed(html)
             return s.url
+        
+    def get_stream_url(self, sid):
+        '''获取试听版下载地址，按照flash播放器所用的歌词xml信息'''
+        sig = hashlib.md5(flash_player_key + sid).hexdigest()
+        xml_url = song_streaming_url_template % (sid, sig)
+        try:
+            xml_string = self.get_url_html(xml_url, False)
+            dom = minidom.parseString(xml_string)
+            url = dom.getElementsByTagName('songUrl')[0].childNodes[0].data
+        except:
+            return None
+        return url
     
     def get_lyric_url(self, sid):
         '''获取歌词下载地址，按照flash播放器所用的歌词xml信息'''
@@ -208,60 +216,68 @@ class Gmbox:
         '''下载歌词或封面时用的回调函数，啥都不显示'''
         pass
         
-    def get_list(self, stype, callback=None):
+    def get_list(self, stype, page=1):
         '''获取特定榜单'''
         self.downalbumnow = False
-        if stype in self.cached_list:
-            self.songlist = copy.copy(self.cached_list[stype])
+        cache_key = 'l_' + stype + str(page)
+        if cache_key in self.cached_list:
+            self.songlist = copy.copy(self.cached_list[cache_key])
             return
         
-        if stype in songlists:
+        if stype in listing_map_dict:
             p = ListParser()
             print u'正在获取"' + stype + u'"的歌曲列表',
             sys.stdout.flush()
-            for i in range(0, songlists[stype][1], 25):
-                html = self.get_url_html(list_url_template % (songlists[stype][0], i))
-                p.feed(html)
-                print '.',
-                sys.stdout.flush()
-                if callback:
-                    callback( int(i / 25) + 1, (songlists[stype][1] / 25) )
+#           for i in range(0, songlists[stype][1], 25):
+            i = (page - 1) * 25
+            html = self.get_url_html(list_url_template % (listing_map_dict[stype], i))
+            p.feed(html)
+            print '.',
+            sys.stdout.flush()
+#            if callback:
+#                callback( int(i / 25) + 1, (songlists[stype][1] / 25) )
             print 'done!'
             self.songlist = p.songlist
-            self.cached_list[stype] = copy.copy(p.songlist)
+            self.cached_list[cache_key] = copy.copy(p.songlist)
+            return self.check_if_has_more(html)
         else:
             #TODO:raise Exception
             print u'未知列表:"' + str(stype) + u'",仅支持以下列表: ' + u'、'.join(
             ['"%s"' % key for key in songlists])
             log.debug('Unknow list:"' + str(stype))
+            return None
     
-    def get_album_IDs(self, albumlist_name, callback=None):
+    def get_album_IDs(self, albumlist_name, page=1):
         '''获取专辑列表中的专辑ID'''
-        if 'aid_' + albumlist_name in self.cached_list:
-            self.albumlist = copy.copy(self.cached_list['aid_' + albumlist_name])
+        cache_key = 'aid_' + albumlist_name + str(page)
+        if cache_key in self.cached_list:
+            self.albumlist = copy.copy(self.cached_list[cache_key])
             return
-        if albumlist_name in albums_lists:
+        if albumlist_name in listing_map_dict:
             p = AlbumListParser()
             print u'正在获取"' + albumlist_name + u'"的专辑列表',
             sys.stdout.flush()
-            for i in range(0, albums_lists[albumlist_name][1], 10):
-                html = self.get_url_html(albums_list_url_template % (albums_lists[albumlist_name][0], i))
-                p.feed(html)
-                print '.',
-                sys.stdout.flush()
-                if callback:
-                    callback(int(i / 10) + 1, (albums_lists[albumlist_name][1] / 10))
+#            for i in range(0, albums_lists[albumlist_name][1], 10):
+            i = (page - 1) * 10
+            html = self.get_url_html(albums_list_url_template % (listing_map_dict[albumlist_name], i))
+            p.feed(html)
+            print '.',
+            sys.stdout.flush()
+#            if callback:
+#                callback(int(i / 10) + 1, (albums_lists[albumlist_name][1] / 10))
             print 'done!'
             self.albumlist = p.albumlist
-            self.cached_list['aid_' + albumlist_name] = copy.copy(p.albumlist)
+            self.cached_list[cache_key] = copy.copy(p.albumlist)
+            return self.check_if_has_more(html)
         else:
             #TODO:raise Exception
             print u'未知专辑列表:"' + str(albumlist_name) + u'",仅支持以下列表: ' + u'、'.join(
             ['"%s"' % key for key in albums_lists])
+            return None
 
-    def get_albumlist(self, albumnum):
+    def get_albumlist(self, id):
         '''获取专辑的信息，包括专辑名、歌手名和歌曲列表'''
-        albumid = self.albumlist[albumnum]['id']
+        albumid = id
         self.downalbumnow = True
         if 'a_' + albumid in self.cached_list:
             self.songlist = copy.copy(self.cached_list['a_' + albumid][0])
@@ -314,47 +330,53 @@ class Gmbox:
         else:
             return None
         
-    def search(self, key):
+    def search(self, key, page=1):
         '''搜索关键字'''
         self.downalbumnow = False
-        if 's_' + key in self.cached_list:
-            self.songlist = copy.copy(self.cached_list['s_' + key])
+        cache_key = 's_' + key + str(page)
+        if cache_key in self.cached_list:
+            self.songlist = copy.copy(self.cached_list[cache_key])
             return
 
         key = re.sub((r'\ '), '+', key)
         p = ListParser()
         print u'正在获取"' + key + u'"的搜索结果列表...',
         sys.stdout.flush()
-        pnum = 0
-        while isinstance(pnum, int):
-            html = self.get_url_html( search_url_template % (key, pnum) )
-            p.feed(html)
-            pnum = self.__get_pnum_by_html(html)
-            print '.',
-            sys.stdout.flush()
+        pnum = (page - 1) * 20
+        html = self.get_url_html(search_url_template % (key, pnum))
+        p.feed(html)
+        sys.stdout.flush()
         print 'done!'
         self.songlist = p.songlist
-        self.cached_list['s_' + key] = copy.copy(p.songlist)
-    def searchalbum(self, key):
+        self.cached_list[cache_key] = copy.copy(p.songlist)
+        return self.check_if_has_more(html)
+    
+    def searchalbum(self, key, page=1):
         '''搜索关键字'''
-        if 'said_' + key in self.cached_list:
-            self.albumlist = copy.copy(self.cached_list['said_' + key])
+        cache_key = 'said_' + key + str(page)
+        if cache_key in self.cached_list:
+            self.albumlist = copy.copy(self.cached_list[cache_key])
             return
 
         key = re.sub((r'\ '), '+', key)
         p = AlbumListParser()
         print u'正在获取"' + key + u'"的专辑搜索结果列表...',
         sys.stdout.flush()
-        pnum = 0
-        while isinstance(pnum, int):
-            html = self.get_url_html( albums_search_url_template % (key, pnum) )
-            p.feed(html)
-            pnum = self.__get_pnum_by_html(html)
-            print '.',
-            sys.stdout.flush()
+        pnum = (page - 1) * 20
+        html = self.get_url_html(albums_search_url_template % (key, pnum))
+        p.feed(html)
+        sys.stdout.flush()
         print 'done!'
         self.albumlist = p.albumlist
-        self.cached_list['said_' + key] = copy.copy(p.albumlist)
+        self.cached_list[cache_key] = copy.copy(p.albumlist)
+        return self.check_if_has_more(html)
+        
+    def check_if_has_more(self, html):
+        '''相当与Gmbox的__get_pnum_by_html方法'''
+        if re.match(r'.*href="(.*?)" id="next_page"', html, re.S):
+            return True
+        else:
+            return False
         
 #全局实例化
 gmbox = Gmbox()
