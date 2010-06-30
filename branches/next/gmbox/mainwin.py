@@ -40,10 +40,12 @@ class GMBoxPanel():
                 setattr(self, name, widget)
 
         # setting dict
+        self.cfg = {"working": os.path.dirname(__file__) + "/gmbox.cfg",
+                          "home": os.path.expanduser("~/.gmbox.cfg")}
         self.settings = {"save_folder": os.path.expanduser("~/gmbox_download"),
-                        "player_path": "mplayer",
-                        "download_lyric": True,
-                        "download_conver": True}
+                                 "player_path": "mplayer",
+                                 "download_lyric": True,
+                                 "download_conver": True}
         self.result_pages = [{}, {}, {}, {}, {}]
      
         self.init_main_notebook()
@@ -68,19 +70,29 @@ class GMBoxPanel():
         self.download_vbox.add(self.download_page)
     
     def init_setting(self):
-        # check exist config
-        config_url = os.path.dirname(__file__) + "/gmbox.cfg"
-        if os.path.exists(config_url):
-            config_file = open(config_url)
-            config_text = config_file.read()
-            for line in config_text.split("\n"):
-                settting = line.split("=")
-                if len(settting) == 2:
-                    if settting[1] in ["True", "False"]:
-                        self.settings[settting[0]] = settting[1] == "True"
-                    else:
-                        self.settings[settting[0]] = settting[1]
         
+        def read_setting_from_file(settings, url):
+            try:
+                config_file = open(url)
+                config_text = config_file.read()
+                for line in config_text.split("\n"):
+                    settting = line.split("=")
+                    if len(settting) == 2:
+                        if settting[1] in ["True", "False"]:
+                            settings[settting[0]] = settting[1] == "True"
+                        else:
+                            settings[settting[0]] = settting[1]
+            except:
+                pass
+            return settings        
+
+        if os.path.exists(self.cfg["working"]):
+            self.settings = read_setting_from_file(self.settings,
+                                                   self.cfg["working"])
+        if os.path.exists(self.cfg["home"]):
+            self.settings = read_setting_from_file(self.settings,
+                                                   self.cfg["home"])
+
         self.save_folder_entry.set_text(self.settings["save_folder"])
         self.player_path_entry.set_text(self.settings["player_path"])
         self.download_lyric_checkbutton.set_active(self.settings["download_lyric"])
@@ -205,6 +217,14 @@ class GMBoxPanel():
         dialog.destroy()
         
     def on_save_settings_button_clicked(self, widget, data=None):
+        
+        def save_setting_to_file(settings, url):
+            config_file = open(url, "w")   
+            for key in self.settings.keys():            
+                config_file.write("%s=%s\n" % (key, self.settings[key]))
+                config_file.flush()
+                config_file.close
+        
         self.settings["save_folder"] = self.save_folder_entry.get_text()
         self.settings["download_lyric"] = self.download_lyric_checkbutton.get_active()
         self.settings["download_conver"] = self.download_cover_checkbutton.get_active()
@@ -212,19 +232,21 @@ class GMBoxPanel():
         if __name__ == "__main__":
             self.settings["player_path"] = self.player_path_entry.get_text()
          
-        config_url = os.path.dirname(__file__) + "/gmbox.cfg"
+        errors = []
         try:
-            config_file = open(config_url, "w")   
-            for key in self.settings.keys():            
-                config_file.write("%s=%s\n" % (key, self.settings[key]))
-            config_file.flush()
-            config_file.close
+            save_setting_to_file(self.settings, self.cfg["working"])
         except Exception, error:
-            dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
-                                       gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                                       "写入配置文件出错！\n%s" % error)
-            dialog.run()
-            dialog.destroy()
+            errors.append(str(error))
+            try:
+                save_setting_to_file(self.settings, self.cfg["home"])
+            except Exception, error:
+                errors.append(str(error))
+                errors_text = "\n".join(errors)
+                dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
+                                           gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                                           "写入配置文件出错！\n%s" % errors_text)
+                dialog.run()
+                dialog.destroy()
                     
     def on_main_window_destroy(self, widget, data=None):
         gtk.main_quit()
