@@ -24,6 +24,7 @@ from treestuff import *
 import gtk
 import gobject
 import os
+import sys
 import threading
 import urllib
 import subprocess
@@ -789,15 +790,27 @@ class Downloader(threading.Thread):
             if not os.path.exists(url):
                 return False
         return True
+    
+    def get_safe_path(self, url):
+        not_safe_chars = '''\/:*?<>|'"'''
+        if len(url) > 243:
+            url = url[:238]
+        for char in not_safe_chars:
+            url = url.replace(char, "")
+        return url        
         
     def download_cover(self):
         # create folder
         if self.track.from_album:
-            path = os.path.join(self.track.folder, self.track.album)
+            path = os.path.join(self.track.folder, self.get_safe_path(self.track.album))
         else:
             path = self.track.folder               
         if not os.path.exists(path):
-            os.makedirs(path)       
+            #TODO: it is not safe, other thread may have created
+            try:
+                os.makedirs(path)
+            except:
+                return              
         
         filename = "cover.jpg"
         local_url = os.path.join(path, filename)
@@ -811,6 +824,8 @@ class Downloader(threading.Thread):
                 try:                                                   
                     urllib.urlretrieve(url, unfinish_url)
                     if self.all_files_exists(local_url, unfinish_url):
+                        os.remove(unfinish_url)
+                    elif os.path.exists(unfinish_url):
                         os.rename(unfinish_url, local_url)
                 except:
                     traceback.print_exc()
@@ -818,13 +833,13 @@ class Downloader(threading.Thread):
     def download_lyric(self):
         # create folder
         if self.track.from_album:
-            path = os.path.join(self.track.folder, self.track.album)
+            path = os.path.join(self.track.folder, self.get_safe_path(self.track.album))
         else:
             path = self.track.folder               
         if not os.path.exists(path):
             os.makedirs(path)       
         
-        filename = self.track.filename + ".lrc"
+        filename = self.get_safe_path(self.track.filename) + ".lrc"
         local_url = os.path.join(path, filename)
         unfinish_url = local_url + ".part"            
         
@@ -838,6 +853,8 @@ class Downloader(threading.Thread):
                 try:                                                   
                     urllib.urlretrieve(url, unfinish_url)
                     if self.all_files_exists(local_url, unfinish_url):
+                        os.remove(unfinish_url)
+                    elif os.path.exists(unfinish_url):
                         os.rename(unfinish_url, local_url)
                 except:
                     traceback.print_exc()
@@ -845,13 +862,13 @@ class Downloader(threading.Thread):
     def download_mp3(self):
         # create folder
         if self.track.from_album:
-            path = os.path.join(self.track.folder, self.track.album)
+            path = os.path.join(self.track.folder, self.get_safe_path(self.track.album))
         else:
             path = self.track.folder               
         if not os.path.exists(path):
             os.makedirs(path)       
         
-        filename = self.track.filename + ".mp3"
+        filename = self.get_safe_path(self.track.filename) + ".mp3"
         local_url = os.path.join(path, filename)
         unfinish_url = local_url + ".part"            
         
@@ -870,6 +887,8 @@ class Downloader(threading.Thread):
                 try:                                                   
                     urllib.urlretrieve(url, unfinish_url, self.process)
                     if self.all_files_exists(local_url, unfinish_url):
+                        os.remove(unfinish_url)
+                    elif os.path.exists(unfinish_url):
                         os.rename(unfinish_url, local_url)
                         self.track.status = Track.STATUS_DOWNLOADED
                         self.track.url = local_url
@@ -900,13 +919,13 @@ class PlayerRunnerer(threading.Thread):
     
     def __init__(self, url, player):
         threading.Thread.__init__(self)
-        self.url = url
+        self.url = url.decode("utf-8").encode(sys.getfilesystemencoding())
         self.player = player
             
     def run(self):     
         cmd = [self.player, self.url]
         retcode = subprocess.call(cmd)
-        print "Player Stop"    
+        print "Player thread has stoped"    
 
 if __name__ == '__main__':
     gtk.gdk.threads_init()
