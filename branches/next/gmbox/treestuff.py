@@ -21,6 +21,7 @@ import lib.utils as utils
 import gtk
 import gobject
 import os
+import traceback
                
 def create_icon_dict():
         names = {"Track":"track.png",
@@ -179,8 +180,8 @@ class GmTreeview(gtk.TreeView):
             try:
                 track = model.get_value(iter, 0)
                 cell.set_property("pixbuf", getattr(track, data))
-            except Exception, error:
-                print error
+            except:
+                traceback.print_exc()
                 cell.set_property("pixbuf", icon_dict["Error"])
         else:
             cell.set_property("pixbuf", icon_dict["Error"])
@@ -190,8 +191,8 @@ class GmTreeview(gtk.TreeView):
             try:
                 track = model.get_value(iter, 0)
                 cell.set_property("text", getattr(track, data))
-            except Exception, error:
-                print error
+            except:
+                traceback.print_exc()
                 cell.set_property("text", "出现未知错误")
         else:
             cell.set_property("text", "出现未知错误")

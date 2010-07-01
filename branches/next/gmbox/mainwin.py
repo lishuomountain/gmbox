@@ -27,6 +27,7 @@ import os
 import threading
 import urllib
 import subprocess
+import traceback
 
 class GMBoxPanel():
        
@@ -43,7 +44,8 @@ class GMBoxPanel():
         # setting dict
         self.cfg = {"working": os.path.dirname(utils.module_path()) + "/gmbox.cfg",
                           "home": os.path.expanduser("~/.gmbox.cfg")}
-        self.settings = {"save_folder": os.path.expanduser("~/gmbox_download"),
+        save_folder = os.path.join(os.path.expanduser("~"), "gmbox_download")
+        self.settings = {"save_folder": save_folder,
                                  "player_path": "vlc",
                                  "download_lyric": True,
                                  "download_conver": True}
@@ -782,6 +784,12 @@ class Downloader(threading.Thread):
         self.running.clear()
         self.parent.downloader_notify()
         
+    def all_files_exists(self, *urls):
+        for url in urls:
+            if not os.path.exists(url):
+                return False
+        return True
+        
     def download_cover(self):
         # create folder
         if self.track.from_album:
@@ -796,20 +804,16 @@ class Downloader(threading.Thread):
         unfinish_url = local_url + ".part"            
         
         # check download
-        if not os.path.exists(local_url):        
+        if not self.all_files_exists(local_url, unfinish_url):        
             # get url
             url = self.track.cover
             if url != "":
                 try:                                                   
                     urllib.urlretrieve(url, unfinish_url)
-                    os.rename(unfinish_url, local_url)
-                    self.track.url = local_url
-                except Exception, error:
-                    print error
-                    try:
-                        os.remove(unfinish_url)
-                    except Exception, error:
-                        print error    
+                    if self.all_files_exists(local_url, unfinish_url):
+                        os.rename(unfinish_url, local_url)
+                except:
+                    traceback.print_exc()
         
     def download_lyric(self):
         # create folder
@@ -825,7 +829,7 @@ class Downloader(threading.Thread):
         unfinish_url = local_url + ".part"            
         
         # check download
-        if not os.path.exists(local_url):            
+        if not self.all_files_exists(local_url, unfinish_url):           
             # get url
             url = gmbox.get_lyric_url(self.track.id)
             if url is None:
@@ -833,14 +837,10 @@ class Downloader(threading.Thread):
             else:
                 try:                                                   
                     urllib.urlretrieve(url, unfinish_url)
-                    os.rename(unfinish_url, local_url)
-                    self.track.url = local_url
-                except Exception, error:
-                    print error
-                    try:
-                        os.remove(unfinish_url)
-                    except Exception, error:
-                        print error    
+                    if self.all_files_exists(local_url, unfinish_url):
+                        os.rename(unfinish_url, local_url)
+                except:
+                    traceback.print_exc()
         
     def download_mp3(self):
         # create folder
@@ -856,7 +856,7 @@ class Downloader(threading.Thread):
         unfinish_url = local_url + ".part"            
         
         # check download
-        if os.path.exists(local_url):    
+        if self.all_files_exists(local_url, unfinish_url):    
             self.track.status = Track.STATUS_EXIST
             self.track.url = local_url
             self.track.process = "100%"
@@ -869,17 +869,15 @@ class Downloader(threading.Thread):
                 self.track.status = Track.STATUS_DOWNLOADING
                 try:                                                   
                     urllib.urlretrieve(url, unfinish_url, self.process)
-                    os.rename(unfinish_url, local_url)
-                    self.track.status = Track.STATUS_DOWNLOADED
-                    self.track.url = local_url
-                    self.track.process = "100%"
-                except Exception, error:
-                    print error
+                    if self.all_files_exists(local_url, unfinish_url):
+                        os.rename(unfinish_url, local_url)
+                        self.track.status = Track.STATUS_DOWNLOADED
+                        self.track.url = local_url
+                        self.track.process = "100%"
+                except:
+                    traceback.print_exc()
                     self.track.status = Track.STATUS_DOWNLOAD_FAIL
-                    try:
-                        os.remove(unfinish_url)
-                    except Exception, error:
-                        print error
+                    self.track.process = "0%"
                
     def process(self, block, block_size, total_size):
         if total_size < 0.5 * 1024 * 1024:
