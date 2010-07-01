@@ -19,7 +19,6 @@
 
 from lib.core import gmbox
 from lib.const import listing_map
-import lib.utils as utils
 from treestuff import *
 import gtk
 import gobject
@@ -34,8 +33,13 @@ class GMBoxPanel():
        
     def __init__(self):
         
+        if hasattr(sys, "frozen"):
+            self.module_path = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
+        else:
+            self.module_path = os.path.dirname(unicode(__file__, sys.getfilesystemencoding()))
+        
         builder = gtk.Builder()
-        builder.add_from_file(os.path.dirname(utils.module_path()) + "/gmbox.glade")
+        builder.add_from_file(self.module_path + "/gmbox.glade")
         builder.connect_signals(self)
         for widget in builder.get_objects():
             if issubclass(type(widget), gtk.Buildable):
@@ -43,7 +47,7 @@ class GMBoxPanel():
                 setattr(self, name, widget)
 
         # setting dict
-        self.cfg = {"working": os.path.dirname(utils.module_path()) + "/gmbox.cfg",
+        self.cfg = {"working": self.module_path + "/gmbox.cfg",
                           "home": os.path.expanduser("~/.gmbox.cfg")}
         save_folder = os.path.join(os.path.expanduser("~"), "gmbox_download")
         self.settings = {"save_folder": save_folder,
@@ -60,7 +64,7 @@ class GMBoxPanel():
         
         # window logo
         if __name__ == "__main__":
-            icon_path = os.path.dirname(utils.module_path()) + "/pixbufs/gmbox.png"
+            icon_path = self.module_path + "/pixbufs/gmbox.png"
             logo_icon = gtk.gdk.pixbuf_new_from_file(icon_path)
             self.main_window.set_icon(logo_icon)
         

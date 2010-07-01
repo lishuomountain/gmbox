@@ -17,13 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import lib.utils as utils
 import gtk
 import gobject
 import os
+import sys
 import traceback
                
 def create_icon_dict():
+    
+        if hasattr(sys, "frozen"):
+            module_path = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
+        else:
+            module_path = os.path.dirname(unicode(__file__, sys.getfilesystemencoding()))
+        
         names = {"Track":"track.png",
                  "Album":"album.png",
                  "Holder":"refresh.png",
@@ -34,7 +40,7 @@ def create_icon_dict():
         iconTheme = gtk.icon_theme_get_default()
         for key in names.keys():
             try:
-                inon_path = os.path.dirname(utils.module_path()) + "/pixbufs/" + names[key]
+                inon_path = module_path + "/pixbufs/" + names[key]
                 icon_dict[key] = gtk.gdk.pixbuf_new_from_file(inon_path)
             except:
                 icon_dict[key] = None
