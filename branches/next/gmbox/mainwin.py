@@ -54,6 +54,12 @@ class GMBoxPanel():
 
     def init_main_notebook(self):
         
+        # window logo
+        if __name__ == "__main__":
+            icon_path = os.path.dirname(__file__) + "/pixbufs/gmbox.png"
+            logo_icon = gtk.gdk.pixbuf_new_from_file(icon_path)
+            self.main_window.set_icon(logo_icon)
+        
         # playlist page, remove in exaile plugin mode
         if __name__ != "__main__":
             self.main_notebook.remove_page(1)

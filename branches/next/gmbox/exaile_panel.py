@@ -24,7 +24,7 @@ class ExailePanel(GMBoxPanel):
        
     def __init__(self, exaile):
         GMBoxPanel.__init__(self)
-        self.name = "Gmbox"
+        self.name = "GMBox"
         self.exaile = exaile
         self.parent = exaile.gui.main.window
         self._child = None
