@@ -36,7 +36,7 @@ class GMBoxPanel():
         if hasattr(sys, "frozen"):
             self.module_path = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
         else:
-            self.module_path = os.path.dirname(unicode(__file__, sys.getfilesystemencoding()))
+            self.module_path = os.path.dirname(unicode(os.path.abspath(__file__), sys.getfilesystemencoding()))
         
         builder = gtk.Builder()
         builder.add_from_file(self.module_path + "/gmbox.glade")

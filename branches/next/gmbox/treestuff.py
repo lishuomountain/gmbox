@@ -28,7 +28,7 @@ def create_icon_dict():
         if hasattr(sys, "frozen"):
             module_path = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
         else:
-            module_path = os.path.dirname(unicode(__file__, sys.getfilesystemencoding()))
+            module_path = os.path.dirname(unicode(os.path.abspath(__file__), sys.getfilesystemencoding()))
         
         names = {"Track":"track.png",
                  "Album":"album.png",
