@@ -82,6 +82,7 @@ class PlayList(gtk.TreeView):
         self._model.set(oiter, COL_STATUS, fixed)
     
     def insert(self, arg, dirname, names):
+        names.sort()
         for name in names:
             fname = os.path.join(dirname, name)
             if os.path.isfile(fname) and fname.lower().endswith('.mp3'):

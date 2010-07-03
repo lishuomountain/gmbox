@@ -82,11 +82,11 @@ class Abs_View(gtk.TreeView):
         elif blocks == -2:
             statusbar.push(0, u'已完成.')
         elif blocks == -99:
-            print 111
-            dialog = InfoDialog(u'杯具啊', u'由于你短时间下载太多，Google让你输入验证码了。换个IP或者等24小时再试吧。')
-            dialog.run()
-            dialog.destroy()
-            print 222
+            #TODO: 这个dialog框显示异常，会导致段错误挂掉，原因未知
+            #dialog = InfoDialog(u'杯具啊', u'由于你短时间下载太多，Google让你输入验证码了。换个IP或者等24小时再试吧。')
+            #dialog.run()
+            #dialog.destroy()
+            statusbar.push(0, u'杯具，你下载得太快了，让你输入验证码了。换个IP或者等4小时再试吧。')
         else:
             percentage = float(blocks) / (total_size / block_size + 1)
             statusbar.progress.set_fraction(percentage)

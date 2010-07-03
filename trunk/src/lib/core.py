@@ -140,7 +140,6 @@ class Gmbox:
     
     def downone(self, i=0, callback=None):
         '''下载当前列表中的一首歌曲 '''
-        callback(-99, '', '')
         nameinfo = self.createdir_getfilename(i)
         lyric_filename = os.path.splitext(nameinfo[0])[0] + ".lrc"
         if config.item['lyric']:
