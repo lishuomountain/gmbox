@@ -4,6 +4,8 @@
 import sys
 import os
 import gtk
+import platform
+import glib
 
 def get_module_path():
     if hasattr(sys, "frozen"):
@@ -15,7 +17,7 @@ def get_module_path():
 MODULE_PATH = get_module_path()
 
 def create_icon_dict():
-    icon_names = ["song", "songlist", "directory", "refresh"]
+    icon_names = ["song", "songlist", "directory", "refresh", "info"]
     icon_dict = {}
     for name in icon_names:
         icon_path = "%s/pixbufs/%s.png" % (MODULE_PATH, name)
@@ -25,17 +27,17 @@ def create_icon_dict():
 
 ICON_DICT = create_icon_dict()
 
-def get_download_foler():
-    # check program folder writable, otherwise use home foler
-    if os.access(MODULE_PATH, os.W_OK):
-        return "%s/download" % MODULE_PATH
-    else:
-        return os.path.expanduser("~/music")
+def get_download_folder():
+    download_folder = glib.get_user_special_dir(glib.USER_DIRECTORY_MUSIC)    
+    # above statement need to test whether work on window
+#    if platform.system() == "Windows":
+#        download_folder = os.path.expanduser("~/My Documents/My Music")
+    return download_folder
 
 # default config
 CONFIG = {
     # regular
-    "download_folder": get_download_foler(),
+    "download_folder": get_download_folder(),
     "filename_template" : "${ALBUM}/${ARTIST} - ${TITLE}",
     "use_internal_player" : False,
     "use_internal_downloader" : True,
@@ -57,34 +59,42 @@ CONFIG = {
     "downloader_tempfile" : "${FILEPATH}",
 }
 
-CONFIG_PATHS = [
-    "%s/gmbox.cfg" % MODULE_PATH,
-    os.path.expanduser("~/.gmbox.cfg")
-]
+def get_config_folder():
+    config_folder = "%s/gmbox" % glib.get_user_config_dir()
+    # also need to test whether work on window
+#    if platform.system() == "Windows":
+#        config_folder = "%/config/" % MODULE_PATH
+    return config_folder
 
-def load_config_file():
-    for path in CONFIG_PATHS:        
-        if os.path.exists(path):        
-            config_file = open(path)
-            text = config_file.read()
-            lines = text.split("\n")
-            for line in lines:
-                line = line.strip()
-                if line == "":
-                    continue                
-                key, value = line.split("=", 1)
-                if value in ["True", "true", "yes", "1"]:
-                    value = True
-                if value in ["False", "false", "no", "0"]:
-                    value = False
-                CONFIG[key] = value   
+CONFIG_FOLDER = get_config_folder()
+
+def load_config_file(): 
+    config_file_path = "%s/gmbox.conf" % CONFIG_FOLDER
+
+    if not os.path.exists(config_file_path):
+        return
+    
+    config_file = open(config_file_path) 
+    text = config_file.read()
+    lines = text.split("\n")
+    for line in lines:
+        line = line.strip()
+        if line == "":
+            continue                
+        key, value = line.split("=", 1)
+        if value in ["True", "true", "yes", "1"]:
+            value = True
+        if value in ["False", "false", "no", "0"]:
+            value = False
+        CONFIG[key] = value   
 
 def save_config_file():
-    for path in CONFIG_PATHS:
-        if os.access(os.path.dirname(path), os.W_OK):
-            config_file = open(path, "w")
-            for key, value in CONFIG.items():
-                config_file.write("%s=%s\n" % (key, value))
-            config_file.flush()
-            config_file.close()
-            break
+    if not os.path.exists(CONFIG_FOLDER):
+        os.mkdir(CONFIG_FOLDER)
+        
+    config_file_path = "%s/gmbox.conf" % CONFIG_FOLDER
+    config_file = open(config_file_path, "w")
+    for key, value in CONFIG.items():
+        config_file.write("%s=%s\n" % (key, value))
+    config_file.flush()
+    config_file.close()
