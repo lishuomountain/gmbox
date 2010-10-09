@@ -3,6 +3,7 @@
 
 from core import *
 from const import *
+from player import *
 from downloader import *
 import gtk
 import gobject
@@ -212,6 +213,53 @@ class PlaylistTreeview(gtk.TreeView):
             self.gmbox.popup_content_menu(songs, event, self)
             return True
         
+    def get_next_song(self, song=None):
+        if song is None:
+            # return the first one
+            self.liststore[0][0]
+        else:
+            length = len(self.liststore)
+            for i in range(length):
+                if song == self.liststore[i][0]:                    
+                    if i == length:
+                        # already the last one, come back to begin
+                        return self.liststore[0][0]
+                    else:
+                        # return next one
+                        self.liststore[i + 1][0]
+            # just retur the first one
+            return self.liststore[0][0]
+
+    def get_last_song(self, song=None):
+        if song is None:
+            # return the first one
+            self.liststore[0][0]
+        else:
+            length = len(self.liststore)
+            for i in range(length):
+                if song == self.liststore[i][0]:                    
+                    if i == 0:
+                        # already the first one, come back to end
+                        return self.liststore[length][0]
+                    else:
+                        # return last one
+                        self.liststore[i - 1][0]
+            # just retur the first one
+            return self.liststore[0][0]
+
+        
+    def remove_songs(self, songs):
+        for row in self.liststore:
+            song = row[0]
+            if song in songs:
+                iter = self.liststore.get_iter(row.path)
+                self.liststore.remove(iter)
+                self.ids.remove(song.id)
+        
+    def clear_songs(self):
+        self.liststore.clear()
+        self.ids = []
+        
 class DownlistTreeview(gtk.TreeView): 
     
     def __init__(self, gmbox):
@@ -259,6 +307,7 @@ class DownlistTreeview(gtk.TreeView):
     def append_songs(self, songs):
         for song in songs:
             if song.id not in self.ids:
+                song.remove_lock = False
                 self.ids.append(song.id)
                 self.liststore.append((song,))
             
@@ -317,3 +366,22 @@ class DownlistTreeview(gtk.TreeView):
             return False
         else:
             return True
+        
+    def remove_songs(self, songs):
+        for row in self.liststore:
+            song = row[0]
+            if song.remove_lock:
+                continue
+            if song in songs:
+                iter = self.liststore.get_iter(row.path)
+                self.liststore.remove(iter)
+                self.ids.remove(song.id)
+        
+    def clear_songs(self):
+        for row in self.liststore:
+            song = row[0]
+            if song.remove_lock:
+                continue            
+            iter = self.liststore.get_iter(row.path)
+            self.liststore.remove(iter)
+            self.ids.remove(song.id)

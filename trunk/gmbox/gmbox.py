@@ -35,7 +35,9 @@ class GmBox():
         self.init_result_notebook()
         self.init_playlist_treeview()
         self.init_downlist_treeview()
-        self.init_preferences_dialog()
+        self.init_preferences_widgets()
+        self.init_player_widgets()
+        self.init_player_variables()
 
     # gui setup functions         
     def init_mainwin(self):
@@ -111,7 +113,7 @@ class GmBox():
         self.downlist_scrolledwindow.add(self.downlist_treeview)
         self.downlist_scrolledwindow.show_all()
         
-    def init_preferences_dialog(self):
+    def init_preferences_widgets(self):
         self.file_chooser_dialog = gtk.FileChooserDialog("选择一个文件", None,
                                    gtk.FILE_CHOOSER_ACTION_OPEN,
                                    (gtk.STOCK_OPEN, gtk.RESPONSE_OK,
@@ -124,9 +126,17 @@ class GmBox():
         
         # regular
         self.download_folder_entry.set_text(CONFIG["download_folder"])
-        self.filename_template_entry.set_text(CONFIG["filename_template"])
-        self.player_internal_radiobutton.set_active(CONFIG["use_internal_player"])
-        self.player_external_radiobutton.set_active(not CONFIG["use_internal_player"])
+        self.filename_template_entry.set_text(CONFIG["filename_template"])        
+        if CONFIG["use_internal_player"]:
+            self.player_internal_radiobutton.set_active(True)
+            self.player_external_radiobutton.set_active(False)
+            self.player_vseparator.show()
+            self.player_hbox.show()
+        else:
+            self.player_internal_radiobutton.set_active(False)
+            self.player_external_radiobutton.set_active(True)
+            self.player_vseparator.hide()
+            self.player_hbox.hide()
         self.downloader_internal_radiobutton.set_active(CONFIG["use_internal_downloader"])
         self.downloader_external_radiobutton.set_active(not CONFIG["use_internal_downloader"])
         self.download_cover_checkbutton.set_active(CONFIG["download_cover"])
@@ -159,7 +169,6 @@ class GmBox():
         self.downloader_tempfile_entry.set_text(CONFIG["downloader_tempfile"])
         
         # none done yet
-        self.player_internal_radiobutton.set_sensitive(False)
         self.player_poll_radiobutton.set_sensitive(False)
         self.player_poll_entry.set_sensitive(False)
         self.player_tempfile_radiobutton.set_sensitive(False)
@@ -167,7 +176,17 @@ class GmBox():
         self.downloader_poll_radiobutton.set_sensitive(False)
         self.downloader_poll_entry.set_sensitive(False)
         self.downloader_tempfile_radiobutton.set_sensitive(False)
-        self.downloader_tempfile_entry.set_sensitive(False)        
+        self.downloader_tempfile_entry.set_sensitive(False)       
+    
+    def init_player_widgets(self):
+        play_process_adjustment = gtk.Adjustment(value=0, upper=100)
+        self.play_process_hscale.set_adjustment(play_process_adjustment) 
+        
+    def init_player_variables(self):
+        self.player = None
+        self.player_running = None
+        self.player_song = None
+        self.player_pausing = False
 
     def print_message(self, text):
         context_id = self.statusbar.get_context_id("context_id")
@@ -192,12 +211,26 @@ class GmBox():
         self.result_notebook.set_current_page(index)
         
         # then call core to get result
-        if arg is None:
-            result = target()
+        try:
+            if arg is None:
+                result = target()
+            else:
+                result = target(arg)   
+        except Exception, error:
+            result_page.load_message("遇到错误：%s" % str(error))
+            # remove from result dict for retry
+            self.result_pages.pop(page_key)
         else:
-            result = target(arg)         
-        result_page.load_result(result)
-    
+            if isinstance(result, Songlist):
+                length = len(result.songs)
+            else:
+                length = len(result.songlists)
+            
+            if length == 0:
+                result_page.load_message("找不到和查询条件相符的音乐")
+            else:
+                result_page.load_result(result)
+
     def find_result_page(self, page_key):
         # switch to reslut page
         self.main_notebook.set_current_page(0)
@@ -333,14 +366,22 @@ class GmBox():
         # show last time hided widget
         self.down_menuitem.show()
         self.playlist_menuitem.show()
+        self.playlist_remove_menuitem.hide()
+        self.playlist_clear_menuitem.hide()
         self.downlist_menuitem.show()
-        
+        self.downlist_remove_menuitem.hide()
+        self.downlist_clear_menuitem.hide()
+
         # hide menuitem in difference treeview
         if isinstance(caller, PlaylistTreeview):
             self.playlist_menuitem.hide()
+            self.playlist_remove_menuitem.show()
+            self.playlist_clear_menuitem.show()
 
         if isinstance(caller, DownlistTreeview):
             self.downlist_menuitem.hide()
+            self.downlist_remove_menuitem.show()
+            self.downlist_clear_menuitem.show()
             
         if CONFIG["use_internal_downloader"]:
             self.downlist_menuitem.hide()
@@ -348,13 +389,34 @@ class GmBox():
         if isinstance(caller, DownlistTreeview) and CONFIG["use_internal_downloader"]:
             self.down_menuitem.hide()
 
-        self.content_menu.popup(None, None, None, event.button, event.time)   
+        self.content_menu.popup(None, None, None, event.button, event.time) 
+    
+    def update_play_process_hscale(self):
+        self.play_process_hscale.set_value(self.player.get_current_song().play_process)
+        return self.player_running.isSet()
+
+    def start_player(self):
+        self.player_running = threading.Event()
+        self.player_running.set()
+        self.player = Player(self.player_running, self.player_callback)
+        self.player.start()
+
+        # add update time inforamtion function
+        gobject.timeout_add(1000, self.update_play_process_hscale)
+                    
+    def player_callback(self):
+        song = self.playlist_treeview.get_next_song()
+        print song.name
+        if song is not None:
+            self.start_player(song)
 
     def play_songs(self, songs):
 
         self.add_to_playlist(songs, False)
-        if CONFIG["use_internal_player"]:            
-            pass
+        if CONFIG["use_internal_player"]:
+            if self.player is None: 
+                self.start_player()
+            self.player.open(songs[0])
         else: # user external player
             player = CONFIG["player_path"]
             if player == "":
@@ -450,6 +512,7 @@ class GmBox():
                 self.get_song_urls(songs, "stream")
         if CONFIG["use_internal_player"]:
             for song in songs:
+                song.play_process = 0
                 song.play_status = ""
         else:
             for song in songs:
@@ -620,6 +683,16 @@ class GmBox():
             CONFIG["downloader_path"] = self.downloader_path_entry.get_text() 
             CONFIG["downloader_single"] = self.downloader_single_entry.get_text()
             CONFIG["downloader_septate"] = self.downloader_septate_entry.get_text()
+            
+            # hide or display player control
+            if CONFIG["use_internal_player"]:
+                self.player_vseparator.show()
+                self.player_hbox.show()
+            else:
+                self.player_vseparator.hide()
+                self.player_hbox.hide()    
+            
+            # save to file
             save_config_file()
         self.preferences_dialog.hide()
       
@@ -813,7 +886,19 @@ class GmBox():
         thread.start_new_thread(self.play_songs, (self.selected_songs,))
         
     def on_down_menuitem_activate(self, widget, data=None):
-        thread.start_new_thread(self.down_songs, (self.selected_songs,))        
+        thread.start_new_thread(self.down_songs, (self.selected_songs,)) 
+        
+    def on_playlist_clear_menuitem_activate(self, widget, data=None):
+        self.playlist_treeview.clear_songs()
+        
+    def on_playlist_remove_menuitem_activate(self, widget, data=None):
+        self.playlist_treeview.remove_songs(self.selected_songs)
+        
+    def on_downlist_remove_menuitem_activate(self, widget, data=None):
+        self.downlist_treeview.remove_songs(self.selected_songs)
+        
+    def on_downlist_clear_menuitem_activate(self, widget, data=None):
+        self.downlist_treeview.clear_songs()
              
     def on_playlist_menuitem_activate(self, widget, data=None):
         self.add_to_playlist(self.selected_songs)
@@ -892,6 +977,23 @@ class GmBox():
     def on_downlist_page_button_clicked(self, widget, data=None):
         self.main_notebook.set_current_page(2)
         
+    def on_play_button_clicked(self, widget, data=None):
+        if not self.player_running.isSet:
+            self.open(self.player_song)
+        else:
+            self.player.pause()
+        
+    def on_stop_button_clicked(self, widget, data=None):
+        self.player.stop()
+        
+    def on_last_song_button_clicked(self, widget, data=None):
+        song = self.playlist_treeview.get_last_song(self.player_song)
+        self.play_songs([song])
+        
+    def on_next_song_button_clicked(self, widget, data=None):
+        song = self.playlist_treeview.get_next_song(self.player_song)
+        self.play_songs([song])
+        
     def on_download_folder_button_clicked(self, widget, data=None):
         response = self.folder_chooser_dialog.run()
         if response == gtk.RESPONSE_OK:
@@ -912,8 +1014,10 @@ class GmBox():
             text = self.file_chooser_dialog.get_filename()
             self.downloader_path_entry.set_text(text)
         self.file_chooser_dialog.hide()
-          
+                  
     def on_mainwin_destroy(self, widget, data=None):
+        if self.player_running:
+            self.player.quit()
         gtk.main_quit()
 
 if __name__ == '__main__':

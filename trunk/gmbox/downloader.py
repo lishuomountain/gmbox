@@ -15,11 +15,13 @@ class Downloader(threading.Thread):
         self.callback = callback
         
     def run(self):
+        self.song.remove_lock = True
         if CONFIG["download_cover"]:
             self.download_cover()
         if CONFIG["download_lyric"]:
             self.download_lyric()
         self.download_mp3()
+        self.song.remove_lock = False
         self.callback()
         
     def get_safe_path(self, url):
@@ -30,7 +32,7 @@ class Downloader(threading.Thread):
             url = url.replace(char, "")
         return url
     
-    def get_filenpath(self):
+    def get_filepath(self):
         download_folder = CONFIG["download_folder"]
         if download_folder.endswith("/"):
             download_folder = download_folder[:-1]
@@ -47,7 +49,7 @@ class Downloader(threading.Thread):
             self.song.albumThumbnailLink = "获取封面地址失败"
             return
 
-        filepath = "%s/cover.jpg" % os.path.dirname(self.get_filenpath())
+        filepath = "%s/cover.jpg" % os.path.dirname(self.get_filepath())
         
         if os.path.exists(filepath):
             self.song.down_status = "封面已存在"
@@ -56,12 +58,9 @@ class Downloader(threading.Thread):
         if not os.path.exists(os.path.dirname(filepath)):
             os.makedirs(os.path.dirname(filepath))    
         
-        print "Downloading %s" % self.song.name
-        print self.song.albumThumbnailLink
-        print filepath
         try:
             self.song.down_status = "下载封面中"
-            urllib.urlretrieve(self.song.albumThumbnailLink, filepath, self.process)
+            urllib.urlretrieve(self.song.albumThumbnailLink, filepath)
             self.song.down_status = "下载封面完成"
         except:
             traceback.print_exc()
@@ -74,7 +73,7 @@ class Downloader(threading.Thread):
             return
 
         # remove ".mp3" extension
-        filepath = "%s.lrc" % self.get_filenpath()[:-4]
+        filepath = "%s.lrc" % self.get_filepath()[:-4]
         
         if os.path.exists(filepath):
             self.song.down_status = "歌词文件已存在"
@@ -83,12 +82,9 @@ class Downloader(threading.Thread):
         if not os.path.exists(os.path.dirname(filepath)):
             os.makedirs(os.path.dirname(filepath))    
         
-        print "Downloading %s" % self.song.name
-        print self.song.lyricsUrl
-        print filepath
         try:
             self.song.down_status = "下载歌词中"
-            urllib.urlretrieve(self.song.lyricsUrl, filepath, self.process)
+            urllib.urlretrieve(self.song.lyricsUrl, filepath)
             self.song.down_status = "下载歌词完成"
         except:
             traceback.print_exc()
@@ -100,10 +96,11 @@ class Downloader(threading.Thread):
             self.song.down_status = "获取地址失败"
             return
 
-        filepath = self.get_filenpath()
+        filepath = self.get_filepath()
         
         if os.path.exists(filepath):
             self.song.down_status = "文件已存在"
+            self.song.down_process = "100%"
             return 
         
         if not os.path.exists(os.path.dirname(filepath)):

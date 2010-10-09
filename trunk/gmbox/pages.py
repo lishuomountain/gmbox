@@ -22,13 +22,22 @@ class ResultPageLabel(gtk.EventBox):
         
 class ResultPage(gtk.ScrolledWindow):
     
-    class HolderTreeviewNode():
+    class RefreshNode():
         
         def __init__(self, name):
             self.name = name
             self.artist = ""
             self.album = ""
             self.icon = ICON_DICT["refresh"]
+            self.loaded = False
+    
+    class InfoNode():
+        
+        def __init__(self, name):
+            self.name = name
+            self.artist = ""
+            self.album = ""
+            self.icon = ICON_DICT["info"]
             self.loaded = False
     
     class LoadSongsThread(threading.Thread):
@@ -78,6 +87,13 @@ class ResultPage(gtk.ScrolledWindow):
             self.directory = result
             self.init_treestore()
             self.treeview.set_model(self.treestore)
+            
+    # if something wrong, e.g  no result or network problem
+    def load_message(self, text):
+        self.liststore = gtk.ListStore(gobject.TYPE_PYOBJECT)
+        info_node = ResultPage.InfoNode(text)
+        self.liststore.append((info_node,))
+        self.treeview.set_model(self.liststore)
         
     def init_treeview(self):
         
@@ -120,13 +136,12 @@ class ResultPage(gtk.ScrolledWindow):
         self.liststore = gtk.ListStore(gobject.TYPE_PYOBJECT)
         self.page_num = 1
         songs = self.songlist.songs
-        if len(songs) > 0:
-            self.append_songs_to_liststore(songs)
+        self.append_songs_to_liststore(songs)
         
     def init_treestore(self):        
         self.treestore = gtk.TreeStore(gobject.TYPE_PYOBJECT)
         self.page_num = 1  
-        songlists = self.directory.songlists 
+        songlists = self.directory.songlists
         self.append_songlists_to_treestore(songlists)
 
     def append_songs_to_liststore(self, songs):
@@ -138,11 +153,11 @@ class ResultPage(gtk.ScrolledWindow):
             song.icon = ICON_DICT["song"]
             self.liststore.append((song,))
         if self.result.has_more:
-            refresh_holder = ResultPage.HolderTreeviewNode("载入第 %d 页" % (self.page_num + 1))
-            self.liststore.append((refresh_holder,))
+            refresh_node = ResultPage.RefreshNode("载入第 %d 页" % (self.page_num + 1))
+            self.liststore.append((refresh_node,))
            
     def append_songlists_to_treestore(self, songlists):
-        refresh_holder = ResultPage.HolderTreeviewNode("正在读取")        
+        refresh_node = ResultPage.RefreshNode("正在读取")        
         for songlist in songlists:
             songlist.appended = False
             if not hasattr(songlist, "artist"):
@@ -151,10 +166,10 @@ class ResultPage(gtk.ScrolledWindow):
                 songlist.album = ""  
             songlist.icon = ICON_DICT["songlist"]
             parent_index = self.treestore.append(None, (songlist,))
-            self.treestore.append(parent_index, (refresh_holder,))
+            self.treestore.append(parent_index, (refresh_node,))
         if self.result.has_more:
-            refresh_holder = ResultPage.HolderTreeviewNode("载入第 %d 页" % (self.page_num + 1))
-            self.treestore.append(None, (refresh_holder,))
+            refresh_node = ResultPage.RefreshNode("载入第 %d 页" % (self.page_num + 1))
+            self.treestore.append(None, (refresh_node,))
  
     def on_treeview_row_expanded(self, widget, iter, path, data=None):
         model = self.treeview.get_model()
@@ -190,7 +205,7 @@ class ResultPage(gtk.ScrolledWindow):
                 value = model.get_value(iter, 0)
                 if isinstance(value, Song):
                     self.gmbox.play_songs([value])
-                elif isinstance(value, ResultPage.HolderTreeviewNode):
+                elif isinstance(value, ResultPage.RefreshNode):
                     if not value.loaded:
                         self.load_more_result()
                         value.loaded = True
