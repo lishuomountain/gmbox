@@ -460,9 +460,9 @@ class GmBox():
                 self.print_message("未设置下载程序。")
                 return
             
-            self.get_song_urls(songs, "download")
+            self.get_songs_urls(songs, "download")
             if CONFIG["download_lyric"] or CONFIG["download_cover"]:
-                self.get_song_urls(songs, "stream")
+                self.get_songs_urls(songs, "stream")
             
             download_folder = CONFIG["download_folder"]
             if download_folder.endswith("/"):
@@ -480,6 +480,10 @@ class GmBox():
                 filename = CONFIG["filename_template"].replace("${ALBUM}", song.album)
                 filename = filename.replace("${ARTIST}", song.artist)
                 filename = filename.replace("${TITLE}", song.name)
+                if "${TRACK}" in filename:
+                    # need to load stearm info
+                    self.get_songs_urls([song], "stream")
+                    filename = filename.replace("${TRACK}", song.providerId[-2:])
                 filepath = "%s/%s.mp3" % (download_folder, filename) 
                                
                 if "${FILEPATH}" in cmd:
@@ -507,9 +511,9 @@ class GmBox():
     def add_to_playlist(self, songs, thread_stream=True):        
         if len(songs) > 0:
             if thread_stream:
-                thread.start_new_thread(self.get_song_urls, (songs, "stream"))
+                thread.start_new_thread(self.get_songs_urls, (songs, "stream"))
             else:
-                self.get_song_urls(songs, "stream")
+                self.get_songs_urls(songs, "stream")
         if CONFIG["use_internal_player"]:
             for song in songs:
                 song.play_process = 0
@@ -532,7 +536,7 @@ class GmBox():
         self.downlist_treeview.append_songs(songs)                
         self.print_message("已添加%d首歌曲到下载列表。" % len(songs))
                 
-    def get_song_urls(self, songs, url_type):
+    def get_songs_urls(self, songs, url_type):
         urls = []
         if url_type == "stream":
             for song in songs:
@@ -567,7 +571,7 @@ class GmBox():
         
         self.copy_menuitem.set_sensitive(False)
         self.print_message("正在获取%d首歌曲的%s地址。" % (len(songs), url_type_name))
-        urls = self.get_song_urls(songs, url_type)
+        urls = self.get_songs_urls(songs, url_type)
         text = "\n".join(urls)
         
         # paste to clipboard
@@ -601,7 +605,7 @@ class GmBox():
 
         self.export_menuitem.set_sensitive(False)
         self.print_message("正在获取%d首歌曲的%s地址。" % (len(songs), url_type_name))
-        urls = self.get_song_urls(songs, url_type)
+        urls = self.get_songs_urls(songs, url_type)
         text = "\n".join(urls)
         
         # export to file

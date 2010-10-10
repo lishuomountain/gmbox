@@ -39,6 +39,10 @@ class Downloader(threading.Thread):
         filename = CONFIG["filename_template"].replace("${ALBUM}", self.song.album)
         filename = filename.replace("${ARTIST}", self.song.artist)
         filename = filename.replace("${TITLE}", self.get_safe_path(self.song.name))
+        if "${TRACK}" in filename:
+            # need to load stearm info
+            self.song.load_streaming()
+            filename = filename.replace("${TRACK}", self.song.providerId[-2:])
         filepath = "%s/%s.mp3" % (download_folder, filename)
         return filepath
     
