@@ -2086,6 +2086,11 @@
                   <object class="GtkEntry" id="filename_template_entry">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">&#x5360;&#x4F4D;&#x7B26;&#x610F;&#x4E49;
+${ALBUM} - &#x5C01;&#x9762;&#x540D;&#x79F0;
+${ARTIST} - &#x827A;&#x672F;&#x5BB6;&#x540D;&#x79F0;
+${TITLE}    - &#x6B4C;&#x66F2;&#x6807;&#x9898;
+${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
