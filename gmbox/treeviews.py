@@ -213,41 +213,27 @@ class PlaylistTreeview(gtk.TreeView):
             self.gmbox.popup_content_menu(songs, event, self)
             return True
         
-    def get_next_song(self, song=None):
-        if song is None:
-            # return the first one
-            self.liststore[0][0]
-        else:
-            length = len(self.liststore)
-            for i in range(length):
-                if song == self.liststore[i][0]:                    
-                    if i == length:
-                        # already the last one, come back to begin
-                        return self.liststore[0][0]
-                    else:
-                        # return next one
-                        self.liststore[i + 1][0]
-            # just retur the first one
-            return self.liststore[0][0]
+    def get_next_song(self, song):
+        length = len(self.liststore)
+        for i in range(length):
+            if song == self.liststore[i][0]:            
+                if i < length - 1:
+                    # not the last one
+                    return self.liststore[i + 1][0]
+                break
+        # just return the first one
+        return self.liststore[0][0]
 
-    def get_last_song(self, song=None):
-        if song is None:
-            # return the first one
-            self.liststore[0][0]
-        else:
-            length = len(self.liststore)
-            for i in range(length):
-                if song == self.liststore[i][0]:                    
-                    if i == 0:
-                        # already the first one, come back to end
-                        return self.liststore[length][0]
-                    else:
-                        # return last one
-                        self.liststore[i - 1][0]
-            # just retur the first one
-            return self.liststore[0][0]
-
+    def get_last_song(self, song):
+        length = len(self.liststore)
+        # is the first one, then return last one
+        if song == self.liststore[0][0]:
+            return self.liststore[length - 1][0]
         
+        for i in range(length):
+            if song == self.liststore[i][0]:   
+                return self.liststore[i - 1][0]
+
     def remove_songs(self, songs):
         for row in self.liststore:
             song = row[0]
