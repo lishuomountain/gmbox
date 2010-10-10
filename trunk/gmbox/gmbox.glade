@@ -1770,6 +1770,14 @@
       </object>
     </child>
     <child>
+      <object class="GtkMenuItem" id="search_menuitem">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">&#x641C;&#x7D22;&#x6B4C;&#x66F2;</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_search_menuitem_activate"/>
+      </object>
+    </child>
+    <child>
       <object class="GtkMenuItem" id="similar_menuitem">
         <property name="visible">True</property>
         <property name="label" translatable="yes">&#x76F8;&#x4F3C;&#x6B4C;&#x66F2;</property>

@@ -10,6 +10,7 @@ from treeviews import *
 import pango
 import thread
 import subprocess
+import traceback
 
 class GmBox():
     
@@ -210,6 +211,7 @@ class GmBox():
             else:
                 result = target(arg)   
         except Exception, error:
+            traceback.print_exc()
             result_page.load_message("遇到错误：%s" % str(error))
             # remove from result dict for retry
             self.result_pages.pop(page_key)
@@ -918,6 +920,10 @@ class GmBox():
             
     def on_downlist_menuitem_activate(self, widget, data=None):
         self.add_to_downlist(self.selected_songs)
+        
+    def on_search_menuitem_activate(self, widget, data=None):
+        for song in self.selected_songs:
+            self.do_search(song.name.encode("utf8"), "song")
         
     def on_similar_menuitem_activate(self, widget, data=None):
         for song in self.selected_songs:
