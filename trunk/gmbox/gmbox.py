@@ -37,7 +37,6 @@ class GmBox():
         self.init_downlist_treeview()
         self.init_preferences_widgets()
         self.init_player_widgets()
-        self.init_player_variables()
 
     # gui setup functions         
     def init_mainwin(self):
@@ -181,12 +180,6 @@ class GmBox():
     def init_player_widgets(self):
         play_process_adjustment = gtk.Adjustment(value=0, upper=100)
         self.play_process_hscale.set_adjustment(play_process_adjustment) 
-        
-    def init_player_variables(self):
-        self.player = None
-        self.player_running = None
-        self.player_song = None
-        self.player_pausing = False
 
     def print_message(self, text):
         context_id = self.statusbar.get_context_id("context_id")
@@ -392,31 +385,46 @@ class GmBox():
         self.content_menu.popup(None, None, None, event.button, event.time) 
     
     def update_play_process_hscale(self):
-        self.play_process_hscale.set_value(self.player.get_current_song().play_process)
+        self.play_process_hscale.set_value(self.player.song.play_process)
         return self.player_running.isSet()
 
-    def start_player(self):
+    def start_player(self, song):
         self.player_running = threading.Event()
         self.player_running.set()
-        self.player = Player(self.player_running, self.player_callback)
+        self.player = Player(song, self.player_running, self.player_callback)
         self.player.start()
+        
+        self.player.song.play_status = "播放中"
+        self.player.song.play_process = 0
+        self.playlist_treeview.queue_draw()
+        
+        self.playing = True
+        self.play_button.set_label("暂停")
 
         # add update time inforamtion function
         gobject.timeout_add(1000, self.update_play_process_hscale)
+        
+    def stop_player(self):
+        if hasattr(self, "player_running"):
+            self.player_running.clear()
+            self.player.song.play_status = ""
+            self.player.song.play_process = 0
+            self.playlist_treeview.queue_draw()
+            self.playing = False
+            self.play_button.set_label("播放")
                     
-    def player_callback(self):
-        song = self.playlist_treeview.get_next_song()
-        print song.name
-        if song is not None:
-            self.start_player(song)
+    def player_callback(self, song):
+        self.player.song.play_status = ""
+        self.player.song.play_process = 0
+        self.playlist_treeview.queue_draw()
+        song = self.playlist_treeview.get_next_song(song)
+        self.start_player(song)
 
     def play_songs(self, songs):
-
         self.add_to_playlist(songs, False)
         if CONFIG["use_internal_player"]:
-            if self.player is None: 
-                self.start_player()
-            self.player.open(songs[0])
+                self.stop_player()
+                self.start_player(songs[0])
         else: # user external player
             player = CONFIG["player_path"]
             if player == "":
@@ -693,6 +701,7 @@ class GmBox():
                 self.player_vseparator.show()
                 self.player_hbox.show()
             else:
+                self.stop_player()
                 self.player_vseparator.hide()
                 self.player_hbox.hide()    
             
@@ -982,21 +991,26 @@ class GmBox():
         self.main_notebook.set_current_page(2)
         
     def on_play_button_clicked(self, widget, data=None):
-        if not self.player_running.isSet:
-            self.open(self.player_song)
-        else:
+        if self.player_running.isSet():
             self.player.pause()
+            self.playing = not self.playing
+            if self.playing:
+                self.play_button.set_label("暂停")
+            else:
+                self.play_button.set_label("播放")
         
     def on_stop_button_clicked(self, widget, data=None):
-        self.player.stop()
+        self.stop_player()
         
     def on_last_song_button_clicked(self, widget, data=None):
-        song = self.playlist_treeview.get_last_song(self.player_song)
-        self.play_songs([song])
+        song = self.playlist_treeview.get_last_song(self.player.song)
+        self.stop_player()
+        self.start_player(song)
         
     def on_next_song_button_clicked(self, widget, data=None):
-        song = self.playlist_treeview.get_next_song(self.player_song)
-        self.play_songs([song])
+        song = self.playlist_treeview.get_next_song(self.player.song)
+        self.stop_player()
+        self.start_player(song)
         
     def on_download_folder_button_clicked(self, widget, data=None):
         response = self.folder_chooser_dialog.run()
@@ -1020,8 +1034,7 @@ class GmBox():
         self.file_chooser_dialog.hide()
                   
     def on_mainwin_destroy(self, widget, data=None):
-        if self.player_running:
-            self.player.quit()
+        self.stop_player()
         gtk.main_quit()
 
 if __name__ == '__main__':
