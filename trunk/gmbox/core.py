@@ -401,8 +401,10 @@ class DirSearch(Directory):
     
         # find artist
         artists = []
-        matches = re.findall('align="left">([^<]+)<', html)
+        matches = re.findall('<td class="Tracks" colspan="10" align="left">(.+?)</td>', html)
         for match in matches:
+            match = match.replace("<b>", "")
+            match = match.replace("</b>", "")
             match = match.split()[0]
             match = GmObject.decode_html_text(match)
             artists.append(match)
@@ -414,6 +416,7 @@ class DirSearch(Directory):
             thumbnails.append(match)
 
         # create song object, three list should have same len
+        print len(ids), len(names), len(artists)
         songlists = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "artist":artists[i], "thumbnailLink":thumbnails[i]}
@@ -602,8 +605,10 @@ class DirArtistAlbum(Directory):
     
         # find artist
         artists = []
-        matches = re.findall('align="left">([^<]+)<', html)
+        matches = re.findall('<td class="Tracks" colspan="10" align="left">(.+?)</td>', html)
         for match in matches:
+            match = match.replace("<b>", "")
+            match = match.replace("</b>", "")
             match = match.split()[0]
             match = GmObject.decode_html_text(match)
             artists.append(match)
