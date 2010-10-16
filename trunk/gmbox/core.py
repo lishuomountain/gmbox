@@ -577,12 +577,53 @@ class DirArtist(Directory):
         self.songlists.extend(songlists)
         return songlists
 
-class DirArtistAlbum(DirSearch):
+class DirArtistAlbum(Directory):
     
     def __init__(self, id):
         Directory.__init__(self)
         self.id = id
         self.load_songlists()
+        
+    def parse_html(self, html):                       
+        # find id      
+        ids = []  
+        matches = re.findall('<!--freemusic/album/result/([^-]+)-->', html)
+        for match in matches:
+            ids.append(match)
+
+        # find name
+        names = []
+        matches = re.findall('《(.+)》</a>&nbsp;-&nbsp;', html)
+        for match in matches:
+            match = match.replace("<b>", "")
+            match = match.replace("</b>", "")
+            match = GmObject.decode_html_text(match)
+            names.append(match)
+    
+        # find artist
+        artists = []
+        matches = re.findall('align="left">([^<]+)<', html)
+        for match in matches:
+            match = match.split()[0]
+            match = GmObject.decode_html_text(match)
+            artists.append(match)
+            
+        # find thumbnail
+        thumbnails = []
+        matches = re.findall('<img [^/]+ class="thumb-img" [^/]+ src="([^"]+)"', html)
+        for match in matches:
+            thumbnails.append(match)
+        # remove the first one, the artist thumbnail
+        thumbnails = thumbnails[1:]
+
+        # create song object, three list should have same len
+        songlists = []
+        for i in range(len(ids)):
+            dict = {"id":ids[i], "name":names[i], "artist":artists[i], "thumbnailLink":thumbnails[i]}
+            album = Album()
+            album.parse_dict(dict)
+            songlists.append(album)
+        return songlists
         
     def load_songlists(self):
         template = "http://www.google.cn/music/artist?id=%s"
