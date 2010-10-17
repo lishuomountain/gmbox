@@ -416,7 +416,6 @@ class DirSearch(Directory):
             thumbnails.append(match)
 
         # create song object, three list should have same len
-        print len(ids), len(names), len(artists)
         songlists = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "artist":artists[i], "thumbnailLink":thumbnails[i]}

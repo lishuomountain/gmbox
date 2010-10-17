@@ -123,20 +123,19 @@ class GmBox():
                                    (gtk.STOCK_OPEN, gtk.RESPONSE_OK,
                                    gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
         load_config_file()
+        self.update_player_widgets()
+        
+    def init_player_widgets(self):
+        play_process_adjustment = gtk.Adjustment(value=0, upper=100)
+        self.play_process_hscale.set_adjustment(play_process_adjustment)
+        
+    def update_preferences_widgets(self):
         
         # regular
         self.download_folder_entry.set_text(CONFIG["download_folder"])
         self.filename_template_entry.set_text(CONFIG["filename_template"])        
-        if CONFIG["use_internal_player"]:
-            self.player_internal_radiobutton.set_active(True)
-            self.player_external_radiobutton.set_active(False)
-            self.player_vseparator.show()
-            self.player_hbox.show()
-        else:
-            self.player_internal_radiobutton.set_active(False)
-            self.player_external_radiobutton.set_active(True)
-            self.player_vseparator.hide()
-            self.player_hbox.hide()
+        self.player_internal_radiobutton.set_active(CONFIG["use_internal_player"])
+        self.player_external_radiobutton.set_active(not CONFIG["use_internal_player"])
         self.downloader_internal_radiobutton.set_active(CONFIG["use_internal_downloader"])
         self.downloader_external_radiobutton.set_active(not CONFIG["use_internal_downloader"])
         self.download_cover_checkbutton.set_active(CONFIG["download_cover"])
@@ -176,11 +175,21 @@ class GmBox():
         self.downloader_poll_radiobutton.set_sensitive(False)
         self.downloader_poll_entry.set_sensitive(False)
         self.downloader_tempfile_radiobutton.set_sensitive(False)
-        self.downloader_tempfile_entry.set_sensitive(False)       
+        self.downloader_tempfile_entry.set_sensitive(False)
     
-    def init_player_widgets(self):
-        play_process_adjustment = gtk.Adjustment(value=0, upper=100)
-        self.play_process_hscale.set_adjustment(play_process_adjustment) 
+    def update_player_widgets(self):        
+        # hide or display player control
+        if CONFIG["use_internal_player"]:
+            self.player_vseparator.show()
+            self.player_hbox.show()
+        else:
+            self.stop_player()
+            self.player_vseparator.hide()
+            self.player_hbox.hide()
+
+    def update_player_process_hscale(self):
+        self.play_process_hscale.set_value(self.player.song.play_process)
+        return self.player_running.isSet()
 
     def print_message(self, text):
         context_id = self.statusbar.get_context_id("context_id")
@@ -385,10 +394,6 @@ class GmBox():
             self.down_menuitem.hide()
 
         self.content_menu.popup(None, None, None, event.button, event.time) 
-    
-    def update_play_process_hscale(self):
-        self.play_process_hscale.set_value(self.player.song.play_process)
-        return self.player_running.isSet()
 
     def start_player(self, song):
         self.player_running = threading.Event()
@@ -404,7 +409,7 @@ class GmBox():
         self.play_button.set_label("暂停")
 
         # add update time inforamtion function
-        gobject.timeout_add(1000, self.update_play_process_hscale)
+        gobject.timeout_add(1000, self.update_player_process_hscale)
         
     def stop_player(self):
         if hasattr(self, "player_running"):
@@ -680,6 +685,7 @@ class GmBox():
             self.search_entry.emit("activate")   
       
     def on_preferences_menuitem_activate(self, widget, data=None):
+        self.update_preferences_widgets()
         response = self.preferences_dialog.run()
         if response == gtk.RESPONSE_OK:
             # regular
@@ -698,14 +704,7 @@ class GmBox():
             CONFIG["downloader_single"] = self.downloader_single_entry.get_text()
             CONFIG["downloader_septate"] = self.downloader_septate_entry.get_text()
             
-            # hide or display player control
-            if CONFIG["use_internal_player"]:
-                self.player_vseparator.show()
-                self.player_hbox.show()
-            else:
-                self.stop_player()
-                self.player_vseparator.hide()
-                self.player_hbox.hide()    
+            self.update_player_widgets()
             
             # save to file
             save_config_file()
