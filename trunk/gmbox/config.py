@@ -17,7 +17,7 @@ def get_module_path():
 MODULE_PATH = get_module_path()
 
 def create_icon_dict():
-    icon_names = ["song", "songlist", "directory", "refresh", "info"]
+    icon_names = ["gmbox", "song", "songlist", "directory", "refresh", "info"]
     icon_dict = {}
     for name in icon_names:
         icon_path = "%s/pixbufs/%s.png" % (MODULE_PATH, name)
@@ -42,6 +42,7 @@ CONFIG = {
     "use_internal_downloader" : True,
     "download_cover" : True,
     "download_lyric" : True,
+    "show_status_icon" : True,
     # player
     "player_path" : "vlc",
     "player_single" : "--one-instance ${URL}",

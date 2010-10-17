@@ -24,7 +24,7 @@ class GmBox():
                 name = gtk.Buildable.get_name(widget)
                 setattr(self, name, widget)
 
-        # global variable
+        # global variables
         self.result_pages = {}
         self.clipboard = gtk.Clipboard()
 
@@ -38,11 +38,15 @@ class GmBox():
         self.init_downlist_treeview()
         self.init_preferences_widgets()
         self.init_player_widgets()
+        self.init_status_icon()
 
     # gui setup functions         
     def init_mainwin(self):
         
         # main window
+        self.mainwin.hided = False
+        
+        # main panel
         self.sidebar_vbox.hided = False
         self.info_vbox.hided = False
         self.info_vbox.hide()
@@ -53,6 +57,10 @@ class GmBox():
         #self.screener_vbox.hided = False
         self.screener_vbox.hide()
         self.screener_vbox.hided = True
+        
+        # window title and icon
+        self.mainwin.set_title("谷歌音乐盒 - 0.4")
+        self.mainwin.set_icon(ICON_DICT["gmbox"])
         
     def init_info_textview(self):
         self.info_textview.modify_font(pango.FontDescription("Mono"))
@@ -124,13 +132,19 @@ class GmBox():
                                    gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
         load_config_file()
         self.update_player_widgets()
+        self.update_preferences_widgets()
         
     def init_player_widgets(self):
         play_process_adjustment = gtk.Adjustment(value=0, upper=100)
         self.play_process_hscale.set_adjustment(play_process_adjustment)
-        
-    def update_preferences_widgets(self):
-        
+    
+    def init_status_icon(self):
+        self.status_icon = gtk.StatusIcon()
+        self.status_icon.set_from_pixbuf(ICON_DICT["gmbox"])
+        self.status_icon.connect("activate", self.on_status_icon_activate)
+        self.status_icon.set_visible(CONFIG["show_status_icon"])
+
+    def update_preferences_widgets(self):        
         # regular
         self.download_folder_entry.set_text(CONFIG["download_folder"])
         self.filename_template_entry.set_text(CONFIG["filename_template"])        
@@ -140,6 +154,7 @@ class GmBox():
         self.downloader_external_radiobutton.set_active(not CONFIG["use_internal_downloader"])
         self.download_cover_checkbutton.set_active(CONFIG["download_cover"])
         self.download_lyric_checkbutton.set_active(CONFIG["download_lyric"])
+        self.show_status_icon_checkbutton.set_active(CONFIG["show_status_icon"])
         
         # player
         self.player_path_entry.set_text(CONFIG["player_path"])
@@ -177,6 +192,9 @@ class GmBox():
         self.downloader_tempfile_radiobutton.set_sensitive(False)
         self.downloader_tempfile_entry.set_sensitive(False)
     
+    def update_status_icon(self):     
+        self.status_icon.set_visible(CONFIG["show_status_icon"])
+
     def update_player_widgets(self):        
         # hide or display player control
         if CONFIG["use_internal_player"]:
@@ -695,6 +713,7 @@ class GmBox():
             CONFIG["use_internal_downloader"] = self.downloader_internal_radiobutton.get_active()
             CONFIG["download_cover"] = self.download_cover_checkbutton.get_active()
             CONFIG["download_lyric"] = self.download_lyric_checkbutton.get_active()
+            CONFIG["show_status_icon"] = self.show_status_icon_checkbutton.get_active()
             # player
             CONFIG["player_path"] = self.player_path_entry.get_text() 
             CONFIG["player_single"] = self.player_single_entry.get_text()
@@ -704,8 +723,10 @@ class GmBox():
             CONFIG["downloader_single"] = self.downloader_single_entry.get_text()
             CONFIG["downloader_septate"] = self.downloader_septate_entry.get_text()
             
+            # update widgets status 
+            self.update_status_icon()
             self.update_player_widgets()
-            
+                        
             # save to file
             save_config_file()
         self.preferences_dialog.hide()
@@ -730,7 +751,8 @@ class GmBox():
             self.info_vbox.hided = True
     
     def on_quit_menuitem_activate(self, widget, data=None):
-        self.on_mainwin_destroy(widget)
+        self.stop_player()
+        gtk.main_quit()
                 
     def on_search_button_clicked(self, widget, data=None):
         if self.search_vbox.hided:
@@ -1037,10 +1059,22 @@ class GmBox():
             text = self.file_chooser_dialog.get_filename()
             self.downloader_path_entry.set_text(text)
         self.file_chooser_dialog.hide()
-                  
-    def on_mainwin_destroy(self, widget, data=None):
-        self.stop_player()
-        gtk.main_quit()
+
+    def on_status_icon_activate(self, widget, data=None):
+        if self.mainwin.hided:
+            self.mainwin.show()
+        else:
+            self.mainwin.hide()
+        self.mainwin.hided = not self.mainwin.hided
+        
+    def on_mainwin_delete_event(self, widget, data=None):
+        if CONFIG["show_status_icon"]:
+            self.mainwin.hide()            
+            self.mainwin.hided = True
+            return True
+        else:
+            self.stop_player()
+            gtk.main_quit()
 
 if __name__ == '__main__':
     gtk.gdk.threads_init()
