@@ -31,9 +31,6 @@ def get_download_folder():
     download_folder = glib.get_user_special_dir(glib.USER_DIRECTORY_MUSIC)
     if download_folder is None:
         download_folder = os.path.expanduser("~/Music")
-    # above statement need to test whether work on window
-#    if platform.system() == "Windows":
-#        download_folder = os.path.expanduser("~/My Documents/My Music")
     return download_folder
 
 # default config
@@ -65,9 +62,6 @@ def get_config_folder():
     config_folder = "%s/gmbox" % glib.get_user_config_dir()
     if config_folder is None:
         config_folder = "%s/config/" % MODULE_PATH
-    # also need to test whether work on window
-#    if platform.system() == "Windows":
-#        config_folder = "%/config/" % MODULE_PATH
     return config_folder
 
 CONFIG_FOLDER = get_config_folder()
