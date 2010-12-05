@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# run:
-# python py2exe.py py2exe
+# copy this file to gmbox/setup.py, then run
+# python setup.py py2exe
+# archive the output gmbox-win folder
 
 from distutils.core import setup
 import py2exe
