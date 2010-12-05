@@ -10,10 +10,10 @@ import py2exe
 setup(
     name = 'gmbox',
     description = 'Google music box',
-    version = '0.3.0',
+    version = '0.4',
     windows = [
         {
-            'script':'mainwin.py',
+            'script':'gmbox.py',
             'icon_resources':[(1,'pixbufs/gmbox.ico')],
         }
     ],
@@ -26,14 +26,14 @@ setup(
     },
     data_files=[
         'gmbox.glade',
-        'PLUGININFO',
         ('pixbufs',[
+            'pixbufs/directory.png',
             'pixbufs/gmbox.ico',
+            'pixbufs/info.png',
+            'pixbufs/songlist.png',
+            'pixbufs/error.png',
             'pixbufs/gmbox.png',
-            'pixbufs/track.png',
-            'pixbufs/album.png',
             'pixbufs/refresh.png',
-            'pixbufs/listing.png',
-            'pixbufs/missing.png'])
+            'pixbufs/song.png'])
         ]
 )
