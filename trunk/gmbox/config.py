@@ -4,7 +4,6 @@
 import sys
 import os
 import gtk
-import platform
 import glib
 
 def get_module_path():
@@ -27,6 +26,19 @@ def create_icon_dict():
 
 ICON_DICT = create_icon_dict()
 
+def get_default_player():
+    if sys.platform == "win32":
+        return "C:\\Program Files\\Windows Media Player\\wmplayer.exe";
+    else:
+        try:
+            import gio
+            app = gio.app_info_get_default_for_type('audio/mpeg', False)
+            cmd = app.get_commandline()
+            # cmd may end with "%F" or "%f", for example 'exaile %F', just need 'exaile'.
+            return cmd.split()[0];
+        except:
+            return ""
+
 def get_download_folder():
     download_folder = glib.get_user_special_dir(glib.USER_DIRECTORY_MUSIC)
     if download_folder is None:
@@ -43,14 +55,14 @@ CONFIG = {
     "show_status_icon" : True,
     # player
     "player_use_internal" : False,
-    "player_path" : "vlc",
-    "player_single" : "--one-instance ${URL}",
-    "player_multi" : "--one-instance ${URLS}",
+    "player_path" : get_default_player(),
+    "player_single" : "${URL}",
+    "player_multi" : "${URLS}",
     # downloader
     "downloader_use_internal" : True,
-    "downloader_path" : "wget",
-    "downloader_single" : "${URL} -O ${FILEPATH}",
-    "downloader_multi" : "${URL} -O ${FILEPATH}",
+    "downloader_path" : "",
+    "downloader_single" : "${URL}",
+    "downloader_multi" : "${URLS}",
 }
 
 def get_config_folder():
