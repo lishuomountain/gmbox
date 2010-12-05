@@ -7,6 +7,7 @@ from test import *
 from config import *
 from pages import *
 from treeviews import *
+import sys
 import pango
 import thread
 import subprocess
@@ -39,6 +40,8 @@ class GmBox():
         self.init_preferences_widgets()
         self.init_player_widgets()
         self.init_status_icon()
+        
+        self.init_not_done_yet()
 
     # gui setup functions         
     def init_mainwin(self):
@@ -143,6 +146,15 @@ class GmBox():
         self.status_icon.set_from_pixbuf(ICON_DICT["gmbox"])
         self.status_icon.connect("activate", self.on_status_icon_activate)
         self.status_icon.set_visible(CONFIG["show_status_icon"])
+        
+    def init_not_done_yet(self):                
+        # win32 mpg123 not usable
+        if sys.platform == "win32":
+            self.player_internal_radiobutton.set_sensitive(False)
+            self.player_external_radiobutton.set_active(True)
+            
+        # song detail
+        self.view_detail_menuitem.hide() 
 
     def update_preferences_widgets(self):        
         # regular
@@ -164,7 +176,7 @@ class GmBox():
         self.downloader_external_radiobutton.set_active(not CONFIG["downloader_use_internal"])
         self.downloader_path_entry.set_text(CONFIG["downloader_path"])
         self.downloader_single_entry.set_text(CONFIG["downloader_single"])        
-        self.downloader_multi_entry.set_text(CONFIG["downloader_multi"])
+        self.downloader_multi_entry.set_text(CONFIG["downloader_multi"])    
             
     def update_status_icon(self):     
         self.status_icon.set_visible(CONFIG["show_status_icon"])
