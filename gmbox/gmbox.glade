@@ -1919,7 +1919,7 @@
               <object class="GtkTable" id="table4">
                 <property name="visible">True</property>
                 <property name="border_width">4</property>
-                <property name="n_rows">6</property>
+                <property name="n_rows">4</property>
                 <property name="n_columns">3</property>
                 <property name="column_spacing">4</property>
                 <property name="row_spacing">4</property>
@@ -1967,114 +1967,6 @@
                     <property name="left_attach">2</property>
                     <property name="right_attach">3</property>
                     <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label22">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">&#x64AD;&#x653E;&#x5668;</property>
-                  </object>
-                  <packing>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label23">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">&#x4E0B;&#x8F7D;&#x7A0B;&#x5E8F;</property>
-                  </object>
-                  <packing>
-                    <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkHBox" id="hbox9">
-                    <property name="visible">True</property>
-                    <property name="spacing">4</property>
-                    <child>
-                      <object class="GtkRadioButton" id="player_internal_radiobutton">
-                        <property name="label" translatable="yes">&#x5185;&#x7F6E;</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="active">True</property>
-                        <property name="draw_indicator">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkRadioButton" id="player_external_radiobutton">
-                        <property name="label" translatable="yes">&#x5916;&#x90E8;</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="active">True</property>
-                        <property name="draw_indicator">True</property>
-                        <property name="group">player_internal_radiobutton</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">3</property>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkHBox" id="hbox10">
-                    <property name="visible">True</property>
-                    <property name="spacing">4</property>
-                    <child>
-                      <object class="GtkRadioButton" id="downloader_internal_radiobutton">
-                        <property name="label" translatable="yes">&#x5185;&#x7F6E;</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="active">True</property>
-                        <property name="draw_indicator">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkRadioButton" id="downloader_external_radiobutton">
-                        <property name="label" translatable="yes">&#x5916;&#x90E8;</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="active">True</property>
-                        <property name="draw_indicator">True</property>
-                        <property name="group">downloader_internal_radiobutton</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">3</property>
-                    <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
@@ -2142,8 +2034,8 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                   </object>
                   <packing>
                     <property name="right_attach">3</property>
-                    <property name="top_attach">4</property>
-                    <property name="bottom_attach">5</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
@@ -2168,8 +2060,8 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                   </object>
                   <packing>
                     <property name="right_attach">3</property>
-                    <property name="top_attach">5</property>
-                    <property name="bottom_attach">6</property>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
@@ -2194,24 +2086,28 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                 <property name="column_spacing">4</property>
                 <property name="row_spacing">4</property>
                 <child>
-                  <object class="GtkLabel" id="label14">
+                  <object class="GtkLabel" id="label17">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&#x64AD;&#x653E;&#x5668;&#x8DEF;&#x5F84;</property>
+                    <property name="label" translatable="yes">&#x591A;&#x9009;&#x65F6;&#x8C03;&#x7528;&#x53C2;&#x6570;</property>
                   </object>
                   <packing>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry" id="player_path_entry">
+                  <object class="GtkEntry" id="player_multi_entry">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
+                    <property name="right_attach">3</property>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
@@ -2221,8 +2117,8 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                     <property name="label" translatable="yes">&#x5355;&#x9009;&#x65F6;&#x8C03;&#x7528;&#x53C2;&#x6570;</property>
                   </object>
                   <packing>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
@@ -2236,128 +2132,34 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">3</property>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label17">
+                  <object class="GtkLabel" id="label14">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&#x591A;&#x9009;&#x65F6;&#x8C03;&#x7528;&#x53C2;&#x6570;</property>
+                    <property name="label" translatable="yes">&#x5916;&#x90E8;&#x64AD;&#x653E;&#x5668;&#x8DEF;&#x5F84;</property>
                   </object>
                   <packing>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkAlignment" id="alignment3">
+                  <object class="GtkEntry" id="player_path_entry">
                     <property name="visible">True</property>
-                    <property name="left_padding">12</property>
-                    <child>
-                      <object class="GtkTable" id="table6">
-                        <property name="visible">True</property>
-                        <property name="n_rows">3</property>
-                        <property name="n_columns">2</property>
-                        <property name="column_spacing">4</property>
-                        <property name="row_spacing">4</property>
-                        <child>
-                          <object class="GtkRadioButton" id="player_septate_radiobutton">
-                            <property name="label" translatable="yes">&#x7A7A;&#x683C;&#x5206;&#x9694;</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="active">True</property>
-                            <property name="draw_indicator">True</property>
-                          </object>
-                          <packing>
-                            <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkEntry" id="player_septate_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="invisible_char">&#x25CF;</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkRadioButton" id="player_tempfile_radiobutton">
-                            <property name="label" translatable="yes">&#x4E34;&#x65F6;&#x6587;&#x4EF6;</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="draw_indicator">True</property>
-                            <property name="group">player_septate_radiobutton</property>
-                          </object>
-                          <packing>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
-                            <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkEntry" id="player_tempfile_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="invisible_char">&#x25CF;</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkRadioButton" id="player_poll_radiobutton">
-                            <property name="label" translatable="yes">&#x91CD;&#x590D;&#x6267;&#x884C;</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="active">True</property>
-                            <property name="draw_indicator">True</property>
-                            <property name="group">player_septate_radiobutton</property>
-                          </object>
-                          <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                            <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkEntry" id="player_poll_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="invisible_char">&#x25CF;</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
-                    <property name="right_attach">3</property>
-                    <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
@@ -2382,15 +2184,60 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                   <packing>
                     <property name="left_attach">2</property>
                     <property name="right_attach">3</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
+                  <object class="GtkLabel" id="label22">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">&#x4F7F;&#x7528;&#x64AD;&#x653E;&#x5668;</property>
+                  </object>
+                  <packing>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
                 </child>
                 <child>
-                  <placeholder/>
+                  <object class="GtkHBox" id="hbox9">
+                    <property name="visible">True</property>
+                    <property name="spacing">4</property>
+                    <child>
+                      <object class="GtkRadioButton" id="player_internal_radiobutton">
+                        <property name="label" translatable="yes">&#x5185;&#x7F6E;</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="active">True</property>
+                        <property name="draw_indicator">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkRadioButton" id="player_external_radiobutton">
+                        <property name="label" translatable="yes">&#x5916;&#x90E8;</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="draw_indicator">True</property>
+                        <property name="group">player_internal_radiobutton</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">3</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
                 </child>
               </object>
               <packing>
@@ -2416,24 +2263,28 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                 <property name="column_spacing">4</property>
                 <property name="row_spacing">4</property>
                 <child>
-                  <object class="GtkLabel" id="label10">
+                  <object class="GtkLabel" id="label13">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&#x4E0B;&#x8F7D;&#x7A0B;&#x5E8F;&#x8DEF;&#x5F84;</property>
+                    <property name="label" translatable="yes">&#x591A;&#x9009;&#x65F6;&#x8C03;&#x7528;&#x53C2;&#x6570;</property>
                   </object>
                   <packing>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry" id="downloader_path_entry">
+                  <object class="GtkEntry" id="downloader_multi_entry">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
+                    <property name="right_attach">3</property>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
@@ -2443,8 +2294,8 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                     <property name="label" translatable="yes">&#x5355;&#x9009;&#x65F6;&#x8C03;&#x7528;&#x53C2;&#x6570;</property>
                   </object>
                   <packing>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
@@ -2458,127 +2309,34 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">3</property>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label13">
+                  <object class="GtkLabel" id="label10">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&#x591A;&#x9009;&#x65F6;&#x8C03;&#x7528;&#x53C2;&#x6570;</property>
+                    <property name="label" translatable="yes">&#x5916;&#x90E8;&#x4E0B;&#x8F7D;&#x7A0B;&#x5E8F;&#x8DEF;&#x5F84;</property>
                   </object>
                   <packing>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkAlignment" id="alignment1">
+                  <object class="GtkEntry" id="downloader_path_entry">
                     <property name="visible">True</property>
-                    <property name="left_padding">12</property>
-                    <child>
-                      <object class="GtkTable" id="table7">
-                        <property name="visible">True</property>
-                        <property name="n_rows">3</property>
-                        <property name="n_columns">2</property>
-                        <property name="column_spacing">4</property>
-                        <property name="row_spacing">4</property>
-                        <child>
-                          <object class="GtkRadioButton" id="downloader_septate_radiobutton">
-                            <property name="label" translatable="yes">&#x7A7A;&#x683C;&#x5206;&#x9694;</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="active">True</property>
-                            <property name="draw_indicator">True</property>
-                          </object>
-                          <packing>
-                            <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkEntry" id="downloader_septate_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="invisible_char">&#x25CF;</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkRadioButton" id="downloader_tempfile_radiobutton">
-                            <property name="label" translatable="yes">&#x4E34;&#x65F6;&#x6587;&#x4EF6;</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="draw_indicator">True</property>
-                            <property name="group">downloader_septate_radiobutton</property>
-                          </object>
-                          <packing>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
-                            <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkEntry" id="downloader_tempfile_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="invisible_char">&#x25CF;</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkRadioButton" id="downloader_poll_radiobutton">
-                            <property name="label" translatable="yes">&#x91CD;&#x590D;&#x6267;&#x884C;</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="draw_indicator">True</property>
-                            <property name="group">downloader_septate_radiobutton</property>
-                          </object>
-                          <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                            <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkEntry" id="downloader_poll_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="invisible_char">&#x25CF;</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
-                    <property name="right_attach">3</property>
-                    <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
@@ -2603,15 +2361,60 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
                   <packing>
                     <property name="left_attach">2</property>
                     <property name="right_attach">3</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
+                  <object class="GtkLabel" id="label23">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">&#x4F7F;&#x7528;&#x4E0B;&#x8F7D;&#x7A0B;&#x5E8F;</property>
+                  </object>
+                  <packing>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
                 </child>
                 <child>
-                  <placeholder/>
+                  <object class="GtkHBox" id="hbox10">
+                    <property name="visible">True</property>
+                    <property name="spacing">4</property>
+                    <child>
+                      <object class="GtkRadioButton" id="downloader_internal_radiobutton">
+                        <property name="label" translatable="yes">&#x5185;&#x7F6E;</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="active">True</property>
+                        <property name="draw_indicator">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkRadioButton" id="downloader_external_radiobutton">
+                        <property name="label" translatable="yes">&#x5916;&#x90E8;</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="draw_indicator">True</property>
+                        <property name="group">downloader_internal_radiobutton</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">3</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
                 </child>
               </object>
               <packing>

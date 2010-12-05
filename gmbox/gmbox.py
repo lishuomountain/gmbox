@@ -148,56 +148,30 @@ class GmBox():
         # regular
         self.download_folder_entry.set_text(CONFIG["download_folder"])
         self.filename_template_entry.set_text(CONFIG["filename_template"])        
-        self.player_internal_radiobutton.set_active(CONFIG["use_internal_player"])
-        self.player_external_radiobutton.set_active(not CONFIG["use_internal_player"])
-        self.downloader_internal_radiobutton.set_active(CONFIG["use_internal_downloader"])
-        self.downloader_external_radiobutton.set_active(not CONFIG["use_internal_downloader"])
         self.download_cover_checkbutton.set_active(CONFIG["download_cover"])
         self.download_lyric_checkbutton.set_active(CONFIG["download_lyric"])
         self.show_status_icon_checkbutton.set_active(CONFIG["show_status_icon"])
         
         # player
+        self.player_internal_radiobutton.set_active(CONFIG["player_use_internal"])
+        self.player_external_radiobutton.set_active(not CONFIG["player_use_internal"])
         self.player_path_entry.set_text(CONFIG["player_path"])
         self.player_single_entry.set_text(CONFIG["player_single"])        
-        if CONFIG["player_multi_type"] == "septate":
-            self.player_septate_radiobutton.set_active(True)
-        if CONFIG["player_multi_type"] == "poll":
-            self.player_poll_radiobutton.set_active(True)
-        if CONFIG["player_multi_type"] == "tempfile":
-            self.player_tempfile_radiobutton.set_active(True)
-        self.player_septate_entry.set_text(CONFIG["player_septate"])
-        self.player_poll_entry.set_text(CONFIG["player_poll"])
-        self.player_tempfile_entry.set_text(CONFIG["player_tempfile"])
+        self.player_multi_entry.set_text(CONFIG["player_multi"])
         
         # downloader
+        self.downloader_internal_radiobutton.set_active(CONFIG["downloader_use_internal"])
+        self.downloader_external_radiobutton.set_active(not CONFIG["downloader_use_internal"])
         self.downloader_path_entry.set_text(CONFIG["downloader_path"])
         self.downloader_single_entry.set_text(CONFIG["downloader_single"])        
-        if CONFIG["downloader_multi_type"] == "septate":
-            self.downloader_septate_radiobutton.set_active(True)
-        if CONFIG["downloader_multi_type"] == "poll":
-            self.downloader_poll_radiobutton.set_active(True)
-        if CONFIG["downloader_multi_type"] == "tempfile":
-            self.downloader_tempfile_radiobutton.set_active(True)
-        self.downloader_septate_entry.set_text(CONFIG["downloader_septate"])
-        self.downloader_poll_entry.set_text(CONFIG["downloader_poll"])
-        self.downloader_tempfile_entry.set_text(CONFIG["downloader_tempfile"])
-        
-        # none done yet
-        self.player_poll_radiobutton.set_sensitive(False)
-        self.player_poll_entry.set_sensitive(False)
-        self.player_tempfile_radiobutton.set_sensitive(False)
-        self.player_tempfile_entry.set_sensitive(False)
-        self.downloader_poll_radiobutton.set_sensitive(False)
-        self.downloader_poll_entry.set_sensitive(False)
-        self.downloader_tempfile_radiobutton.set_sensitive(False)
-        self.downloader_tempfile_entry.set_sensitive(False)
-    
+        self.downloader_multi_entry.set_text(CONFIG["downloader_multi"])
+            
     def update_status_icon(self):     
         self.status_icon.set_visible(CONFIG["show_status_icon"])
 
     def update_player_widgets(self):        
         # hide or display player control
-        if CONFIG["use_internal_player"]:
+        if CONFIG["player_use_internal"]:
             self.player_vseparator.show()
             self.player_hbox.show()
         else:
@@ -405,10 +379,10 @@ class GmBox():
             self.downlist_remove_menuitem.show()
             self.downlist_clear_menuitem.show()
             
-        if CONFIG["use_internal_downloader"]:
+        if CONFIG["downloader_use_internal"]:
             self.downlist_menuitem.hide()
 
-        if isinstance(caller, DownlistTreeview) and CONFIG["use_internal_downloader"]:
+        if isinstance(caller, DownlistTreeview) and CONFIG["downloader_use_internal"]:
             self.down_menuitem.hide()
 
         self.content_menu.popup(None, None, None, event.button, event.time) 
@@ -447,7 +421,7 @@ class GmBox():
 
     def play_songs(self, songs):
         self.add_to_playlist(songs, False)
-        if CONFIG["use_internal_player"]:
+        if CONFIG["player_use_internal"]:
                 self.stop_player()
                 self.start_player(songs[0])
         else: # user external player
@@ -466,18 +440,17 @@ class GmBox():
                 subprocess.Popen(cmd)
             else:
                 cmd = [player]
-                if CONFIG["player_multi_type"] == "septate":
-                    cmd.extend(CONFIG["player_septate"].split())
-                    urls = []
-                    for song in songs:
-                        url = song.songUrl.decode("utf-8").encode(sys.getfilesystemencoding())
-                        urls.append(url)
-                    if "${URLS}" in cmd:
-                        index = cmd.index("${URLS}")
-                        temp_cmd = cmd[:index]
-                        temp_cmd.extend(urls)
-                        temp_cmd.extend(cmd[index + 1:])
-                        cmd = temp_cmd
+                cmd.extend(CONFIG["player_multi"].split())
+                urls = []
+                for song in songs:
+                    url = song.songUrl.decode("utf-8").encode(sys.getfilesystemencoding())
+                    urls.append(url)
+                if "${URLS}" in cmd:
+                    index = cmd.index("${URLS}")
+                    temp_cmd = cmd[:index]
+                    temp_cmd.extend(urls)
+                    temp_cmd.extend(cmd[index + 1:])
+                    cmd = temp_cmd
                 subprocess.Popen(cmd)
                 
     def down_songs(self, songs):
@@ -485,7 +458,7 @@ class GmBox():
         self.add_to_downlist(songs)
             
         # choose downloader
-        if CONFIG["use_internal_downloader"]:
+        if CONFIG["downloader_use_internal"]:
             self.downlist_treeview.start_downloader()
         else: # user external downloader  
             downloader = CONFIG["downloader_path"]
@@ -526,18 +499,17 @@ class GmBox():
                 subprocess.Popen(cmd, cwd=download_folder)
             else:
                 cmd = [downloader]
-                if CONFIG["downloader_multi_type"] == "septate":
-                    cmd.extend(CONFIG["downloader_septate"].split())
-                    urls = []
-                    for song in songs:
-                        url = song.downloadUrl.decode("utf-8").encode(sys.getfilesystemencoding())
-                        urls.append(url)
-                    if "${URLS}" in cmd:
-                        index = cmd.index("${URLS}")
-                        temp_cmd = cmd[:index]
-                        temp_cmd.extend(urls)
-                        temp_cmd.extend(cmd[index + 1:])
-                        cmd = temp_cmd
+                cmd.extend(CONFIG["downloader_multi"].split())
+                urls = []
+                for song in songs:
+                    url = song.downloadUrl.decode("utf-8").encode(sys.getfilesystemencoding())
+                    urls.append(url)
+                if "${URLS}" in cmd:
+                    index = cmd.index("${URLS}")
+                    temp_cmd = cmd[:index]
+                    temp_cmd.extend(urls)
+                    temp_cmd.extend(cmd[index + 1:])
+                    cmd = temp_cmd
                 print cmd
                 subprocess.Popen(cmd, cwd=download_folder)
         
@@ -547,7 +519,7 @@ class GmBox():
                 thread.start_new_thread(self.get_songs_urls, (songs, "stream"))
             else:
                 self.get_songs_urls(songs, "stream")
-        if CONFIG["use_internal_player"]:
+        if CONFIG["player_use_internal"]:
             for song in songs:
                 song.play_process = 0
                 song.play_status = ""
@@ -558,7 +530,7 @@ class GmBox():
         self.print_message("已添加%d首歌曲到播放列表。" % len(songs))
     
     def add_to_downlist(self, songs):
-        if CONFIG["use_internal_downloader"]:
+        if CONFIG["downloader_use_internal"]:
             for song in songs:
                 song.down_process = "0%"
                 song.down_status = "等待中"
@@ -709,19 +681,19 @@ class GmBox():
             # regular
             CONFIG["download_folder"] = self.download_folder_entry.get_text()
             CONFIG["filename_template"] = self.filename_template_entry.get_text()
-            CONFIG["use_internal_player"] = self.player_internal_radiobutton.get_active()
-            CONFIG["use_internal_downloader"] = self.downloader_internal_radiobutton.get_active()
+            CONFIG["player_use_internal"] = self.player_internal_radiobutton.get_active()
+            CONFIG["downloader_use_internal"] = self.downloader_internal_radiobutton.get_active()
             CONFIG["download_cover"] = self.download_cover_checkbutton.get_active()
             CONFIG["download_lyric"] = self.download_lyric_checkbutton.get_active()
             CONFIG["show_status_icon"] = self.show_status_icon_checkbutton.get_active()
             # player
             CONFIG["player_path"] = self.player_path_entry.get_text() 
             CONFIG["player_single"] = self.player_single_entry.get_text()
-            CONFIG["player_septate"] = self.player_septate_entry.get_text()
+            CONFIG["player_multi"] = self.player_multi_entry.get_text()
             # downloader
             CONFIG["downloader_path"] = self.downloader_path_entry.get_text() 
             CONFIG["downloader_single"] = self.downloader_single_entry.get_text()
-            CONFIG["downloader_septate"] = self.downloader_septate_entry.get_text()
+            CONFIG["downloader_multi"] = self.downloader_multi_entry.get_text()
             
             # update widgets status 
             self.update_status_icon()

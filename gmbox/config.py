@@ -38,25 +38,19 @@ CONFIG = {
     # regular
     "download_folder": get_download_folder(),
     "filename_template" : "${ALBUM}/${ARTIST} - ${TITLE}",
-    "use_internal_player" : False,
-    "use_internal_downloader" : True,
     "download_cover" : True,
     "download_lyric" : True,
     "show_status_icon" : True,
     # player
+    "player_use_internal" : True,
     "player_path" : "vlc",
     "player_single" : "--one-instance ${URL}",
-    "player_multi_type" : "septate",
-    "player_septate" : "--one-instance ${URLS}",
-    "player_poll" : "--one-instance ${URL}",
-    "player_tempfile" : "--one-instance ${FILEPATH}",
+    "player_multi" : "--one-instance ${URLS}",
     # downloader
+    "downloader_use_internal" : True,
     "downloader_path" : "wget",
     "downloader_single" : "${URL} -O ${FILEPATH}",
-    "downloader_multi_type" : "septate",
-    "downloader_septate" : "${URLS}",
-    "downloader_poll" : "${URL} -O ${FILEPATH}",
-    "downloader_tempfile" : "${FILEPATH}",
+    "downloader_multi" : "${URL} -O ${FILEPATH}",
 }
 
 def get_config_folder():
