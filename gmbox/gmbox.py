@@ -59,7 +59,7 @@ class GmBox():
         self.screener_vbox.hided = True
         
         # window title and icon
-        self.mainwin.set_title("谷歌音乐盒 - 0.4")
+        self.mainwin.set_title("谷歌音乐盒 - 0.4 alpha")
         self.mainwin.set_icon(ICON_DICT["gmbox"])
         
     def init_info_textview(self):
@@ -721,6 +721,14 @@ class GmBox():
         else:
             self.info_vbox.hide()
             self.info_vbox.hided = True
+            
+    def on_about_menuitem_activate(self, widget, data=None):
+        self.about_dialog.set_logo(ICON_DICT["gmbox"])
+        self.about_dialog.set_icon(ICON_DICT["gmbox"])
+        self.about_dialog.run()
+        
+    def on_about_dialog_response(self,widget, response_id, data=None):
+        self.about_dialog.hide()
     
     def on_quit_menuitem_activate(self, widget, data=None):
         self.stop_player()

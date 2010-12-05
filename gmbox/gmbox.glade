@@ -103,6 +103,7 @@
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">&#x5173;&#x4E8E;</property>
                         <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_about_menuitem_activate"/>
                       </object>
                     </child>
                   </object>
@@ -2479,5 +2480,54 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
       <action-widget response="-5">button2</action-widget>
       <action-widget response="-6">button4</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkAboutDialog" id="about_dialog">
+    <property name="border_width">5</property>
+    <property name="type_hint">normal</property>
+    <property name="has_separator">False</property>
+    <property name="program_name">gmbox</property>
+    <property name="version">0.4 alpha</property>
+    <property name="copyright" translatable="yes">Copyright (C) 2010 gmbox team
+</property>
+    <property name="comments" translatable="yes">gmbox&#x662F;&#x4E00;&#x4E2A;&#x8BD5;&#x542C;&#x548C;&#x4E0B;&#x8F7D;
+&#x8C37;&#x6B4C;&#x5728;&#x7EBF;&#x97F3;&#x4E50;&#x7684;&#x684C;&#x9762;&#x5DE5;&#x5177;</property>
+    <property name="website">https://code.google.com/p/gmbox/</property>
+    <property name="website_label" translatable="yes">&#x9879;&#x76EE;&#x4E3B;&#x9875;</property>
+    <property name="license" translatable="yes">GNU General Public License v3</property>
+    <property name="authors">&#x9879;&#x76EE;&#x62E5;&#x6709;&#x8005;&#xFF1A;
+bones7456 &lt;bones7456@gmail.com&gt;
+
+&#x5F53;&#x524D;&#x7EF4;&#x62A4;&#x8005;&#xFF1A;
+muzuiget &lt;muzuiget@gmail.com&gt;
+
+&#x5386;&#x53F2;&#x8D21;&#x732E;&#x8005;&#xFF1A;
+xioooli &lt;xioooli@gmail.com&gt;
+darling8611 &lt;darling8611@gmail.com&gt;
+amoblin &lt;amoblin@gmail.com&gt;
+tualatrix &lt;tualatrix@gmail.com&gt;
+adi4no &lt;adi4no@gmail.com&gt;
+hanyiny &lt;hanyiny@gmail.com&gt;
+lerosua &lt;lerosua@gmail.com&gt;</property>
+    <signal name="response" handler="on_about_dialog_response"/>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox7">
+        <property name="visible">True</property>
+        <property name="spacing">2</property>
+        <child>
+          <placeholder/>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area7">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
   </object>
 </interface>
