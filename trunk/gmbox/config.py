@@ -42,7 +42,7 @@ CONFIG = {
     "download_lyric" : True,
     "show_status_icon" : True,
     # player
-    "player_use_internal" : True,
+    "player_use_internal" : False,
     "player_path" : "vlc",
     "player_single" : "--one-instance ${URL}",
     "player_multi" : "--one-instance ${URLS}",

@@ -2483,6 +2483,8 @@ ${TRACK}  - &#x4E13;&#x8F91;&#x97F3;&#x8F68;&#x5E8F;&#x53F7; </property>
   </object>
   <object class="GtkAboutDialog" id="about_dialog">
     <property name="border_width">5</property>
+    <property name="modal">True</property>
+    <property name="window_position">center</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <property name="program_name">gmbox</property>

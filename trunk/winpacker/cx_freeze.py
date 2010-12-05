@@ -11,7 +11,7 @@ import shutil
 
 cmd = '''
     cxfreeze 
-    mainwin.py 
+    gmbox.py 
     --target-dir gmbox-win 
     --target-name gmbox.exe 
     --icon pixbufs\gmbox.ico 
@@ -21,15 +21,15 @@ main()
 
 data_files = [
     'gmbox.glade',
-    'PLUGININFO',
     'pixbufs',
+    'pixbufs/directory.png',
     'pixbufs/gmbox.ico',
+    'pixbufs/info.png',
+    'pixbufs/songlist.png',
+    'pixbufs/error.png',
     'pixbufs/gmbox.png',
-    'pixbufs/track.png',
-    'pixbufs/album.png',
     'pixbufs/refresh.png',
-    'pixbufs/listing.png',
-    'pixbufs/missing.png'
+    'pixbufs/song.png'
 ]
 dist_folder = "gmbox-win"
 if os.path.exists(dist_folder):
