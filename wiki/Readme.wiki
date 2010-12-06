@@ -8,24 +8,16 @@ https://images2-focus-opensocial.googleusercontent.com/gadgets/proxy?url=http://
 
 = 功能 =
 
-  * 浏览排行榜，歌曲和专辑搜索
-  * 多标签显示结果，支持翻页
-  * 调用外部播放器播放
-  * 支持整个专辑、歌词和封面下载
-  * 作为exiale插件运行
+    * 支持网页版大部分功能，包括搜索、排行榜、标签、专题、挑歌、相似歌曲、艺术家热歌、艺术家专辑。
+    * 支持复制和导出试听/下载/歌词地址，自定义下载文件名格式。
+    * 支持调用外部播放器，可自定义参数方便以单实例运行和播放列表。
+    * 支持调用外部下载工具，也可以自定义参数。
 
 = 安装 =
 
 == Linux ==
 
-Linux用户可以直接下在源码包，运行目录下的“mainwin.py”即可。
-
-如果要作为exaile插件运行，把“gmbox”文件夹复制或者建软链接到exiale的插件目录下，然后在exiale的插件页启用“GMBox”
-
-{{{
-cd ~/.local/share/exaile/plugins/
-ln -s /path/to/gmbox .
-}}}
+Linux用户可以直接下在源码包，运行“gmbox”目录下的“gmnbox.py”即可。
 
 == Windows ==
 
