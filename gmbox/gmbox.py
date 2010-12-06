@@ -155,6 +155,7 @@ class GmBox():
             
         # song detail
         self.view_detail_menuitem.hide() 
+        self.menuitem5.hide()
 
     def update_preferences_widgets(self):        
         # regular

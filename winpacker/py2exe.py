@@ -10,18 +10,18 @@ import py2exe
 
 setup(
     name = 'gmbox',
-    description = 'Google music box',
+    description = 'Google Music Box',
     version = '0.4',
     windows = [
         {
             'script':'gmbox.py',
-            'icon_resources':[(1,'pixbufs/gmbox.ico')],
+            'icon_resources':[(1, 'pixbufs/gmbox.ico')],
         }
     ],
     options = {
         'py2exe': {
             'packages' : 'encodings',
-            'includes' : 'cairo, gio, atk, pangocairo, pango',
+            'includes' : 'cairo, pango, pangocairo, atk, gobject, gio',
             'dist_dir' : 'gmbox-win',
         }
     },
