@@ -207,7 +207,10 @@ class GmBox():
         # need to remove the empty result page
         empty_result_page = self.result_pages["empty"][0]
         if self.result_notebook.page_num(empty_result_page) != -1:
+            gtk.gdk.threads_enter()
             self.result_notebook.remove(empty_result_page)
+            gtk.gdk.threads_leave()
+
         
         # create result page
         result_page = ResultPage(self)
@@ -215,15 +218,17 @@ class GmBox():
         result_page_label.connect("button-press-event", self.on_result_notebook_tab_button_press_event)
 
         self.result_pages[page_key] = (result_page, result_page_label)
+        gtk.gdk.threads_enter()
         index = self.result_notebook.append_page(result_page, result_page_label)
         self.result_notebook.set_current_page(index)
+        gtk.gdk.threads_leave()
         
         # then call core to get result
         try:
             if arg is None:
                 result = target()
             else:
-                result = target(arg)   
+                result = target(arg)
         except Exception, error:
             traceback.print_exc()
             result_page.load_message("遇到错误：%s" % str(error))
@@ -418,12 +423,14 @@ class GmBox():
         
     def stop_player(self):
         if hasattr(self, "player_running"):
+            gtk.gdk.threads_enter()
             self.player_running.clear()
             self.player.song.play_status = ""
             self.player.song.play_process = 0
             self.playlist_treeview.queue_draw()
             self.playing = False
             self.play_button.set_label("播放")
+            gtk.gdk.threads_leave()
                     
     def player_callback(self, song):
         self.player.song.play_status = ""
@@ -587,18 +594,18 @@ class GmBox():
         else: # download
             url_type_name = "下载"
         
+        gtk.gdk.threads_enter()
         self.copy_menuitem.set_sensitive(False)
         self.print_message("正在获取%d首歌曲的%s地址。" % (len(songs), url_type_name))
         urls = self.get_songs_urls(songs, url_type)
         text = "\n".join(urls)
         
         # paste to clipboard
-        gtk.gdk.threads_enter()
         self.clipboard.set_text(text)
-        gtk.gdk.threads_leave()
-        
+
         self.print_message("共复制%d个%s地址已复制到剪贴板。" % (len(urls), url_type_name))
         self.copy_menuitem.set_sensitive(True)
+        gtk.gdk.threads_leave()
         
     def export_url_to_file(self, songs, url_type):
         if url_type == "stream":
@@ -619,7 +626,6 @@ class GmBox():
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filename()
         dialog.destroy()    
-        gtk.gdk.threads_leave()
 
         self.export_menuitem.set_sensitive(False)
         self.print_message("正在获取%d首歌曲的%s地址。" % (len(songs), url_type_name))
@@ -632,6 +638,7 @@ class GmBox():
             file.write(text)
             self.print_message("共导出%d个%s地址到文件。" % (len(urls), url_type_name))
         self.export_menuitem.set_sensitive(True)
+        gtk.gdk.threads_leave()
 
     def set_artist_label_text(self):
         if self.custom_artist_radiobutton.get_active():
@@ -903,14 +910,16 @@ class GmBox():
 
     def on_result_notebook_tab_button_press_event(self, widget, event, data=None):       
         if event.type == gtk.gdk._2BUTTON_PRESS or event.button == 2:
+            if self.result_notebook.get_n_pages() == 1:
+                empty_result_page, empty_result_page_label = self.result_pages["empty"]
+                if empty_result_page == self.result_notebook.get_nth_page(0):
+                    return
+                else:
+                    self.result_notebook.append_page(empty_result_page, empty_result_page_label)
+
             index = self.result_notebook.page_num(widget.result_page)
             self.result_notebook.remove_page(index)
             
-            if self.result_notebook.get_n_pages() == 0:
-                # add empty result page back
-                empty_result_page, empty_result_page_label = self.result_pages["empty"]
-                self.result_notebook.append_page(empty_result_page, empty_result_page_label)
-
     def on_play_menuitem_activate(self, widget, data=None):
         thread.start_new_thread(self.play_songs, (self.selected_songs,))
         
