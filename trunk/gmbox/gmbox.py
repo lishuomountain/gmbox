@@ -17,6 +17,7 @@ class GmBox():
     
     def __init__(self):
   
+        # 从glade文件构建widgets
         builder = gtk.Builder()
         builder.add_from_file(MODULE_PATH + "/gmbox.glade")
         builder.connect_signals(self)
@@ -25,11 +26,15 @@ class GmBox():
                 name = gtk.Buildable.get_name(widget)
                 setattr(self, name, widget)
 
-        # global variables
+        # 全局变量
+        
+        # 保存搜索结果列表缓存
         self.result_pages = {}
+        
+        # 剪贴板对象
         self.clipboard = gtk.Clipboard()
 
-        # init widget data                
+        # 初始化widgets的状态           
         self.init_mainwin()
         self.init_info_textview()
         self.init_category_treeview()
@@ -41,47 +46,53 @@ class GmBox():
         self.init_player_widgets()
         self.init_status_icon()
         
+        # 某些功能未完成，屏蔽掉
         self.init_not_done_yet()
 
-    # gui setup functions         
+    # GUI 初始化函数
+       
     def init_mainwin(self):
+        '''初始化主窗口'''
         
-        # main window
+        # 窗口
         self.mainwin.hided = False
+        self.mainwin.set_title("谷歌音乐盒 - 0.4 alpha")
+        self.mainwin.set_icon(ICON_DICT["gmbox"])
         
-        # main panel
+        # 主面板
         self.sidebar_vbox.hided = False
         self.info_vbox.hided = False
         self.info_vbox.hide()
         
-        # sidebar panels
+        # 侧边栏
         self.search_vbox.hided = False
         self.category_vbox.hided = False
         #self.screener_vbox.hided = False
         self.screener_vbox.hide()
         self.screener_vbox.hided = True
-        
-        # window title and icon
-        self.mainwin.set_title("谷歌音乐盒 - 0.4 alpha")
-        self.mainwin.set_icon(ICON_DICT["gmbox"])
+
         
     def init_info_textview(self):
+        '''初始化信息面板'''
+        
         self.info_textview.modify_font(pango.FontDescription("Mono"))
         self.info_textview.set_editable(False)
         self.info_textbuffer = self.info_textview.get_buffer()
         
     def init_category_treeview(self):
-        # remove the children add in glade
+        '''初始化分类列表'''
+        
+        # 替换掉glade那个占位页面
         widgets = self.category_scrolledwindow.get_children()
         for widget in widgets:
             self.category_scrolledwindow.remove(widget)
-            
-        # ceate treeview manualy
         category_treeview = CategoryTreeview(self)
         self.category_scrolledwindow.add(category_treeview)
         self.category_scrolledwindow.show_all()
         
     def init_screener_widgets(self):
+        '''初始化挑歌面板'''
+        
         tempo_adjustment = gtk.Adjustment(value=50, upper=100)
         pitch_adjustment = gtk.Adjustment(value=50, upper=100)
         timbre_adjustment = gtk.Adjustment(value=50, upper=100)
@@ -93,38 +104,43 @@ class GmBox():
         self.date_hscale.set_adjustment(date_adjustment)
         
     def init_result_notebook(self):
+        '''初始化搜索结果notebook'''
+        
         page_text = "空白"
         page_key = "empty"
         empty_result_page = ResultPage(self)
         empty_result_page_label = ResultPageLabel(empty_result_page, page_text, page_key)
         self.result_pages[page_key] = (empty_result_page, empty_result_page_label)
-        # replace glade holder page
+        
+        # 替换掉glade那个占位页面
         self.result_notebook.remove_page(0)
         self.result_notebook.append_page(empty_result_page, empty_result_page_label)
         
     def init_playlist_treeview(self):
-        # remove the children add in glade
+        '''初始化播放列表'''
+        
+        # 替换掉glade那个占位页面
         widgets = self.playlist_scrolledwindow.get_children()
         for widget in widgets:
             self.playlist_scrolledwindow.remove(widget)
-            
-        # ceate treeview manualy
         self.playlist_treeview = PlaylistTreeview(self)
         self.playlist_scrolledwindow.add(self.playlist_treeview)
         self.playlist_scrolledwindow.show_all()
         
     def init_downlist_treeview(self):
-        # remove the children add in glade
+        '''初始化播放列表'''
+        
+        # 替换掉glade那个占位页面
         widgets = self.downlist_scrolledwindow.get_children()
         for widget in widgets:
             self.downlist_scrolledwindow.remove(widget)
-            
-        # ceate treeview manualy
         self.downlist_treeview = DownlistTreeview(self)
         self.downlist_scrolledwindow.add(self.downlist_treeview)
         self.downlist_scrolledwindow.show_all()
         
     def init_preferences_widgets(self):
+        '''初始化首选项对话框'''
+        
         self.file_chooser_dialog = gtk.FileChooserDialog("选择一个文件", None,
                                    gtk.FILE_CHOOSER_ACTION_OPEN,
                                    (gtk.STOCK_OPEN, gtk.RESPONSE_OK,
@@ -138,52 +154,64 @@ class GmBox():
         self.update_preferences_widgets()
         
     def init_player_widgets(self):
+        '''初始化内置播放器'''
+        
         play_process_adjustment = gtk.Adjustment(value=0, upper=100)
         self.play_process_hscale.set_adjustment(play_process_adjustment)
     
     def init_status_icon(self):
+        '''初始化通知区域图标'''
+        
         self.status_icon = gtk.StatusIcon()
         self.status_icon.set_from_pixbuf(ICON_DICT["gmbox"])
         self.status_icon.connect("activate", self.on_status_icon_activate)
         self.status_icon.set_visible(CONFIG["show_status_icon"])
         
-    def init_not_done_yet(self):                
-        # win32 mpg123 not usable
+    def init_not_done_yet(self):
+        '''初始化未完成的咚咚'''
+                   
+        # 内置播放器mpg123在win下还没能用
         if sys.platform == "win32":
             self.player_internal_radiobutton.set_sensitive(False)
             self.player_external_radiobutton.set_active(True)
             
-        # song detail
+        # 歌曲详情
         self.view_detail_menuitem.hide() 
         self.menuitem5.hide()
 
-    def update_preferences_widgets(self):        
-        # regular
+    def update_preferences_widgets(self):
+        '''更新首选项对话框widget状态'''
+           
+        # 常规
         self.download_folder_entry.set_text(CONFIG["download_folder"])
         self.filename_template_entry.set_text(CONFIG["filename_template"])        
         self.download_cover_checkbutton.set_active(CONFIG["download_cover"])
         self.download_lyric_checkbutton.set_active(CONFIG["download_lyric"])
         self.show_status_icon_checkbutton.set_active(CONFIG["show_status_icon"])
         
-        # player
+        # 播放器
         self.player_internal_radiobutton.set_active(CONFIG["player_use_internal"])
         self.player_external_radiobutton.set_active(not CONFIG["player_use_internal"])
         self.player_path_entry.set_text(CONFIG["player_path"])
         self.player_single_entry.set_text(CONFIG["player_single"])        
         self.player_multi_entry.set_text(CONFIG["player_multi"])
         
-        # downloader
+        # 下载程序
         self.downloader_internal_radiobutton.set_active(CONFIG["downloader_use_internal"])
         self.downloader_external_radiobutton.set_active(not CONFIG["downloader_use_internal"])
         self.downloader_path_entry.set_text(CONFIG["downloader_path"])
         self.downloader_single_entry.set_text(CONFIG["downloader_single"])        
         self.downloader_multi_entry.set_text(CONFIG["downloader_multi"])    
             
-    def update_status_icon(self):     
+    def update_status_icon(self):
+        '''更新通知区域图标状态'''
+        
         self.status_icon.set_visible(CONFIG["show_status_icon"])
 
-    def update_player_widgets(self):        
-        # hide or display player control
+    def update_player_widgets(self):
+        '''更新内置播放器widget状态'''
+             
+        # 如果不是使用内置播放器，则隐藏
         if CONFIG["player_use_internal"]:
             self.player_vseparator.show()
             self.player_hbox.show()
@@ -193,10 +221,14 @@ class GmBox():
             self.player_hbox.hide()
 
     def update_player_process_hscale(self):
+        '''更新内置播放器进度条状态'''
+        
         self.play_process_hscale.set_value(self.player.song.play_process)
         return self.player_running.isSet()
 
     def print_message(self, text):
+        '''状态栏和信息面板显示信息'''
+        
         context_id = self.statusbar.get_context_id("context_id")
         self.statusbar.push(context_id, text)
         iter = self.info_textbuffer.get_end_iter()
@@ -204,15 +236,16 @@ class GmBox():
         self.info_textbuffer.insert(iter, info_text)
         
     def create_result_page(self, target, arg, page_text, page_key):
-        # need to remove the empty result page
+        '''创建搜索结果标签页'''
+        
+        # 添加第一个搜索结果标签页时，先删除原来的空白页
         empty_result_page = self.result_pages["empty"][0]
         if self.result_notebook.page_num(empty_result_page) != -1:
             gtk.gdk.threads_enter()
             self.result_notebook.remove(empty_result_page)
             gtk.gdk.threads_leave()
 
-        
-        # create result page
+        # 创建结果标签页
         result_page = ResultPage(self)
         result_page_label = ResultPageLabel(result_page, page_text, page_key)
         result_page_label.connect("button-press-event", self.on_result_notebook_tab_button_press_event)
@@ -223,7 +256,7 @@ class GmBox():
         self.result_notebook.set_current_page(index)
         gtk.gdk.threads_leave()
         
-        # then call core to get result
+        # 调用核心库获取结果
         try:
             if arg is None:
                 result = target()
@@ -232,7 +265,7 @@ class GmBox():
         except Exception, error:
             traceback.print_exc()
             result_page.load_message("遇到错误：%s" % str(error))
-            # remove from result dict for retry
+            # 从结果缓存中移除出去
             self.result_pages.pop(page_key)
         else:
             if isinstance(result, Songlist):
@@ -246,20 +279,22 @@ class GmBox():
                 result_page.load_result(result)
 
     def find_result_page(self, page_key):
-        # switch to reslut page
+        '''从缓存搜索结果标签页'''
+        
+        # 切换到该页面
         self.main_notebook.set_current_page(0)
         
         if self.result_pages.has_key(page_key):            
-            # need to remove the empty result page
+            # 删除原来的空白页
             empty_result_page = self.result_pages["empty"][0]
             if self.result_notebook.page_num(empty_result_page) != -1:
                 self.result_notebook.remove(empty_result_page)
             
-            # reuse result page
+            # 从缓存取出标签页
             result_page, result_page_label = self.result_pages[page_key]
             index = self.result_notebook.page_num(result_page)
             if index == -1:
-                # not in notebook, append it again                
+                # 重新添加并显示出来          
                 index = self.result_notebook.append_page(result_page, result_page_label)
             self.result_notebook.set_current_page(index)
             return True
@@ -267,6 +302,8 @@ class GmBox():
             return False
         
     def do_search(self, text, type):
+        '''处理搜索'''
+        
         if type == "song":
             self.print_message('搜索歌曲“%s”。' % text)
             page_text = text
@@ -279,7 +316,7 @@ class GmBox():
             page_key = "search_album:%s" % text
             if not self.find_result_page(page_key):
                 thread.start_new_thread(self.create_result_page, (DirSearch, text, page_text, page_key))
-        else: # artist
+        else:
             self.print_message('搜索歌手“%s”。' % text)
             page_text = text
             page_key = "search_artist:%s" % text
@@ -287,7 +324,9 @@ class GmBox():
                 thread.start_new_thread(self.create_result_page, (DirArtist, text, page_text, page_key))
      
     def do_chartlisting(self, name, type):
-        # find id from name
+        '''处理排行榜'''
+        
+        # 从常量中获得排行榜的id
         for chartlisting in CHARTLISTING_DIR:
             if chartlisting[0] == name:
                 id = chartlisting[1]
@@ -303,6 +342,8 @@ class GmBox():
                 thread.start_new_thread(self.create_result_page, (DirChartlisting, id, page_text, page_key)) 
     
     def do_tag(self, name, type):
+        '''处理标签'''
+        
         if type == Song:
             self.print_message('搜索歌曲标签“%s”。' % name)
             page_text = name
@@ -317,6 +358,8 @@ class GmBox():
                 thread.start_new_thread(self.create_result_page, (DirTag, name, page_text, page_key))
             
     def do_topiclistingdir(self):
+        '''处理专题列表'''
+        
         self.print_message('获取最新专题。')
         page_text = "最新专题"
         page_key = "topiclistingdir"
@@ -324,19 +367,23 @@ class GmBox():
             thread.start_new_thread(self.create_result_page, (DirTopiclistingdir, None, page_text, page_key))
       
     def do_starrecommendationdir(self):
+        '''处理大牌私房歌'''
+        
         self.print_message('获取大牌私房歌。')        
         page_text = "私房歌"
         page_key = "starrecommendationdir"
         if not self.find_result_page(page_key):
             thread.start_new_thread(self.create_result_page, (DirStarrecc, None, page_text, page_key))
   
-    def do_screener(self, args_dict):           
+    def do_screener(self, args_dict):
+        '''处理挑歌'''
+          
         simple_hash = ";".join(["%s:%s" % (key, value) for key, value in args_dict.items()])
         self.print_message('获取挑歌结果。')
         page_text = "挑歌"
         page_key = "screener:%s" % simple_hash
         if not self.find_result_page(page_key):
-            # reuse result page
+            # 重用结果页
             if self.reuse_result_tab_checkbutton.get_active():
                 result_page_index = self.result_notebook.get_current_page()
                 result_page = self.result_notebook.get_nth_page(result_page_index)
@@ -347,13 +394,17 @@ class GmBox():
             thread.start_new_thread(self.create_result_page, (Screener, args_dict, page_text, page_key))
         
     def do_similar(self, id, name):
+        '''处理相似歌曲'''
+        
         self.print_message('获取“%s”的相似歌曲。' % name)
         page_text = name
         page_key = "similar:%s" % id
         if not self.find_result_page(page_key):
             thread.start_new_thread(self.create_result_page, (Similar, id, page_text, page_key))
         
-    def do_artist_song(self, id, name):        
+    def do_artist_song(self, id, name):
+        '''处理热门歌曲'''
+           
         self.print_message('获取“%s”的热门歌曲。' % name)
         page_text = name
         page_key = "artist_song:%s" % id
@@ -361,6 +412,8 @@ class GmBox():
             thread.start_new_thread(self.create_result_page, (ArtistSong, id, page_text, page_key))
         
     def do_artist_album(self, id, name):
+        '''处理艺术家专辑'''
+        
         self.print_message('获取“%s”的专辑。' % name)
         page_text = name
         page_key = "artist_album:%s" % id
@@ -375,9 +428,11 @@ class GmBox():
             thread.start_new_thread(self.create_result_page, (Album, id, page_text, page_key))   
         
     def popup_content_menu(self, songs, event, caller):
+        '''弹出右键菜单'''
+        
         self.selected_songs = songs
         
-        # show last time hided widget
+        # 显示所有菜单条目
         self.down_menuitem.show()
         self.playlist_menuitem.show()
         self.playlist_remove_menuitem.hide()
@@ -386,7 +441,7 @@ class GmBox():
         self.downlist_remove_menuitem.hide()
         self.downlist_clear_menuitem.hide()
 
-        # hide menuitem in difference treeview
+        # 不同页面使用隐藏某些菜单条目
         if isinstance(caller, PlaylistTreeview):
             self.playlist_menuitem.hide()
             self.playlist_remove_menuitem.show()
@@ -403,9 +458,12 @@ class GmBox():
         if isinstance(caller, DownlistTreeview) and CONFIG["downloader_use_internal"]:
             self.down_menuitem.hide()
 
+        # 可以显示出来了
         self.content_menu.popup(None, None, None, event.button, event.time) 
 
     def start_player(self, song):
+        '''启动播放器'''
+        
         self.player_running = threading.Event()
         self.player_running.set()
         self.player = Player(song, self.player_running, self.player_callback)
@@ -418,10 +476,12 @@ class GmBox():
         self.playing = True
         self.play_button.set_label("暂停")
 
-        # add update time inforamtion function
+        # 定时更新进度条
         gobject.timeout_add(1000, self.update_player_process_hscale)
         
     def stop_player(self):
+        '''停止播放器'''
+        
         if hasattr(self, "player_running"):
             gtk.gdk.threads_enter()
             self.player_running.clear()
@@ -433,6 +493,8 @@ class GmBox():
             gtk.gdk.threads_leave()
                     
     def player_callback(self, song):
+        '''播放器回调函数，当一首歌播放完成是调用'''
+        
         self.player.song.play_status = ""
         self.player.song.play_process = 0
         self.playlist_treeview.queue_draw()
@@ -440,11 +502,14 @@ class GmBox():
         self.start_player(song)
 
     def play_songs(self, songs):
+        '''播放歌曲'''
+        
         self.add_to_playlist(songs, False)
         if CONFIG["player_use_internal"]:
                 self.stop_player()
                 self.start_player(songs[0])
-        else: # user external player
+        else: 
+            # 使用外部播放器
             player = CONFIG["player_path"]
             if player == "":
                 self.print_message("未设置播放器。")
@@ -474,13 +539,15 @@ class GmBox():
                 subprocess.Popen(cmd)
                 
     def down_songs(self, songs):
+        '''下载歌曲'''
 
         self.add_to_downlist(songs)
             
-        # choose downloader
+        # 选择下载程序
         if CONFIG["downloader_use_internal"]:
             self.downlist_treeview.start_downloader()
-        else: # user external downloader  
+        else:
+            # 使用外部下载程序
             downloader = CONFIG["downloader_path"]
             if downloader == "":
                 self.print_message("未设置下载程序。")
@@ -502,12 +569,12 @@ class GmBox():
                 if "${URL}" in cmd:
                     cmd[cmd.index("${URL}")] = url
                 
-                # make save file full path
+                # 构造保存文件的绝对路径
                 filename = CONFIG["filename_template"].replace("${ALBUM}", song.album)
                 filename = filename.replace("${ARTIST}", song.artist)
                 filename = filename.replace("${TITLE}", song.name)
                 if "${TRACK}" in filename:
-                    # need to load stearm info
+                    # 需要读取一下歌曲的详情数据
                     self.get_songs_urls([song], "stream")
                     filename = filename.replace("${TRACK}", song.providerId[-2:])
                 filepath = "%s/%s.mp3" % (download_folder, filename) 
@@ -533,7 +600,9 @@ class GmBox():
                 print cmd
                 subprocess.Popen(cmd, cwd=download_folder)
         
-    def add_to_playlist(self, songs, thread_stream=True):        
+    def add_to_playlist(self, songs, thread_stream=True):
+        '''添加到播放列表'''
+        
         if len(songs) > 0:
             if thread_stream:
                 thread.start_new_thread(self.get_songs_urls, (songs, "stream"))
@@ -550,6 +619,8 @@ class GmBox():
         self.print_message("已添加%d首歌曲到播放列表。" % len(songs))
     
     def add_to_downlist(self, songs):
+        '''添加到下载列表'''
+        
         if CONFIG["downloader_use_internal"]:
             for song in songs:
                 song.down_process = "0%"
@@ -562,6 +633,8 @@ class GmBox():
         self.print_message("已添加%d首歌曲到下载列表。" % len(songs))
                 
     def get_songs_urls(self, songs, url_type):
+        '''获取歌曲地址'''
+        
         urls = []
         if url_type == "stream":
             for song in songs:
@@ -577,7 +650,8 @@ class GmBox():
                     self.print_message("获取“%s”歌词地址失败，请稍后再试。" % song.name)
                 else:
                     urls.append(song.lyricsUrl)
-        else: #download
+        else:
+            # 下载地址
             for song in songs:
                 song.load_download()
                 if song.downloadUrl == "":
@@ -587,11 +661,14 @@ class GmBox():
         return urls
         
     def copy_url_to_clipboard(self, songs, url_type):
+        '''复制歌曲地址到剪贴板'''
+        
         if url_type == "stream":
             url_type_name = "试听"
         elif url_type == "lyric":
             url_type_name = "歌词"
-        else: # download
+        else: 
+            # 下载地址
             url_type_name = "下载"
         
         gtk.gdk.threads_enter()
@@ -600,7 +677,7 @@ class GmBox():
         urls = self.get_songs_urls(songs, url_type)
         text = "\n".join(urls)
         
-        # paste to clipboard
+        # 粘贴到剪贴板
         self.clipboard.set_text(text)
 
         self.print_message("共复制%d个%s地址已复制到剪贴板。" % (len(urls), url_type_name))
@@ -608,14 +685,17 @@ class GmBox():
         gtk.gdk.threads_leave()
         
     def export_url_to_file(self, songs, url_type):
+        '''输出地址到文件'''
+        
         if url_type == "stream":
             url_type_name = "试听"
         elif url_type == "lyric":
             url_type_name = "歌词"
-        else: # download
+        else: 
+            # 下载地址
             url_type_name = "下载"
             
-        # select file to save
+        # 选择保存文件
         filename = ""
         gtk.gdk.threads_enter()
         dialog = gtk.FileChooserDialog("选择一个文件", None,
@@ -632,7 +712,7 @@ class GmBox():
         urls = self.get_songs_urls(songs, url_type)
         text = "\n".join(urls)
         
-        # export to file
+        # 输出到文件
         if filename != "":
             file = open(filename, "w")
             file.write(text)
@@ -641,6 +721,8 @@ class GmBox():
         gtk.gdk.threads_leave()
 
     def set_artist_label_text(self):
+        '''更新艺术家标签文本，挑歌面板里的'''
+        
         if self.custom_artist_radiobutton.get_active():
             markup_text = "<span size='small'>%s</span>" % self.custom_aritst_entry.get_text()
             self.artist_label.set_markup_with_mnemonic(markup_text)
@@ -653,6 +735,8 @@ class GmBox():
                     break
    
     def set_genres_label_text(self):
+        '''更新流派标签文本，挑歌面板里的'''
+        
         checkbuttons = self.genres_table.get_children()
         checkbuttons.reverse()
         text = []
@@ -663,6 +747,8 @@ class GmBox():
         self.genres_label.set_markup_with_mnemonic(markup_text)
     
     def set_langs_label_text(self):
+        '''更新语言标签文本，挑歌面板里的'''
+        
         checkbuttons = self.langs_table.get_children()
         checkbuttons.reverse()
         text = []
@@ -672,7 +758,8 @@ class GmBox():
         markup_text = "<span size='small'>%s</span>" % ",".join(text)
         self.langs_label.set_markup_with_mnemonic(markup_text)
         
-    # callback functions
+    # widget回调函数
+    
     def on_search_entry_activate(self, widget, data=None):
         
         text = self.search_entry.get_text()        
@@ -698,7 +785,7 @@ class GmBox():
         self.update_preferences_widgets()
         response = self.preferences_dialog.run()
         if response == gtk.RESPONSE_OK:
-            # regular
+            # 常规
             CONFIG["download_folder"] = self.download_folder_entry.get_text()
             CONFIG["filename_template"] = self.filename_template_entry.get_text()
             CONFIG["player_use_internal"] = self.player_internal_radiobutton.get_active()
@@ -706,20 +793,20 @@ class GmBox():
             CONFIG["download_cover"] = self.download_cover_checkbutton.get_active()
             CONFIG["download_lyric"] = self.download_lyric_checkbutton.get_active()
             CONFIG["show_status_icon"] = self.show_status_icon_checkbutton.get_active()
-            # player
+            # 播放器
             CONFIG["player_path"] = self.player_path_entry.get_text() 
             CONFIG["player_single"] = self.player_single_entry.get_text()
             CONFIG["player_multi"] = self.player_multi_entry.get_text()
-            # downloader
+            # 下载程序
             CONFIG["downloader_path"] = self.downloader_path_entry.get_text() 
             CONFIG["downloader_single"] = self.downloader_single_entry.get_text()
             CONFIG["downloader_multi"] = self.downloader_multi_entry.get_text()
             
-            # update widgets status 
+            # 更新一下状态
             self.update_status_icon()
             self.update_player_widgets()
                         
-            # save to file
+            # 保存设置到文件
             save_config_file()
         self.preferences_dialog.hide()
       
@@ -870,8 +957,8 @@ class GmBox():
             args_dict["timbre"] = str(self.timbre_hscale.get_value() / 100)
 
         if self.date_checkbutton.get_active():
-            # convert format, 3 division, but not dot character.
-            # for examle year 2010 
+            # 转换时间，3位小数，但是忽略小数点
+            # 例如 2010 年 
             # 1262275200.0 --> 1262275200000
             pos = (self.date_hscale.get_value() / 100) 
             year_end = int(pos * (2010 - 1980) + 1980)
@@ -953,7 +1040,7 @@ class GmBox():
             self.do_similar(song.id, song.name)
                     
     def on_album_menuitem_activate(self, widget, data=None):
-        # need to album artist
+        # 需要唯一的艺术家
         ids = []
         unique_songs = []
         for song in self.selected_songs:
@@ -965,7 +1052,7 @@ class GmBox():
             self.do_album(song.albumId, song.album)
         
     def on_artist_hotsong_menuitem_activate(self, widget, data=None):
-        # need to unique artist
+        # 需要唯一的艺术家
         ids = []
         unique_songs = []
         for song in self.selected_songs:
@@ -977,7 +1064,7 @@ class GmBox():
             self.do_artist_song(song.artistId, song.artist)
         
     def on_artist_album_menuitem_activate(self, widget, data=None):
-        # need to unique artist
+        # 需要唯一的艺术家
         ids = []
         unique_songs = []
         for song in self.selected_songs:
