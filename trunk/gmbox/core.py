@@ -1,18 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__doc__ = '''gmbox核心库
+
+这个库复制解析请求结果，并把结果转换为python对象。
+
+基本对象：
+Song: 歌曲
+Songlist: 包含Song类的列表，子类是专辑、歌曲排行榜等。
+Directory: 包含Songlist类（或子类）的列表，子类是搜索专辑，专辑排行榜等。
+
+解析结果：
+谷歌音乐的某些结果提供xml，通过它的flash播放器抓包分析所得。
+某些功能没有xml，只好解析html，理论上解析速度会被xml慢。
+'''
+
 import xml.dom.minidom as minidom
 import hashlib
 import urllib
 import re
 
 class GmObject():
+    '''gmbox基本类
+
+    定义共享工具类型的方法，子类实现具体方法。
+    '''
 
     def __init__(self):
         pass
 
     def parse_node(self, node):
-        # append attributes from node
+        '''解析xml节点添加实例属性'''
+
         for childNode in node.childNodes:
             name = childNode.tagName
             if childNode.hasChildNodes():
@@ -22,12 +41,15 @@ class GmObject():
             setattr(self, name, value)
             
     def parse_dict(self, dict):
-        # append attributes from dict
+        '''解析dict键值添加实例属性'''
+
         for key in dict:
             setattr(self, key, unicode(dict[key]))
             
     @staticmethod
     def decode_html_text(text):
+        '''转义html特殊符号'''
+        
         html_escape_table = {
             "&nbsp;" : " ",
             "&quot;" : '"',
@@ -45,6 +67,7 @@ class GmObject():
         return text
 
 class Song(GmObject):
+    '''歌曲类'''
 
     def __init__(self, id=None):
         if id is not None:
@@ -52,6 +75,13 @@ class Song(GmObject):
             self.load_detail()
 
     def load_streaming(self):
+        '''读取stream数据
+        
+        stream数据是包含歌词地址，在线播放地址的数据。
+        调用这个函数会发出一个http请求，但只会发出一次，
+        亦即数据已经读取了就不再发出http请求了。
+        '''
+        
         if not hasattr(self, "songUrl"):
             template = "http://www.google.cn/music/songstreaming?id=%s&cd&sig=%s&output=xml"
             flashplayer_key = "c51181b7f9bfce1ac742ed8b4a1ae4ed"
@@ -63,6 +93,13 @@ class Song(GmObject):
             self.parse_node(dom.getElementsByTagName("songStreaming")[0])
         
     def load_detail(self):
+        '''读取详情数据
+
+        详情数据是包含艺术家编号，封面地址等数据。
+        调用这个函数会发出一个http请求，但只会发出一次，
+        亦即数据已经读取了就不再发出http请求了。
+        '''
+        
         if not hasattr(self, "albumId"):
             template = "http://www.google.cn/music/song?id=%s&output=xml"
             url = template % self.id
@@ -72,11 +109,15 @@ class Song(GmObject):
             self.parse_node(dom.getElementsByTagName("song")[0])
             
     def load_download(self):
+        '''读取下载地址数据'''
+        
         if not hasattr(self, "downloadUrl") or self.downloadUrl == "":
             self.downloadUrl = Song.musicdownload(self.id)
 
     @staticmethod 
-    def musicdownload(id):    
+    def musicdownload(id):
+        '''获取下载地址'''
+        
         template = "http://www.google.cn/music/top100/musicdownload?id=%s"
         url = template % id
         urlopener = urllib.urlopen(url)
@@ -85,16 +126,40 @@ class Song(GmObject):
         if matches is not None:
             return "http://www.google.cn/%s" % matches.group(1).replace("&amp;", "&")
         else:
-            # to many request in the same time, ask for captcha
+            # TODO 短时间内请求次数太多了，可能出现验证码
             return ""
 
-class Songlist(GmObject):       
+class Songlist(GmObject):  
+    '''歌曲列表基本类，是歌曲(Song类）的集合
+
+    定义共享解析的方法，分别是xml和html，部分内容可能没有xml提供。
+    对于特别的情况，由子类覆盖方法实现。
+    
+    '''     
 
     def __init__(self):
         self.songs = []
         self.has_more = False
+        
+    def load_songs(self):
+        '''读取歌曲列表里的歌曲，子类应覆盖这个方法
+        
+        调用self.load_songs后，self.songs会保存了本次请求的Song类的实例，
+        例如：
+        第一次调用self.load_songs后，self.songs只包含第一页的20首歌曲
+        第二次调用self.load_songs后，self.songs只包含第二页的20首歌曲
+        余下同理。
+        
+        所以请先从self.songs复制出Song实例后再调用self.load_songs，以免
+        前面的结果被覆盖。
+        可以检查self.has_more是否还有更多，亦即是否存在下一页。        
+        '''
+        
+        pass
 
     def parse_xml(self, xml, song_tag="songList"):
+        '''解析xml'''
+        
         songs = []
         dom = minidom.parseString(xml)
         info_node = dom.getElementsByTagName("info")
@@ -107,43 +172,39 @@ class Songlist(GmObject):
                 songs.append(song)
         return songs
 
-    def parse_html(self, html):                       
-        # find id      
+    def parse_html(self, html):
+        '''解析html'''
+                       
         ids = []  
         matches = re.findall('<!--freemusic/song/result/([^-]+)-->', html)
         for match in matches:
             ids.append(match)
             
-        # find name
         names = []
         matches = re.findall('<td class="Title BottomBorder">.+?>(.+?)</.+?></td>', html, re.DOTALL)
         for match in matches:   
             match = GmObject.decode_html_text(match)         
             names.append(match)
 
-        # find artist
         artists = []
         matches = re.findall('<td class="Artist BottomBorder">(.+?)</td>', html, re.DOTALL)
         for match in matches:
-            # some song may has one more aritsts
+            # TODO 某些歌曲有一个以上的歌手
             match = re.findall('<.+?>(.+?)</.*>', match)
             match = " ".join(match)
             match = GmObject.decode_html_text(match)
             artists.append(match)
             
-        # find album
         albums = []
         matches = re.findall('<td class="Album BottomBorder"><a .+?>《(.+?)》</a></td>', html, re.DOTALL)
         for match in matches:
             match = GmObject.decode_html_text(match)
             albums.append(match)
             
-        # album maybe empty
         if len(albums) == 0:
             for i in range(len(ids)):
                 albums.append("")
             
-        # create song object, three list should have same len
         songs = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "artist":artists[i], "album":albums[i]}
@@ -153,6 +214,7 @@ class Songlist(GmObject):
         return songs            
 
 class Album(Songlist):
+    '''专辑'''
     
     def __init__(self, id=None):
         Songlist.__init__(self)
@@ -170,6 +232,7 @@ class Album(Songlist):
         return songs
             
 class Search(Songlist):
+    '''搜索'''
     
     def __init__(self, id=None):
         Songlist.__init__(self)
@@ -192,6 +255,7 @@ class Search(Songlist):
         return songs
                     
 class Chartlisting(Songlist):
+    '''排行榜'''
     
     def __init__(self, id=None):
         Songlist.__init__(self)
@@ -214,6 +278,7 @@ class Chartlisting(Songlist):
         return songs
 
 class Topiclisting(Songlist):
+    '''专题'''
     
     def __init__(self, id=None):
         Songlist.__init__(self)
@@ -231,6 +296,7 @@ class Topiclisting(Songlist):
         return songs
     
 class ArtistSong(Songlist):
+    '''艺术家'''
     
     def __init__(self, id=None):
         Songlist.__init__(self)
@@ -248,6 +314,7 @@ class ArtistSong(Songlist):
         return songs
             
 class Tag(Songlist):
+    '''标签'''
     
     def __init__(self, id=None):
         Songlist.__init__(self)
@@ -270,6 +337,7 @@ class Tag(Songlist):
         return songs
             
 class Screener(Songlist):
+    '''挑歌'''
     
     def __init__(self, args_dict={}):
         Songlist.__init__(self)
@@ -296,6 +364,7 @@ class Screener(Songlist):
         return songs
             
 class Similar(Songlist):
+    '''相似歌曲'''
     
     def __init__(self, id=None):
         Songlist.__init__(self)
@@ -313,22 +382,30 @@ class Similar(Songlist):
         return songs 
             
 class Starrecc(Songlist):
+    '''大牌私房歌'''
     
     def __init__(self, id=None):
         Songlist.__init__(self)
         if id is not None:
             self.id = id
-            self.load_songs()
+            self.load_songs()            
             
-    def html_handler(self, html):        
-        # find id      
+    def load_songs(self):
+        template = "http://www.google.cn/music/playlist/playlist?id=sys:star_recc:%s&type=star_recommendation"
+        url = template % self.id
+        urlopener = urllib.urlopen(url)
+        html = urlopener.read()
+        songs = self.parse_html(html)
+        self.songs.extend(songs)      
+        return songs  
+            
+    def parse_html(self, html):
         ids = []  
         matches = re.findall('onclick="window.open([^"]+)"', html)
         for match in matches:
             match = re.search('download.html\?id=([^\\\]+)', urllib.unquote(match)).group(1)
             ids.append(match)
  
-        # find name and artist
         names = []
         artists = []
         matches = re.findall('<td class="Title"><a .+?>《(.+?)》\n&nbsp;(.+?)</a></td>', html, re.DOTALL)
@@ -338,31 +415,35 @@ class Starrecc(Songlist):
             names.append(name)
             artists.append(artist)
             
-        # create song object, three list should have same len
         songs = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "artist":artists[i]}
             song = Song()
             song.parse_dict(dict)
             songs.append(song)
-        return songs  
-        
-    def load_songs(self):
-        template = "http://www.google.cn/music/playlist/playlist?id=sys:star_recc:%s&type=star_recommendation"
-        url = template % self.id
-        urlopener = urllib.urlopen(url)
-        html = urlopener.read()
-        songs = self.html_handler(html)
-        self.songs.extend(songs)      
-        return songs  
+        return songs
             
 class Directory(GmObject):
+    '''歌曲列表列表基本类，是歌曲列表(Songlist类）的集合，这里简称为“目录”
+    
+    类结构和Songlist相同，提供通用的解析方法，特殊情况由子类覆盖方法实现。
+    '''   
 
     def __init__(self):
         self.songlists = []
         self.has_more = False
+        
+    def load_songlists(self, start=0, number=20):
+        '''读取目录里的歌曲列表，子类应覆盖这个方法
+        
+        原理类似Songlist类的load_songs方法，请参考该类注释，只不过Songlist类
+        实用self.songs而这个类使用self.songlists。
+        '''
+        
+        pass
 
 class DirSearch(Directory):
+    '''专辑搜索'''
     
     def __init__(self, id):
         Directory.__init__(self)
@@ -383,14 +464,12 @@ class DirSearch(Directory):
         self.songlists.extend(songlists)
         return songlists
             
-    def parse_html(self, html):                       
-        # find id      
+    def parse_html(self, html):                            
         ids = []  
         matches = re.findall('<!--freemusic/album/result/([^-]+)-->', html)
         for match in matches:
             ids.append(match)
 
-        # find name
         names = []
         matches = re.findall('《(.+)》', html)
         for match in matches:
@@ -399,7 +478,6 @@ class DirSearch(Directory):
             match = GmObject.decode_html_text(match)
             names.append(match)
     
-        # find artist
         artists = []
         matches = re.findall('<td class="Tracks" colspan="10" align="left">(.+?)</td>', html)
         for match in matches:
@@ -409,13 +487,11 @@ class DirSearch(Directory):
             match = GmObject.decode_html_text(match)
             artists.append(match)
             
-        # find thumbnail
         thumbnails = []
         matches = re.findall('<img [^/]+ class="thumb-img" [^/]+ src="([^"]+)"', html)
         for match in matches:
             thumbnails.append(match)
 
-        # create song object, three list should have same len
         songlists = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "artist":artists[i], "thumbnailLink":thumbnails[i]}
@@ -425,6 +501,7 @@ class DirSearch(Directory):
         return songlists
          
 class DirChartlisting(Directory):
+    '''专辑排行榜'''
     
     def __init__(self, id):
         Directory.__init__(self)
@@ -456,6 +533,7 @@ class DirChartlisting(Directory):
         return songlists
 
 class DirTopiclistingdir(Directory):
+    '''专辑专题'''
     
     def __init__(self):
         Directory.__init__(self)
@@ -477,21 +555,19 @@ class DirTopiclistingdir(Directory):
         
     def parse_html(self, html):
         html = urllib.unquote(html)               
-        # find id      
+
         ids = []  
         matches = re.findall('<a class="topic_title" href="([^"]+)">', html)
         for match in matches:
             match = re.search('topiclisting\?q=([^&]+)&', urllib.unquote(match)).group(1)
             ids.append(match)
 
-        # find name
         names = []
         matches = re.findall('<a class="topic_title" [^>]+>([^<]+)</a>', html)
         for match in matches:
             match = GmObject.decode_html_text(match)
             names.append(match)
 
-        # find description
         descriptions = []
         matches = re.findall('<td class="topic_description"><div title="([^"]+)"', html)
         for match in matches:
@@ -499,9 +575,7 @@ class DirTopiclistingdir(Directory):
             match = GmObject.decode_html_text(match)
             descriptions.append(match)
 
-        # find thumbnail
         thumbnails = []
-        # setup default thumbnail
         for i in range(len(ids)):
             thumbnails.append("http://www.google.cn/music/images/cd_cover_default_big.png")
         matches = re.findall('<td class="td-thumb-big">.+?topiclisting\?q=(.+?)&.+?src="(.+?)"', html, re.DOTALL)
@@ -510,7 +584,6 @@ class DirTopiclistingdir(Directory):
                 if match[0] == ids[i]:
                     thumbnails[i] = match[1]
 
-        # create song object, three list should have same len
         songlists = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "descriptions":descriptions[i],
@@ -522,6 +595,7 @@ class DirTopiclistingdir(Directory):
     
     
 class DirArtist(Directory):
+    '''艺术家专辑'''
     
     def __init__(self, id):
         Directory.__init__(self)
@@ -530,13 +604,12 @@ class DirArtist(Directory):
         
     def parse_html(self, html):
         html = urllib.unquote(html)                   
-        # find id      
+
         ids = []  
         matches = re.findall('<!--freemusic/artist/result/([^-]+)-->', html)
         for match in matches:
             ids.append(match)
 
-        # find name
         names = []
         matches = re.findall('<a href="/music/url\?q=/music/artist\?id.+?>(.+?)</a>', html)
         for match in matches:
@@ -545,9 +618,9 @@ class DirArtist(Directory):
             match = GmObject.decode_html_text(match)
             names.append(match)
             
-        # find thumbnail
         thumbnails = []
-        # setup default thumbnail
+        
+        # 某些专辑没有封面，则使用默认
         for i in range(len(ids)):
             thumbnails.append("http://www.google.cn/music/images/shadow_background.png")
         matches = re.findall('<div class="thumb">.+?artist\?id=(.+?)&.+?src="(.+?)"', html, re.DOTALL)
@@ -556,7 +629,6 @@ class DirArtist(Directory):
                 if match[0] == ids[i]:
                     thumbnails[i] = match[1]
 
-        # create song object, three list should have same len
         songlists = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "thumbnailLink":thumbnails[i]}
@@ -587,13 +659,12 @@ class DirArtistAlbum(Directory):
         self.load_songlists()
         
     def parse_html(self, html):                       
-        # find id      
+
         ids = []  
         matches = re.findall('<!--freemusic/album/result/([^-]+)-->', html)
         for match in matches:
             ids.append(match)
 
-        # find name
         names = []
         matches = re.findall('《(.+)》</a>&nbsp;-&nbsp;', html)
         for match in matches:
@@ -601,8 +672,7 @@ class DirArtistAlbum(Directory):
             match = match.replace("</b>", "")
             match = GmObject.decode_html_text(match)
             names.append(match)
-    
-        # find artist
+
         artists = []
         matches = re.findall('<td class="Tracks" colspan="10" align="left">(.+?)</td>', html)
         for match in matches:
@@ -611,16 +681,14 @@ class DirArtistAlbum(Directory):
             match = match.split()[0]
             match = GmObject.decode_html_text(match)
             artists.append(match)
-            
-        # find thumbnail
+
         thumbnails = []
         matches = re.findall('<img [^/]+ class="thumb-img" [^/]+ src="([^"]+)"', html)
         for match in matches:
             thumbnails.append(match)
-        # remove the first one, the artist thumbnail
+        # 上面的的正则表达式同样匹配艺术家头像，位置在第一，所以要去掉。
         thumbnails = thumbnails[1:]
 
-        # create song object, three list should have same len
         songlists = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "artist":artists[i], "thumbnailLink":thumbnails[i]}
@@ -639,6 +707,7 @@ class DirArtistAlbum(Directory):
         return songlists
         
 class DirTag(DirTopiclistingdir):
+    '''专辑标签'''
     
     def __init__(self, id):
         Directory.__init__(self)
@@ -660,14 +729,24 @@ class DirTag(DirTopiclistingdir):
         return songlists
     
 class DirStarrecc(Directory):
+    '''大牌私房歌歌手列表'''
     
     def __init__(self):
         Directory.__init__(self)
         self.load_songlists()
+            
+    def load_songlists(self):
+        template = "http://www.google.cn/music/starrecommendationdir?num=100"
+        url = template
+        urlopener = urllib.urlopen(url)
+        html = urlopener.read()
+        songlists = self.parse_html(html)
+        self.songlists.extend(songlists)
+        return songlists
         
     def parse_html(self, html):
         html = urllib.unquote(html)       
-        # find id and name
+
         ids = []  
         names = []
         matches = re.findall('<div class="artist_name"><a .+?sys:star_recc:(.+?)&.+?>(.+?)</a></div>', html)
@@ -677,20 +756,17 @@ class DirStarrecc(Directory):
             ids.append(id)
             names.append(name)
 
-        # find description
         descriptions = []
         matches = re.findall('<div class="song_count">(.+?)</div>', html, re.DOTALL)
         for match in matches:
             match = GmObject.decode_html_text(match)
             descriptions.append(match)
 
-        # find thumbnail
         thumbnails = []
         matches = re.findall('<div class="artist_thumb">.+?src="(.+?)".+?</div>', html, re.DOTALL)
         for match in matches:
             thumbnails.append(match)
 
-        # create song object, three list should have same len
         songlists = []
         for i in range(len(ids)):
             dict = {"id":ids[i], "name":names[i], "descriptions":descriptions[i],
@@ -698,13 +774,4 @@ class DirStarrecc(Directory):
             starrecc = Starrecc()
             starrecc.parse_dict(dict)
             songlists.append(starrecc)
-        return songlists
-        
-    def load_songlists(self):
-        template = "http://www.google.cn/music/starrecommendationdir?num=100"
-        url = template
-        urlopener = urllib.urlopen(url)
-        html = urlopener.read()
-        songlists = self.parse_html(html)
-        self.songlists.extend(songlists)
         return songlists

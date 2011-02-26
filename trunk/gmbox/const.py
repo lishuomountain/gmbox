@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__doc__ = '''gmbox常量文件
+
+这个文件定义了gmbox核心库使用的常量，可能需要定时更新。
+'''
+
 ARITST = {
     "男歌手" : "male",
     "女歌手" : "female",
