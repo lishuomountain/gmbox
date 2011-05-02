@@ -6,27 +6,40 @@ import os
 import gtk
 import glib
 
-def get_module_path():
-    '''获取模块地址
+def get_program_root_path():
+    '''获取程序根目录地址
     
-    在win下用py2exe打包后，跟直接运行py文件，模块地址有所不同
+    在win下用py2exe打包后，跟直接运行py文件，程序地址有所不同
     '''
     
     if hasattr(sys, "frozen"):
-        module_path = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
+        program_file_path = unicode(sys.executable, sys.getfilesystemencoding())
     else:
-        module_path = os.path.dirname(unicode(os.path.abspath(__file__), sys.getfilesystemencoding()))
-    return module_path
+        program_file_path = unicode(os.path.abspath(__file__), sys.getfilesystemencoding())
+	program_root_path = os.path.dirname(os.path.dirname(program_file_path))
+    return program_root_path
 
-MODULE_PATH = get_module_path()
+PROGRAM_ROOT_PATH = get_program_root_path()
+
+def get_glade_file_path(filename):
+	""" 获得glade文件路径"""
+	glade_folder_path = "%s/data/glade" % PROGRAM_ROOT_PATH
+	return "%s/%s" % (glade_folder_path,  filename)
+
+def get_pixbuf_file_path(filename):
+	""" 获得pixbuf文件路径"""
+	pixbuf_folder_path = "%s/data/pixbufs" % PROGRAM_ROOT_PATH
+	return "%s/%s" % (pixbuf_folder_path,  filename)
 
 def create_icon_dict():
     '''创建图标集'''
+    global PROGRAM_ROOT_PATH
     
     icon_names = ["gmbox", "song", "songlist", "directory", "refresh", "info"]
     icon_dict = {}
     for name in icon_names:
-        icon_path = "%s/pixbufs/%s.png" % (MODULE_PATH, name)
+        filename = name + ".png"
+        icon_path = get_pixbuf_file_path(filename)
         icon = gtk.gdk.pixbuf_new_from_file(icon_path)
         icon_dict[name] = icon
     return icon_dict
@@ -81,7 +94,7 @@ def get_config_folder():
     
     config_folder = "%s/gmbox" % glib.get_user_config_dir()
     if config_folder is None:
-        config_folder = "%s/config/" % MODULE_PATH
+        config_folder = "%s/config/" % PROGRAM_ROOT_PATH
     return config_folder
 
 CONFIG_FOLDER = get_config_folder()

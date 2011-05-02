@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from core import *
-from const import *
+from googlemusic import *
+from config import ICON_DICT
 from player import *
 from downloader import *
 import gtk

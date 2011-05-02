@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from config import *
+import os
+from config import CONFIG
 import threading
-import time
 import urllib
 import traceback
 
