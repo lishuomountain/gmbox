@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from core import *
-from const import *
-from test import *
-from config import *
+from config import get_glade_file_path
+from config import CONFIG, load_config_file, save_config_file
 from pages import *
 from treeviews import *
 import sys
@@ -19,7 +17,7 @@ class GmBox():
   
         # 从glade文件构建widgets
         builder = gtk.Builder()
-        builder.add_from_file(MODULE_PATH + "/gmbox.glade")
+        builder.add_from_file(get_glade_file_path('gmbox.glade'))
         builder.connect_signals(self)
         for widget in builder.get_objects():
             if issubclass(type(widget), gtk.Buildable):
@@ -1030,6 +1028,7 @@ class GmBox():
                     langs.append(LANGS[name])
                 args_dict["langs"] = ",".join(langs)
         
+		print args_dict
         self.do_screener(args_dict)
 
     def on_result_notebook_tab_button_press_event(self, widget, event, data=None):       
@@ -1202,7 +1201,10 @@ class GmBox():
             self.stop_internal_player()
             gtk.main_quit()
 
-if __name__ == '__main__':
+def main():
     GmBox().mainwin.show()
     gobject.threads_init()
     gtk.main()
+
+if __name__ == '__main__':
+	main()

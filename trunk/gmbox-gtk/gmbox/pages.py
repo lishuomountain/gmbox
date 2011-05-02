@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from core import *
-from config import *
+from googlemusic import *
+from config import ICON_DICT
 import gtk
 import gobject
 import threading
