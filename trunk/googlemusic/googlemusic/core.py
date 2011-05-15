@@ -16,9 +16,20 @@ Directory: 包含Songlist类（或子类）的列表，子类是搜索专辑，�
 '''
 
 import xml.dom.minidom as minidom
+import logging
 import hashlib
 import urllib
 import re
+
+def get_logger():
+    ''' 获得一个logger '''
+    format = '%(asctime)s %(levelname)s %(message)s'
+    level = logging.DEBUG
+    logging.basicConfig(format=format, level=level)
+    logger = logging.getLogger('googlemusic')
+    return logger
+
+logger = get_logger()
 
 class GmObject():
     '''gmbox基本类
@@ -87,6 +98,8 @@ class Song(GmObject):
             flashplayer_key = "c51181b7f9bfce1ac742ed8b4a1ae4ed"
             sig = hashlib.md5(flashplayer_key + self.id).hexdigest()
             url = template % (self.id, sig)
+
+            logger.info('读取stream数据地址：%s', url)
             urlopener = urllib.urlopen(url)
             xml = urlopener.read()
             dom = minidom.parseString(xml)
@@ -103,6 +116,8 @@ class Song(GmObject):
         if not hasattr(self, "albumId"):
             template = "http://www.google.cn/music/song?id=%s&output=xml"
             url = template % self.id
+
+            logger.info('读取详情数据地址：%s', url)
             urlopener = urllib.urlopen(url)
             xml = urlopener.read()
             dom = minidom.parseString(xml)
@@ -120,13 +135,17 @@ class Song(GmObject):
         
         template = "http://www.google.cn/music/top100/musicdownload?id=%s"
         url = template % id
+
+        logger.info('请求下载信息页地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         matches = re.search('<a href="/(music/top100/url[^"]+)">', html)
         if matches is not None:
-            return "http://www.google.cn/%s" % matches.group(1).replace("&amp;", "&")
+            downloadUrl = "http://www.google.cn/%s" % matches.group(1).replace("&amp;", "&")
+            logger.info('歌曲 %s，下载地址：%s', id, downloadUrl)
+            return downloadUrl
         else:
-            # TODO 短时间内请求次数太多了，可能出现验证码
+            logger.warring('短时间内请求次数太多了，可能出现验证码。')
             return ""
 
 class Songlist(GmObject):  
@@ -225,6 +244,8 @@ class Album(Songlist):
     def load_songs(self):
         template = "http://www.google.cn/music/album?id=%s&output=xml"
         url = template % self.id
+
+        logger.info('读取专辑地址：%s', url)
         urlopener = urllib.urlopen(url)
         xml = urlopener.read()
         songs = self.parse_xml(xml)
@@ -243,6 +264,8 @@ class Search(Songlist):
     def load_songs(self, start=0, number=20):
         template = "http://www.google.cn/music/search?cat=song&q=%s&start=%d&num=%d&output=xml"
         url = template % (self.id, start, number + 1)
+
+        logger.info('读取搜索地址：%s', url)
         urlopener = urllib.urlopen(url)
         xml = urlopener.read()
         songs = self.parse_xml(xml)
@@ -266,6 +289,8 @@ class Chartlisting(Songlist):
     def load_songs(self, start=0, number=20):
         template = "http://www.google.cn/music/chartlisting?q=%s&cat=song&start=%d&num=%d&output=xml"
         url = template % (self.id, start, number + 1)
+
+        logger.info('读取排行榜地址：%s', url)
         urlopener = urllib.urlopen(url)
         xml = urlopener.read()
         songs = self.parse_xml(xml)
@@ -289,6 +314,8 @@ class Topiclisting(Songlist):
     def load_songs(self):
         template = "http://www.google.cn/music/topiclisting?q=%s&cat=song&output=xml"
         url = template % self.id
+
+        logger.info('读取专题地址：%s', url)
         urlopener = urllib.urlopen(url)
         xml = urlopener.read()
         songs = self.parse_xml(xml)
@@ -307,6 +334,8 @@ class ArtistSong(Songlist):
     def load_songs(self):
         template = "http://www.google.cn/music/artist?id=%s&output=xml"
         url = template % self.id
+
+        logger.info('读取艺术家地址：%s', url)
         urlopener = urllib.urlopen(url)
         xml = urlopener.read()
         songs = self.parse_xml(xml, "hotSongs")
@@ -325,6 +354,8 @@ class Tag(Songlist):
     def load_songs(self, start=0, number=20):
         template = "http://www.google.cn/music/tag?q=%s&cat=song&type=songs&start=%d&num=%d"
         url = template % (self.id, start, number + 1)
+
+        logger.info('读取标签地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songs = self.parse_html(html)
@@ -347,6 +378,8 @@ class Screener(Songlist):
     def load_songs(self, start=0, number=20):
         template = "http://www.google.cn/music/songscreen?start=%d&num=%d&client=&output=xml"
         url = template % (start, number + 1)
+
+        logger.info('读取挑歌地址：%s', url)
         request_args = []
         for key, value in self.args_dict.items():
             text = "&%s=%s" % (key, value)
@@ -375,6 +408,8 @@ class Similar(Songlist):
     def load_songs(self):
         template = "http://www.google.cn/music/song?id=%s"
         url = template % self.id
+
+        logger.info('读取相似地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songs = self.parse_html(html)
@@ -393,6 +428,8 @@ class Starrecc(Songlist):
     def load_songs(self):
         template = "http://www.google.cn/music/playlist/playlist?id=sys:star_recc:%s&type=star_recommendation"
         url = template % self.id
+
+        logger.info('读取大牌私房歌地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songs = self.parse_html(html)
@@ -453,6 +490,8 @@ class DirSearch(Directory):
     def load_songlists(self, start=0, number=20):
         template = "http://www.google.cn/music/search?q=%s&cat=album&start=%d&num=%d"
         url = template % (self.id, start, number + 1)
+
+        logger.info('读取专辑搜索地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songlists = self.parse_html(html)
@@ -511,6 +550,8 @@ class DirChartlisting(Directory):
     def load_songlists(self, start=0, number=20):
         template = "http://www.google.cn/music/chartlisting?q=%s&cat=album&start=%d&num=%d&output=xml"
         url = template % (self.id, start, number + 1)
+
+        logger.info('读取专辑排行榜地址：%s', url)
         urlopener = urllib.urlopen(url)
         xml = urlopener.read()
         songlists = self.parse_xml(xml)
@@ -542,6 +583,8 @@ class DirTopiclistingdir(Directory):
     def load_songlists(self, start=0, number=20):
         template = "http://www.google.cn/music/topiclistingdir?cat=song&start=%d&num=%d"
         url = template % (start, number + 1)
+
+        logger.info('读取专辑专题地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songlists = self.parse_html(html)  
@@ -595,7 +638,7 @@ class DirTopiclistingdir(Directory):
     
     
 class DirArtist(Directory):
-    '''艺术家专辑'''
+    '''艺术家搜索'''
     
     def __init__(self, id):
         Directory.__init__(self)
@@ -640,6 +683,8 @@ class DirArtist(Directory):
     def load_songlists(self, start=0, number=20):
         template = "http://www.google.cn/music/search?q=%s&cat=artist&start=%d&num=%d"
         url = template % (self.id, start, number + 1)
+
+        logger.info('读取艺术家搜索地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songlists = self.parse_html(html)
@@ -652,7 +697,8 @@ class DirArtist(Directory):
         return songlists
 
 class DirArtistAlbum(Directory):
-    
+    ''' 艺术家专辑 '''
+
     def __init__(self, id):
         Directory.__init__(self)
         self.id = id
@@ -700,6 +746,8 @@ class DirArtistAlbum(Directory):
     def load_songlists(self):
         template = "http://www.google.cn/music/artist?id=%s"
         url = template % self.id
+
+        logger.info('读取艺术家专辑地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songlists = self.parse_html(html)
@@ -717,6 +765,8 @@ class DirTag(DirTopiclistingdir):
     def load_songlists(self, start=0, number=20):
         template = "http://www.google.cn/music/tag?q=%s&cat=song&type=topics&start=%d&num=%d"
         url = template % (self.id, start, number + 1)
+
+        logger.info('读取专辑标签地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songlists = self.parse_html(html)
@@ -738,6 +788,8 @@ class DirStarrecc(Directory):
     def load_songlists(self):
         template = "http://www.google.cn/music/starrecommendationdir?num=100"
         url = template
+
+        logger.info('读取大牌私房歌歌手列表地址：%s', url)
         urlopener = urllib.urlopen(url)
         html = urlopener.read()
         songlists = self.parse_html(html)
