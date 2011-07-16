@@ -618,6 +618,18 @@ class DirTopiclistingdir(Directory):
             match = GmObject.decode_html_text(match)
             descriptions.append(match)
 
+        # WorkAround
+        if len(matches) != len(ids):
+            matches = re.findall('<td class="topic_description"><div([^<]+)<', html)
+            for match in matches:
+                match = match.split()[0]
+                match = GmObject.decode_html_text(match)
+                if match.startswith(' title="'):
+                    match = match[len((' title="')):]
+                elif match.startswith('<'):
+                    match = match[2:]
+                descriptions.append(match)
+
         thumbnails = []
         for i in range(len(ids)):
             thumbnails.append("http://www.google.cn/music/images/cd_cover_default_big.png")
