@@ -163,7 +163,7 @@ Directory子类同理。
 
 = 下一步 =
 
-Songlist和Directory的已实现子类及其参数请阅读源代码，已经添加了大量的注释。
+Songlist和Directory的已实现子类及其参数请阅读[https://code.google.com/p/gmbox/source/browse/#svn%2Ftrunk%2Flibgmbox%2Flibgmbox 源代码]，已经添加了大量的注释，我已经懒得又写一遍了。
 
 建议阅读顺序
 
