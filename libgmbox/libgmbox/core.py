@@ -39,7 +39,7 @@ class GmObject():
     '''
 
     def __init__(self):
-        pass
+        self.gmattrs = {}
 
     def parse_node(self, node):
         '''解析xml节点添加实例属性'''
@@ -50,13 +50,15 @@ class GmObject():
                 value = childNode.childNodes[0].data
             else:
                 value = ""
+            self.gmattrs[name] = value
             setattr(self, name, value)
 
     def parse_dict(self, dict):
         '''解析dict键值添加实例属性'''
 
-        for key in dict:
-            setattr(self, key, unicode(dict[key]))
+        for key, value in dict.iteritems():
+            self.gmattrs[key] = value
+            setattr(self, key, value)
 
     @staticmethod
     def decode_html_text(text):
@@ -82,6 +84,7 @@ class Song(GmObject):
     '''歌曲类'''
 
     def __init__(self, id=None):
+        GmObject.__init__(self)
         if id is not None:
             self.id = id
             self.load_detail()
@@ -158,6 +161,7 @@ class Songlist(GmObject):
     '''
 
     def __init__(self):
+        GmObject.__init__(self)
         self.songs = []
         self.has_more = False
 

@@ -17,9 +17,8 @@ def print_song(song):
     song.load_detail()
     song.load_streaming()
 
-    for name in dir(song):
-        if type(getattr(song, name)) == unicode:
-            print "%s: %s" % (name , getattr(song, name))
+    for key, value in song.gmattrs.iteritems():
+        print "%s: %s" % (key , value)
     print
 
 def print_songlist(songlist):
@@ -32,9 +31,8 @@ def print_songlist(songlist):
     以免发出过多的http请求。
     '''
 
-    for name in dir(songlist):
-        if type(getattr(songlist, name)) == unicode:
-            print "%s: %s" % (name , getattr(songlist, name))
+    for key, value in songlist.gmattrs.iteritems():
+        print "%s: %s" % (key , value)
 
     for song in songlist.songs:
         print_song(song)
