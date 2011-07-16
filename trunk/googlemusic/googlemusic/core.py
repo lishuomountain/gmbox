@@ -12,7 +12,7 @@ Directory: 包含Songlist类（或子类）的列表，子类是搜索专辑，�
 
 解析结果：
 谷歌音乐的某些结果提供xml，通过它的flash播放器抓包分析所得。
-某些功能没有xml，只好解析html，理论上解析速度会被xml慢。
+某些功能没有xml，只好解析html，理论上解析速度会比xml慢。
 '''
 
 import xml.dom.minidom as minidom
@@ -24,7 +24,8 @@ import re
 def get_logger(logger_name):
     ''' 获得一个logger '''
     format = '%(asctime)s %(levelname)s %(message)s'
-    level = logging.DEBUG
+    #level = logging.DEBUG
+    level = logging.WARNING
     logging.basicConfig(format=format, level=level)
     logger = logging.getLogger(logger_name)
     return logger
@@ -70,7 +71,7 @@ class GmObject():
             "&amp;" : "&",
             "&middot;" : "·"
         }
-        for key, value in html_escape_table.items():
+        for key, value in html_escape_table.iteritems():
             text = text.replace(key, value)
         numbers = re.findall('&#([^;]+);', text)
         for number in numbers:
@@ -368,11 +369,25 @@ class Tag(Songlist):
         return songs
 
 class Screener(Songlist):
-    '''挑歌'''
+    '''挑歌
 
-    def __init__(self, args_dict={}):
+    args_dict 参数示例，字典类型
+    {
+        'timbre': '0.5', 
+        'date_l': '694195200000', 
+        'tempo': '0.5', 
+        'date_h': '788889600000', 
+        'pitch': '0.5', 
+        'artist_type': 'male'
+    }
+    '''
+
+    def __init__(self, args_dict=None):
         Songlist.__init__(self)
-        self.args_dict = args_dict
+        if args_dict is None:
+            self.args_dict = {}
+        else:
+            self.args_dict = args_dict
         self.load_songs()
 
     def load_songs(self, start=0, number=20):
@@ -381,7 +396,7 @@ class Screener(Songlist):
 
         logger.info('读取挑歌地址：%s', url)
         request_args = []
-        for key, value in self.args_dict.items():
+        for key, value in self.args_dict.iteritems():
             text = "&%s=%s" % (key, value)
             request_args.append(text)
         url = url + "".join(request_args)
