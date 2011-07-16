@@ -7,13 +7,13 @@ import subprocess
 import time
 
 class Player(threading.Thread):
-    
+
     def __init__(self, song, running, callback):
         threading.Thread.__init__(self)
         self.song = song
         self.running = running
         self.callback = callback
-        
+
     def run(self):
         cmd = "mpg123 -R dummy --skip-printing-frames=32".split()
         self.popen = subprocess.Popen(cmd, stdin=subprocess.PIPE,
@@ -21,42 +21,42 @@ class Player(threading.Thread):
         self.open()
         self.play_end = False
         thread.start_new_thread(self.mpg123_response, ())
-        self.play_loop()        
+        self.play_loop()
         self.quit()
         self.popen.terminate()
-        
+
         if self.play_end:
             self.callback(self.song)
-        
+
     def play_loop(self):
         while self.running.isSet():
             if not self.play_end:
                 time.sleep(1)
             else:
                 break
-    
+
     def open(self):
         self.mpg123_request("LOAD %s" % self.song.songUrl)
-        
+
     def play(self):
         self.mpg123_request("PAUSE")
-    
+
     def pause(self):
         self.mpg123_request("PAUSE")
-    
+
     def stop(self):
         self.mpg123_request("STOP")
-        
+
     def quit(self):
         self.mpg123_request("QUIT")
 
     def seek(self):
         pass
-    
+
     def mpg123_request(self, text):
         self.popen.stdin.write(text)
-    
-    def mpg123_response(self):        
+
+    def mpg123_response(self):
         while self.running.isSet():
             line = self.popen.stdout.readline()
             if line.startswith("@F"):
@@ -72,4 +72,4 @@ class Player(threading.Thread):
                 if self.song.play_process > 100:
                     self.play_end = True
                     break
-        
+
