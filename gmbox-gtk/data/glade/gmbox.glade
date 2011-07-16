@@ -2250,7 +2250,7 @@ lerosua &lt;lerosua@gmail.com&gt;</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="border_width">4</property>
-                <property name="n_rows">4</property>
+                <property name="n_rows">3</property>
                 <property name="n_columns">3</property>
                 <property name="column_spacing">4</property>
                 <property name="row_spacing">4</property>
@@ -2376,35 +2376,6 @@ ${TRACK}  - 专辑音轨序号 </property>
                     <property name="right_attach">3</property>
                     <property name="top_attach">2</property>
                     <property name="bottom_attach">3</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkHBox" id="hbox6">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="spacing">4</property>
-                    <child>
-                      <object class="GtkCheckButton" id="show_status_icon_checkbutton">
-                        <property name="label" translatable="yes">显示通知区域图标</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="draw_indicator">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="right_attach">3</property>
-                    <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
@@ -2826,6 +2797,115 @@ ${FILEPATH} - 保存歌曲的绝对地址
               </object>
               <packing>
                 <property name="position">2</property>
+                <property name="tab_fill">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkTable" id="table6">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="border_width">4</property>
+                <property name="n_rows">3</property>
+                <property name="n_columns">3</property>
+                <property name="column_spacing">4</property>
+                <property name="row_spacing">4</property>
+                <child>
+                  <object class="GtkLabel" id="label18">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">代理地址</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="http_proxy_url_entry">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">格式：host:port
+示例：127.0.0.1:8080</property>
+                    <property name="invisible_char">●</property>
+                    <property name="invisible_char_set">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">3</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHBox" id="hbox11">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkCheckButton" id="use_http_proxy_checkbutton">
+                        <property name="label" translatable="yes">使用HTTP代理（需重启程序）</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="xalign">0</property>
+                        <property name="draw_indicator">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="right_attach">3</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHBox" id="hbox6">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkCheckButton" id="show_status_icon_checkbutton">
+                        <property name="label" translatable="yes">显示通知区域图标</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="xalign">0</property>
+                        <property name="draw_indicator">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="right_attach">3</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="label16">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">杂项</property>
+              </object>
+              <packing>
+                <property name="position">3</property>
                 <property name="tab_fill">False</property>
               </packing>
             </child>

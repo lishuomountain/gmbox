@@ -76,7 +76,6 @@ CONFIG = {
     "filename_template" : "${ALBUM}/${ARTIST} - ${TITLE}",
     "download_cover" : True,
     "download_lyric" : True,
-    "show_status_icon" : True,
     # 播放器
     "player_use_internal" : False,
     "player_path" : get_default_player(),
@@ -88,6 +87,10 @@ CONFIG = {
     "downloader_single" : "${URL} -O ${FILEPATH}",
     "downloader_multi" : "${URLS}",
     "downloader_mkdir" : True,
+    # 杂项
+    "show_status_icon" : True,
+    "use_http_proxy" : False,
+    "http_proxy_url" : "127.0.0.1:8080",
 }
 
 def get_config_folder():

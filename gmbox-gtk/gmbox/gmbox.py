@@ -15,7 +15,8 @@ from treeviews import *
 def get_logger(logger_name):
     ''' 获得一个logger '''
     format = '%(asctime)s %(levelname)s %(message)s'
-    level = logging.DEBUG
+    #level = logging.DEBUG
+    level = logging.WARNING
     logging.basicConfig(format=format, level=level)
     logger = logging.getLogger(logger_name)
     return logger
@@ -55,6 +56,9 @@ class GmBox():
         self.init_player_widgets()
         self.init_status_icon()
 
+        # 初始化代理
+        self.init_proxy_setting()
+
         # 某些功能未完成，屏蔽掉
         self.init_not_done_yet()
 
@@ -79,7 +83,6 @@ class GmBox():
         #self.screener_vbox.hided = False
         self.screener_vbox.hide()
         self.screener_vbox.hided = True
-
 
     def init_info_textview(self):
         '''初始化信息面板'''
@@ -176,6 +179,17 @@ class GmBox():
         self.status_icon.connect("activate", self.on_status_icon_activate)
         self.status_icon.set_visible(CONFIG["show_status_icon"])
 
+    def init_proxy_setting(self):
+        ''' 初始化代理设置 '''
+        if CONFIG['use_http_proxy']:
+            logger.debug("使用代理：http://%s", CONFIG['http_proxy_url'])
+            os.environ['http_proxy'] = "http://%s" % CONFIG['http_proxy_url']
+        else:
+            logger.debug("禁用代理")
+            if "http_proxy" in os.environ:
+                del os.environ['http_proxy']
+
+
     def init_not_done_yet(self):
         '''初始化未完成的咚咚'''
 
@@ -196,7 +210,6 @@ class GmBox():
         self.filename_template_entry.set_text(CONFIG["filename_template"])
         self.download_cover_checkbutton.set_active(CONFIG["download_cover"])
         self.download_lyric_checkbutton.set_active(CONFIG["download_lyric"])
-        self.show_status_icon_checkbutton.set_active(CONFIG["show_status_icon"])
 
         # 播放器
         self.player_internal_radiobutton.set_active(CONFIG["player_use_internal"])
@@ -212,6 +225,11 @@ class GmBox():
         self.downloader_single_entry.set_text(CONFIG["downloader_single"])
         self.downloader_multi_entry.set_text(CONFIG["downloader_multi"])
         self.downloader_mkdir_checkbutton.set_active(CONFIG["downloader_mkdir"])
+
+        # 杂项
+        self.show_status_icon_checkbutton.set_active(CONFIG["show_status_icon"])
+        self.use_http_proxy_checkbutton.set_active(CONFIG["use_http_proxy"])
+        self.http_proxy_url_entry.set_text(CONFIG["http_proxy_url"])
 
     def update_status_icon(self):
         '''更新通知区域图标状态'''
@@ -259,16 +277,18 @@ class GmBox():
                     result = target()
                 else:
                     result = target(arg)
+                error_text = None
             except StandardError as error:
                 traceback.print_exc()
                 result = None
-            gobject.idle_add(callback, result)
+                error_text = str(error)
+            gobject.idle_add(callback, result, error_text)
 
-        def _handle_result(result):
+        def _handle_result(result, error_text):
             '''处理结果'''
 
             if result is None:
-                result_page.load_message("遇到错误：%s" % str(error))
+                result_page.load_message("遇到错误：%s" % error_text)
                 # 从结果缓存中移除出去
                 self.result_pages.pop(page_key)
             else:
@@ -845,7 +865,6 @@ class GmBox():
             CONFIG["downloader_use_internal"] = self.downloader_internal_radiobutton.get_active()
             CONFIG["download_cover"] = self.download_cover_checkbutton.get_active()
             CONFIG["download_lyric"] = self.download_lyric_checkbutton.get_active()
-            CONFIG["show_status_icon"] = self.show_status_icon_checkbutton.get_active()
             # 播放器
             CONFIG["player_path"] = self.player_path_entry.get_text()
             CONFIG["player_single"] = self.player_single_entry.get_text()
@@ -855,6 +874,10 @@ class GmBox():
             CONFIG["downloader_single"] = self.downloader_single_entry.get_text()
             CONFIG["downloader_multi"] = self.downloader_multi_entry.get_text()
             CONFIG["downloader_mkdir"]= self.downloader_mkdir_checkbutton.get_active()
+            # 杂项
+            CONFIG["show_status_icon"] = self.show_status_icon_checkbutton.get_active()
+            CONFIG["use_http_proxy"] = self.use_http_proxy_checkbutton.get_active()
+            CONFIG["http_proxy_url"] = self.http_proxy_url_entry.get_text()
 
             # 更新一下状态
             self.update_status_icon()
