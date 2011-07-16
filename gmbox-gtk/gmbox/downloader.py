@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-from config import CONFIG
 import threading
 import urllib
 import traceback
+from config import CONFIG
 
 class Downloader(threading.Thread):
 

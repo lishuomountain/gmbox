@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from googlemusic import *
-from config import ICON_DICT
-from player import *
-from downloader import *
 import gtk
 import gobject
+from libgmbox import (Song, Songlist, Directory,
+                      CHARTLISTING_DIR, TAG_DIR)
+from config import ICON_DICT
+from downloader import Downloader
 
 class CategoryTreeview(gtk.TreeView):
 

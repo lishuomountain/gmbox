@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from googlemusic import *
-from config import ICON_DICT
 import gtk
 import gobject
 import threading
+from libgmbox import Song, Songlist
+from config import ICON_DICT
 
 class ResultPageLabel(gtk.EventBox):
 
