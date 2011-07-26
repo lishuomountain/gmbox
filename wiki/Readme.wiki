@@ -17,7 +17,7 @@ https://images2-focus-opensocial.googleusercontent.com/gadgets/proxy?url=http://
 
 == Linux ==
 
-Linux用户可以直接下在源码包，运行“gmbox”目录下的“gmnbox.py”即可。
+Linux用户可以直接下在源码包，运行“./gmbox-gtk.py”即可。
 
 == Windows ==
 
