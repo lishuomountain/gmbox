@@ -14,9 +14,10 @@ def get_program_root_path():
 
     if hasattr(sys, "frozen"):
         program_file_path = unicode(sys.executable, sys.getfilesystemencoding())
+        program_root_path = os.path.dirname(program_file_path)
     else:
         program_file_path = unicode(os.path.abspath(__file__), sys.getfilesystemencoding())
-    program_root_path = os.path.dirname(os.path.dirname(program_file_path))
+        program_root_path = os.path.dirname(os.path.dirname(program_file_path))
     return program_root_path
 
 PROGRAM_ROOT_PATH = get_program_root_path()
