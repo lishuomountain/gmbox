@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# copy this file to gmbox/setup.py, then run
+# copy this file to gmbox-gtk/setup.py, then run
 # python setup.py py2exe
-# archive the output gmbox-win folder
+# archive the output "dist" folder
 
+from glob import glob
 from distutils.core import setup
 import py2exe
 
@@ -25,17 +26,8 @@ setup(
             'dist_dir' : 'dist',
         }
     },
-    data_files=[
-        ('data', [
-            'data/glade/gmbox.glade',
-            'data/pixbufs/directory.png',
-            'data/pixbufs/gmbox.ico',
-            'data/pixbufs/info.png',
-            'data/pixbufs/songlist.png',
-            'data/pixbufs/error.png',
-            'data/pixbufs/gmbox.png',
-            'data/pixbufs/refresh.png',
-            'data/pixbufs/song.png'
-        ])
+    data_files = [
+        ('data/glade', glob('data/glade/*')),
+        ('data/pixbufs', glob('data/pixbufs/*')),
     ]
 )
