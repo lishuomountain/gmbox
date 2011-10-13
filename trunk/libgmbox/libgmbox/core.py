@@ -99,7 +99,7 @@ class Song(GmObject):
 
         if not hasattr(self, "songUrl"):
             template = "http://www.google.cn/music/songstreaming?id=%s&cd&sig=%s&output=xml"
-            flashplayer_key = "a3230bc2ef1939edabc39ddd03009439"
+            flashplayer_key = "343aef99312bc33a887761529031cbad"
             sig = hashlib.md5(flashplayer_key + self.id).hexdigest()
             url = template % (self.id, sig)
 
